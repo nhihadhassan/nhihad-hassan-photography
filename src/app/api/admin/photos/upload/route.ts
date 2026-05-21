@@ -18,6 +18,9 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Uploads do Sharp image processing plus three R2 writes; give larger files
+// enough room while staying conservative for Vercel Hobby limits.
+export const maxDuration = 60;
 
 type ApiError = { error: string; code?: string };
 

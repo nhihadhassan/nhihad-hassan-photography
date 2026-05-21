@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+:root {
+  --background: #080808;
+  --foreground: #f7f3ed;
+  --ink: #080808;
+  --charcoal: #141210;
+  --umber: #211b17;
+  --soft-white: #f7f3ed;
+  --beige: #d8c8b2;
+  --taupe: #9c8f80;
+  --copper: #b98257;
+  --line: rgba(247, 243, 237, 0.14);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
+  --color-charcoal: var(--charcoal);
+  --color-umber: var(--umber);
+  --color-soft-white: var(--soft-white);
+  --color-beige: var(--beige);
+  --color-taupe: var(--taupe);
+  --color-copper: var(--copper);
+  --font-serif: var(--font-cormorant);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: rgba(185, 130, 87, 0.5);
+  color: var(--soft-white);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.photo-surface {
+  background:
+    linear-gradient(180deg, rgba(247, 243, 237, 0.08), rgba(247, 243, 237, 0)),
+    #141210;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.image-fade-mask {
+  mask-image: linear-gradient(180deg, black 72%, transparent 100%);
+}

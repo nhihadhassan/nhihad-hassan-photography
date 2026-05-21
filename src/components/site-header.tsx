@@ -1,0 +1,47 @@
+import Link from "next/link";
+import { Camera } from "lucide-react";
+import { brandConfig } from "@/lib/config";
+import { ButtonLink } from "@/components/ui/button";
+
+const navItems = [
+  { href: "/portfolio", label: "Portfolio" },
+  { href: "/galleries/moove-ah", label: "Client Gallery" },
+  { href: "/contact", label: "Contact" },
+];
+
+export function SiteHeader() {
+  return (
+    <header className="absolute inset-x-0 top-0 z-20">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-3 text-soft-white transition hover:text-beige"
+          aria-label={`${brandConfig.name} home`}
+        >
+          <span className="flex size-10 items-center justify-center rounded-full border border-soft-white/20 bg-ink/35 backdrop-blur">
+            <Camera aria-hidden="true" className="size-4" strokeWidth={1.7} />
+          </span>
+          <span className="hidden text-sm font-medium tracking-wide sm:inline">
+            {brandConfig.name}
+          </span>
+          <span className="text-sm font-medium tracking-wide sm:hidden">{brandConfig.shortName}</span>
+        </Link>
+        <nav className="hidden items-center gap-1 rounded-full border border-soft-white/14 bg-ink/35 p-1 backdrop-blur md:flex">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-full px-4 py-2 text-sm text-soft-white/72 transition hover:bg-soft-white/8 hover:text-soft-white"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        <ButtonLink href="/contact" variant="secondary" className="hidden sm:inline-flex">
+          Inquire
+        </ButtonLink>
+      </div>
+    </header>
+  );
+}
+

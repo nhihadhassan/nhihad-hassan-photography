@@ -188,6 +188,7 @@ export async function getPublishedGalleryBySlug(slug: string): Promise<PublicGal
     location: string | null;
     cover_image_url: string | null;
     cover_image_alt: string | null;
+    cover_photo_id: string | null;
     is_public: boolean;
     download_enabled: boolean;
     download_quality: "web" | "full";
@@ -216,18 +217,9 @@ export async function getPublishedGalleryBySlug(slug: string): Promise<PublicGal
   let coverAlt: string = gallery.cover_image_alt || mock?.alt || fallbackCover.alt;
 
   if (hasR2Config()) {
-    // Resolve cover photo from cover_photo_id. For unprotected galleries we can
-    // do this through the user-scoped client (cover_photo_id is on the row,
-    // and the photo is publicly readable). For protected galleries we use the
-    // service-role lookup so the cover image still shows on the locked gate.
-    const { data: galleryRow } = await supabase
-      .from("galleries")
-      .select("cover_photo_id")
-      .eq("id", gallery.id)
-      .maybeSingle();
-
-    const coverPhotoId = (galleryRow as { cover_photo_id?: string | null } | null)
-      ?.cover_photo_id;
+    // cover_photo_id is returned by the safe public RPC so the browser-facing
+    // app never needs a broad direct SELECT policy on galleries.
+    const coverPhotoId = gallery.cover_photo_id;
     if (coverPhotoId) {
       if (hasPassword) {
         const cover = await getProtectedCoverPhoto(coverPhotoId);

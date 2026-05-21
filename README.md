@@ -671,8 +671,12 @@ alter table public.galleries
     check (deposit_status in ('not_requested','requested','received','balance_due','paid')),
   add column payment_notes text;
 ```
-No new RLS policies needed — the existing "Admins manage galleries" policy
-covers both columns.
+Admin writes are still covered by the existing "Admins manage galleries"
+policy. Migration `0010_harden_public_gallery_payment_fields.sql` also removes
+the older broad public gallery table read policy so newly added admin-only
+columns cannot be exposed by direct anonymous `galleries` selects. Public cover
+pages continue to load through the curated `get_public_gallery_by_slug()` RPC,
+which does not return payment fields.
 
 ### Future payment option (deferred)
 Stripe Connect or a simple payment link can be wired in later without schema

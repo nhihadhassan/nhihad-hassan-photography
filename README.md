@@ -682,3 +682,81 @@ which does not return payment fields.
 Stripe Connect or a simple payment link can be wired in later without schema
 changes — `deposit_status` values map naturally to Stripe webhook states.
 No Stripe dependency is installed in this phase.
+
+## Marketing + booking-conversion polish (Phase 4A)
+
+Phase 4A turns the site from a *gallery delivery tool* into a *bookable
+photography business*. No schema changes, no payment changes, no Stripe —
+all updates are on the public marketing surface and stay inside the
+existing premium dark/copper aesthetic.
+
+### What changed
+
+| Area | Change |
+|---|---|
+| **Hero copy** | Eyebrow updated from *"Toronto events, nightlife, portraits"* → *"Toronto weddings, couples, events, and nightlife"*; subtitle now leads with weddings/couples. |
+| **Homepage** | The single nightlife-only spotlight was replaced with a five-card **Services grid** (Weddings → Couples & Engagements → Portraits → Events → Nightlife). A **Testimonials** section and a **bottom InquiryCallout** were added. |
+| **/investment** (new route) | Single elegant page: hero, *How booking works* (5-step strip with explicit Interac e-Transfer line), services grid, per-service detail blocks, testimonials slot, bottom callout. **No dollar figures** — inquiry-based positioning. |
+| **Header nav** | `Investment` added between `Portfolio` and `Client Gallery`. |
+| **Mobile nav** | New full-screen drawer (`src/components/mobile-nav.tsx`) replaces the previous *"no mobile menu"* gap. Hamburger visible below `md`; closes on Escape, on item tap, and on the close button; body scroll locks while open. |
+| **Footer** | Added `Investment` and `Contact` to secondary links. |
+| **Portfolio + category pages** | Bottom `<InquiryCallout />` so visitors always have a way back to the inquiry form. |
+
+### New files
+
+- `src/data/services.ts` — five services with `id`, `label`, `shortBlurb`, `longBlurb`, `portfolioHref`, `imageId`. `imageId` references `portfolioItems` so cover photos are sourced without duplicating URLs.
+- `src/data/testimonials.ts` — `Testimonial` type + **deliberately empty array**.
+- `src/components/services-grid.tsx` — reusable 5-card grid (Reveal-wrapped) with `tone="dark" | "light"`.
+- `src/components/testimonials.tsx` — server component. **Returns `null` when the array is empty** so the site never ships placeholder social proof.
+- `src/components/inquiry-callout.tsx` — reusable bottom-of-page CTA banner with primary (Inquire) + secondary (See investment) actions.
+- `src/components/mobile-nav.tsx` — client component, Framer Motion overlay, locks body scroll.
+- `src/app/investment/page.tsx` — the new route.
+
+### Testimonials — no fake reviews policy
+
+`testimonials: Testimonial[]` ships as an empty array. The component returns
+`null` until at least one real entry exists, so:
+
+- The site **does not display placeholder reviews** on any page today.
+- The moment the photographer drops a real testimonial into the array,
+  every page that renders `<Testimonials />` (homepage + `/investment`)
+  automatically picks it up — no code change required.
+
+To add one, follow the shape commented in `src/data/testimonials.ts`:
+
+```ts
+{
+  id: "miharmohian-2024-08",
+  name: "Mihar & Mohian",
+  shootType: "Wedding",
+  quote: "...",
+  location: "Toronto, ON",
+  date: "August 2024",
+}
+```
+
+### Pricing positioning
+
+`/investment` is **inquiry-based** by design. There are no dollar figures
+anywhere in the copy. The page explicitly states:
+
+> *Bookings are confirmed manually. Deposit instructions are sent after
+> booking confirmation via **Interac e-Transfer** — there is no checkout on
+> this site.*
+
+If exact pricing is added later, replace the **shortBlurb** / **longBlurb**
+strings in `src/data/services.ts`; no component changes needed.
+
+### What was deliberately NOT done
+
+- **No new Supabase migration.** Phase 4A is public-side only.
+- **No new portfolio categories.** The marketing surface maps the 5
+  shoot types to the existing slugs (`weddings-couples`, `portraits`,
+  `events`, `nightlife`, `lifestyle`) without renaming URLs or requiring
+  new source images.
+- **No Stripe / no checkout / no online payment.** Per the directive,
+  payment remains manual Interac e-Transfer (Phase 3L).
+- **No `/journal` blog scaffolding** — deferred to Phase 4H per the
+  roadmap.
+- **No admin-editable hero copy.** Hero / About copy still lives in source
+  files for this phase; editing it requires a deploy.

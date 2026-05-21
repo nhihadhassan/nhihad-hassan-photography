@@ -2,9 +2,11 @@ import Link from "next/link";
 import { Camera } from "lucide-react";
 import { brandConfig } from "@/lib/config";
 import { ButtonLink } from "@/components/ui/button";
+import { MobileNav, type MobileNavItem } from "@/components/mobile-nav";
 
-const navItems = [
+const navItems: MobileNavItem[] = [
   { href: "/portfolio", label: "Portfolio" },
+  { href: "/investment", label: "Investment" },
   { href: "/galleries/moove-ah", label: "Client Gallery" },
   { href: "/contact", label: "Contact" },
 ];
@@ -37,11 +39,13 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <ButtonLink href="/contact" variant="secondary" className="hidden sm:inline-flex">
-          Inquire
-        </ButtonLink>
+        <div className="flex items-center gap-2">
+          <ButtonLink href="/contact" variant="secondary" className="hidden md:inline-flex">
+            Inquire
+          </ButtonLink>
+          <MobileNav items={navItems} />
+        </div>
       </div>
     </header>
   );
 }
-

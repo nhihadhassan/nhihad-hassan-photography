@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { PhotoCard } from "@/components/photo-card";
+import { InquiryCallout } from "@/components/inquiry-callout";
 import { categoryLabels, portfolioItems } from "@/data/photography";
 
 export const metadata: Metadata = {
@@ -52,6 +53,7 @@ export default function PortfolioPage() {
             ))}
           </div>
         </section>
+        <InquiryCallout tone="dark" />
       </main>
       <SiteFooter />
     </div>

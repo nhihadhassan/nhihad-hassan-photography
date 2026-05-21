@@ -5,13 +5,15 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { ButtonLink } from "@/components/ui/button";
+import { ServicesGrid } from "@/components/services-grid";
+import { Testimonials } from "@/components/testimonials";
+import { InquiryCallout } from "@/components/inquiry-callout";
 import { brandConfig } from "@/lib/config";
 import { featuredGalleries, portfolioItems } from "@/data/photography";
 import { formatDisplayDate } from "@/lib/utils";
 
 const heroImage = portfolioItems[0];
 const sideImage = portfolioItems[5];
-const nightlifeImage = portfolioItems[4];
 const featuredPortfolio = portfolioItems.filter((item) => item.featured).slice(0, 5);
 
 export default function Home() {
@@ -34,13 +36,13 @@ export default function Home() {
               <Reveal>
                 <div>
                   <p className="text-xs uppercase tracking-[0.22em] text-beige/75">
-                    Toronto events, nightlife, portraits
+                    Toronto weddings, couples, events, and nightlife
                   </p>
                   <h1 className="mt-5 max-w-5xl font-serif text-6xl font-medium leading-[0.88] tracking-tight text-soft-white sm:text-8xl lg:text-[9.2rem]">
                     {brandConfig.name}
                   </h1>
                   <p className="mt-7 max-w-2xl text-lg leading-8 text-soft-white/70 sm:text-xl">
-                    Event, lifestyle, and portrait photography based in Toronto, shaped around atmosphere, movement, and honest moments.
+                    Wedding, couples, portrait, and event photography based in Toronto — shaped around atmosphere, movement, and the moments worth keeping.
                   </p>
                   <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                     <ButtonLink href="/portfolio">
@@ -56,7 +58,7 @@ export default function Home() {
               <Reveal delay={0.12}>
                 <div className="border-t border-soft-white/16 pt-6 lg:border-l lg:border-t-0 lg:pl-7">
                   <p className="text-sm leading-6 text-soft-white/64">
-                    Photography for packed dance floors, family rituals, soft portraits, and the kind of late-night frames that still feel loud the next morning.
+                    Photography for first looks, packed dance floors, family rituals, soft portraits, and the late-night frames that still feel loud the next morning.
                   </p>
                   <dl className="mt-7 grid grid-cols-2 gap-4 text-sm">
                     <div>
@@ -65,7 +67,7 @@ export default function Home() {
                     </div>
                     <div>
                       <dt className="text-soft-white/42">Focus</dt>
-                      <dd className="mt-1 text-soft-white">Events</dd>
+                      <dd className="mt-1 text-soft-white">Weddings &amp; events</dd>
                     </div>
                   </dl>
                 </div>
@@ -85,7 +87,7 @@ export default function Home() {
                   </h2>
                 </div>
                 <p className="max-w-2xl text-base leading-7 text-soft-white/62 lg:justify-self-end">
-                  A portfolio with event pace, portrait calm, and enough negative space to let the image hold the room.
+                  A portfolio with wedding warmth, portrait calm, and event pace — paired with enough negative space to let each image hold the room.
                 </p>
               </div>
             </Reveal>
@@ -119,40 +121,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="bg-[#f3eee5] px-4 py-20 text-ink sm:px-6 lg:px-8 lg:py-28">
-          <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1fr_0.8fr] lg:items-center">
-            <Reveal>
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[2px] bg-ink/10 md:aspect-[5/4]">
-                <Image
-                  src={nightlifeImage.imageUrl}
-                  alt={nightlifeImage.alt}
-                  fill
-                  sizes="(min-width: 1024px) 55vw, 100vw"
-                  className="object-cover"
-                />
-              </div>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <div className="lg:pl-8">
-                <p className="text-xs uppercase tracking-[0.2em] text-[#8b6444]">Nightlife / events</p>
-                <h2 className="mt-5 font-serif text-5xl leading-[0.96] sm:text-6xl">
-                  Fast rooms, clean frames.
-                </h2>
-                <p className="mt-6 max-w-xl text-base leading-7 text-ink/68">
-                  The event work is tuned for movement: flash, colour, crowd energy, and the in-between expressions that make a gallery feel alive.
-                </p>
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <ButtonLink href="/portfolio/nightlife" variant="light">
-                    See Nightlife
-                  </ButtonLink>
-                  <ButtonLink href="/galleries/moove-ah" variant="ghost" className="border-ink/15 text-ink hover:bg-ink/6 hover:text-ink">
-                    Preview Gallery
-                  </ButtonLink>
-                </div>
-              </div>
-            </Reveal>
-          </div>
-        </section>
+        <ServicesGrid tone="light" />
 
         <section className="bg-charcoal px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
           <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.7fr_1fr]">
@@ -201,6 +170,8 @@ export default function Home() {
           </div>
         </section>
 
+        <Testimonials tone="dark" />
+
         <section className="bg-ink px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
           <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
             <Reveal>
@@ -221,7 +192,7 @@ export default function Home() {
                   Photographs that keep the atmosphere intact.
                 </h2>
                 <p className="mt-6 max-w-2xl text-base leading-7 text-soft-white/62">
-                  Nhihad Hassan Photography covers Toronto events, nightlife, portraits, lifestyle stories, and celebrations with a clean eye for light, gesture, and emotional pace.
+                  Nhihad Hassan Photography covers Toronto weddings, couples and engagements, portraits, events, and nightlife with a clean eye for light, gesture, and emotional pace.
                 </p>
                 <div className="mt-8">
                   <ButtonLink href="/contact">
@@ -233,9 +204,10 @@ export default function Home() {
             </Reveal>
           </div>
         </section>
+
+        <InquiryCallout tone="dark" />
       </main>
       <SiteFooter />
     </div>
   );
 }
-

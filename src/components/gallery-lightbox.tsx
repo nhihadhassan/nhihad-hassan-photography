@@ -195,7 +195,7 @@ export function GalleryLightbox({
             <div className="pointer-events-auto flex flex-col gap-3">
               {enableSelects ? <SelectToggle photoId={photo.id} variant="lightbox" /> : null}
               <span
-                className="hidden truncate text-xs text-soft-white/45 sm:block"
+                className="hidden truncate text-xs text-soft-white/60 sm:block"
                 title={photo.alt}
               >
                 {photo.alt}

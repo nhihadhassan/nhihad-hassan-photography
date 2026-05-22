@@ -110,7 +110,7 @@ export default async function JournalPostPage({ params }: Props) {
             </Link>
 
             <div className="mt-6">
-              <p className="text-xs text-soft-white/45">{formatDate(post.date)}</p>
+              <p className="text-xs text-soft-white/60">{formatDate(post.date)}</p>
               <h1 className="mt-3 font-serif text-4xl font-medium leading-tight tracking-tight sm:text-5xl">
                 {post.title}
               </h1>
@@ -124,7 +124,7 @@ export default async function JournalPostPage({ params }: Props) {
             </div>
 
             <div className="mt-12 border-t border-soft-white/10 pt-8">
-              <p className="text-sm text-soft-white/45">
+              <p className="text-sm text-soft-white/60">
                 Written by{" "}
                 <Link href="/" className="font-medium text-soft-white/70 hover:text-soft-white">
                   {brandConfig.name}

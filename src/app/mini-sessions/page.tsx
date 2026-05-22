@@ -105,7 +105,7 @@ export default function MiniSessionsPage() {
                           ))}
                         </ul>
 
-                        <p className="mt-5 text-xs text-soft-white/45">
+                        <p className="mt-5 text-xs text-soft-white/60">
                           <strong className="font-medium text-soft-white/70">Availability:</strong>{" "}
                           {offering.availability}
                         </p>

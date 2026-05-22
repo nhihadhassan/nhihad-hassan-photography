@@ -39,7 +39,7 @@ export function SiteFooter() {
           ))}
         </div>
       </div>
-      <div className="mx-auto mt-10 flex max-w-7xl flex-col gap-4 text-xs text-soft-white/45 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto mt-10 flex max-w-7xl flex-col gap-4 text-xs text-soft-white/60 sm:flex-row sm:items-center sm:justify-between">
         <p>Copyright {brandConfig.copyrightYear} {brandConfig.name}.</p>
         <div className="flex flex-wrap gap-4">
           <Link href="/portfolio" className="hover:text-soft-white">Portfolio</Link>

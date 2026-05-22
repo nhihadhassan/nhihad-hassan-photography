@@ -43,6 +43,19 @@ html {
   scroll-behavior: smooth;
 }
 
+/*
+ * Site-wide keyboard focus ring for links and buttons.
+ * Components like <Button> already declare their own focus-visible
+ * styles via Tailwind; this is the fallback for plain anchors
+ * (header nav, footer, pricing chips, mobile drawer items).
+ */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

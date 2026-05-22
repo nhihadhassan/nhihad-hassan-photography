@@ -82,7 +82,7 @@ export default function JournalPage() {
                             </div>
                           ) : null}
                           <div className="min-w-0">
-                            <p className="text-xs text-soft-white/45">{formatDate(post.date)}</p>
+                            <p className="text-xs text-soft-white/60">{formatDate(post.date)}</p>
                             <h2 className="mt-1 font-serif text-2xl font-medium leading-snug group-hover:text-copper transition-colors">
                               {post.title}
                             </h2>

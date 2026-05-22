@@ -55,7 +55,7 @@ export default function PricingPage() {
 
             {/* All services — jump links to each pricing section */}
             <div className="mt-10 border-t border-ink/12 pt-6">
-              <p className="text-xs uppercase tracking-[0.18em] text-ink/45">
+              <p className="text-xs uppercase tracking-[0.18em] text-ink/62">
                 What I shoot
               </p>
               <div className="mt-3 flex flex-wrap gap-2.5">
@@ -88,7 +88,7 @@ export default function PricingPage() {
                     </p>
                   </div>
                   {category.note ? (
-                    <p className="max-w-xl text-sm leading-6 text-ink/52 lg:justify-self-end lg:text-right">
+                    <p className="max-w-xl text-sm leading-6 text-ink/62 lg:justify-self-end lg:text-right">
                       {category.note}
                     </p>
                   ) : null}
@@ -99,7 +99,7 @@ export default function PricingPage() {
                 {category.tiers.map((tier, index) => (
                   <Reveal key={tier.name} delay={index * 0.05}>
                     <div className="flex h-full flex-col rounded-[2px] border border-ink/12 bg-soft-white/70 p-6 sm:p-7">
-                      <p className="text-xs uppercase tracking-[0.18em] text-ink/50">
+                      <p className="text-xs uppercase tracking-[0.18em] text-ink/62">
                         {tier.name}
                       </p>
                       <p className="mt-3 font-serif text-4xl">{tier.price}</p>
@@ -146,7 +146,7 @@ export default function PricingPage() {
                   </li>
                 ))}
               </ol>
-              <p className="mt-8 text-sm leading-6 text-ink/52">
+              <p className="mt-8 text-sm leading-6 text-ink/62">
                 Prices are in Canadian dollars and cover the shoot, editing, and
                 gallery delivery. Travel beyond the Greater Toronto Area may add
                 a small fee, confirmed before you book.

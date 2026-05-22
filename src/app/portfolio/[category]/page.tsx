@@ -158,7 +158,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           </div>
 
           {items.length === 0 ? (
-            <p className="mt-16 text-center text-soft-white/45">
+            <p className="mt-16 text-center text-soft-white/60">
               No photos in this category yet. Check back soon.
             </p>
           ) : (

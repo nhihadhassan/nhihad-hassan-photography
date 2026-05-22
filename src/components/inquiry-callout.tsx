@@ -55,11 +55,11 @@ export function InquiryCallout({
                 <ArrowRight className="size-4" aria-hidden="true" />
               </ButtonLink>
               <ButtonLink
-                href="/investment"
+                href="/portfolio"
                 variant={isDark ? "secondary" : "ghost"}
                 className={isDark ? "" : "border-ink/15 text-ink hover:bg-ink/6 hover:text-ink"}
               >
-                See investment
+                View portfolio
               </ButtonLink>
             </div>
           </div>

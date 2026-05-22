@@ -10,9 +10,11 @@ export type MobileNavItem = { href: string; label: string };
 
 type MobileNavProps = {
   items: MobileNavItem[];
+  /** Trigger button colour — "dark" for dark pages, "light" for cream pages. */
+  tone?: "dark" | "light";
 };
 
-export function MobileNav({ items }: MobileNavProps) {
+export function MobileNav({ items, tone = "dark" }: MobileNavProps) {
   const [open, setOpen] = useState(false);
 
   const close = useCallback(() => setOpen(false), []);
@@ -45,7 +47,11 @@ export function MobileNav({ items }: MobileNavProps) {
         aria-label="Open menu"
         aria-expanded={open}
         aria-controls="mobile-nav-overlay"
-        className="inline-flex size-10 items-center justify-center rounded-full border border-soft-white/20 bg-ink/35 text-soft-white backdrop-blur transition hover:border-soft-white/40 md:hidden"
+        className={`inline-flex size-10 items-center justify-center rounded-full border backdrop-blur transition md:hidden ${
+          tone === "light"
+            ? "border-ink/25 bg-soft-white/60 text-ink hover:border-ink/45"
+            : "border-soft-white/20 bg-ink/35 text-soft-white hover:border-soft-white/40"
+        }`}
       >
         <Menu className="size-4" aria-hidden="true" strokeWidth={1.7} />
       </button>

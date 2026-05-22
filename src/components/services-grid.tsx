@@ -19,7 +19,7 @@ type ServicesGridProps = {
 const imageById = new Map(portfolioItems.map((item) => [item.id, item] as const));
 
 /**
- * Five-card services grid used on the homepage and /investment page.
+ * Five-card services grid used on the homepage.
  * Cards link out to the closest existing portfolio category.
  */
 export function ServicesGrid({

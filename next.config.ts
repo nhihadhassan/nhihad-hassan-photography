@@ -2,6 +2,16 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["sharp", "archiver"],
+  async redirects() {
+    // /investment was merged into /pricing.
+    return [
+      {
+        source: "/investment",
+        destination: "/pricing",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

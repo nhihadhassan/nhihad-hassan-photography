@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, MapPin } from "lucide-react";
-import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { MobileNav, type MobileNavItem } from "@/components/mobile-nav";
 import { Reveal } from "@/components/reveal";
 import { ButtonLink } from "@/components/ui/button";
 import { ServicesGrid } from "@/components/services-grid";
@@ -12,16 +12,24 @@ import { brandConfig } from "@/lib/config";
 import { featuredGalleries, portfolioItems } from "@/data/photography";
 import { formatDisplayDate } from "@/lib/utils";
 
-const heroImage = portfolioItems[0];
+const heroImage =
+  portfolioItems.find((item) => item.id === "rachel-autumn-leaves") ?? portfolioItems[0];
 const sideImage = portfolioItems[5];
 const featuredPortfolio = portfolioItems.filter((item) => item.featured).slice(0, 5);
+
+const navItems: MobileNavItem[] = [
+  { href: "/portfolio", label: "Portfolio" },
+  { href: "/investment", label: "Investment" },
+  { href: "/galleries/moove-ah", label: "Galleries" },
+  { href: "/contact", label: "Contact" },
+];
 
 export default function Home() {
   return (
     <div className="min-h-[100dvh] bg-ink text-soft-white">
-      <SiteHeader />
       <main>
-        <section className="relative min-h-[100dvh] overflow-hidden">
+        {/* Hero — image-first splash */}
+        <section className="relative min-h-[100dvh] overflow-hidden bg-ink">
           <Image
             src={heroImage.imageUrl}
             alt={heroImage.alt}
@@ -30,49 +38,61 @@ export default function Home() {
             sizes="100vw"
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,0.86),rgba(8,8,8,0.45)_42%,rgba(8,8,8,0.78)),linear-gradient(180deg,rgba(8,8,8,0.08),rgba(8,8,8,0.9))]" />
-          <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-7xl items-end px-4 pb-10 pt-32 sm:px-6 lg:px-8 lg:pb-16">
-            <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
-              <Reveal>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-beige/75">
-                    Toronto wedding, couples, event, and nightlife photography
-                  </p>
-                  <h1 className="mt-5 max-w-5xl font-serif text-6xl font-medium leading-[0.88] tracking-tight text-soft-white sm:text-8xl lg:text-[9.2rem]">
-                    {brandConfig.name}
-                  </h1>
-                  <p className="mt-7 max-w-2xl text-lg leading-8 text-soft-white/70 sm:text-xl">
-                    Wedding, couples, portrait, and event photography based in Toronto — shaped around atmosphere, movement, and the moments worth keeping.
-                  </p>
-                  <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                    <ButtonLink href="/portfolio">
-                      View Portfolio
-                      <ArrowRight className="size-4" aria-hidden="true" />
-                    </ButtonLink>
-                    <ButtonLink href="/contact" variant="secondary">
-                      Book / Inquire
-                    </ButtonLink>
-                  </div>
+          {/* Soft top and bottom darkening so the photo carries the screen. */}
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,8,8,0.5)_0%,rgba(8,8,8,0.08)_22%,rgba(8,8,8,0)_52%,rgba(8,8,8,0.62)_100%)]" />
+
+          {/* Minimal centered header */}
+          <header className="absolute inset-x-0 top-0 z-20 px-4 py-6 sm:px-8 sm:py-7">
+            <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
+              <nav className="col-start-1 hidden items-center gap-7 text-xs uppercase tracking-[0.18em] text-soft-white/80 md:flex">
+                {navItems.slice(0, 2).map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="transition hover:text-soft-white"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+
+              <h1 className="col-start-2 justify-self-center whitespace-nowrap text-center font-serif uppercase text-soft-white text-[10px] tracking-[0.14em] sm:text-sm sm:tracking-[0.28em] lg:text-lg lg:tracking-[0.3em]">
+                {brandConfig.name}
+              </h1>
+
+              <div className="col-start-3 flex items-center justify-end gap-7">
+                <nav className="hidden items-center gap-7 text-xs uppercase tracking-[0.18em] text-soft-white/80 md:flex">
+                  {navItems.slice(2).map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="transition hover:text-soft-white"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </nav>
+                <div className="md:hidden">
+                  <MobileNav items={navItems} />
                 </div>
-              </Reveal>
-              <Reveal delay={0.12}>
-                <div className="border-t border-soft-white/16 pt-6 lg:border-l lg:border-t-0 lg:pl-7">
-                  <p className="text-sm leading-6 text-soft-white/64">
-                    Photography for first looks, packed dance floors, family rituals, soft portraits, and the late-night frames that still feel loud the next morning.
-                  </p>
-                  <dl className="mt-7 grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <dt className="text-soft-white/42">Base</dt>
-                      <dd className="mt-1 text-soft-white">Toronto</dd>
-                    </div>
-                    <div>
-                      <dt className="text-soft-white/42">Focus</dt>
-                      <dd className="mt-1 text-soft-white">Weddings &amp; events</dd>
-                    </div>
-                  </dl>
-                </div>
-              </Reveal>
+              </div>
             </div>
+          </header>
+
+          {/* One quiet CTA */}
+          <div className="absolute inset-x-0 bottom-0 z-10 flex justify-center px-4 pb-12 sm:pb-16">
+            <Reveal>
+              <Link
+                href="/portfolio"
+                className="group inline-flex items-center gap-3 border border-soft-white/45 px-7 py-3.5 text-xs uppercase tracking-[0.22em] text-soft-white transition hover:border-soft-white hover:bg-soft-white/10"
+              >
+                View Portfolio
+                <ArrowRight
+                  className="size-3.5 transition group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
+              </Link>
+            </Reveal>
           </div>
         </section>
 

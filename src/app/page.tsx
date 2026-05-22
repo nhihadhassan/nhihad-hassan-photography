@@ -56,7 +56,7 @@ export default function Home() {
                 ))}
               </nav>
 
-              <h1 className="col-start-2 justify-self-center whitespace-nowrap text-center font-serif uppercase text-soft-white text-xl tracking-normal sm:text-2xl lg:text-3xl xl:text-[2.1rem]">
+              <h1 className="col-start-2 justify-self-center whitespace-nowrap text-center font-serif uppercase text-soft-white text-2xl tracking-normal sm:text-3xl lg:text-4xl xl:text-[2.8rem]">
                 {brandConfig.name}
               </h1>
 

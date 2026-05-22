@@ -71,3 +71,34 @@ html {
 .image-fade-mask {
   mask-image: linear-gradient(180deg, black 72%, transparent 100%);
 }
+
+/*
+ * Warm light-to-dark section bridge (cream services -> ink portfolio).
+ * Seven eased stops through desaturated warm-neutrals — no saturated
+ * copper waypoint, so it reads as a dusk fade rather than a stripe.
+ * First declaration is the sRGB fallback; the second overrides in
+ * browsers that support OKLCH interpolation (even perceptual lightness,
+ * no muddy mid-tone).
+ */
+.section-fade-warm {
+  background: linear-gradient(
+    180deg,
+    #f3eee5 0%,
+    #ddccae 20%,
+    #ab9374 40%,
+    #6b5641 58%,
+    #38291e 74%,
+    #14100c 89%,
+    #080808 100%
+  );
+  background: linear-gradient(
+    180deg in oklch,
+    #f3eee5 0%,
+    #ddccae 20%,
+    #ab9374 40%,
+    #6b5641 58%,
+    #38291e 74%,
+    #14100c 89%,
+    #080808 100%
+  );
+}

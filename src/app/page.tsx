@@ -107,10 +107,10 @@ export default function Home() {
 
         <ServicesGrid tone="light" />
 
-        {/* Warm gradient bridge: cream services section into the dark portfolio */}
+        {/* Warm dusk fade bridging the cream services section into the dark portfolio */}
         <div
           aria-hidden="true"
-          className="h-40 bg-[linear-gradient(180deg,#f3eee5_0%,#b98257_44%,#211b17_76%,#080808_100%)] sm:h-56"
+          className="section-fade-warm h-64 sm:h-80 lg:h-96"
         />
 
         <section className="bg-ink px-4 pb-20 pt-4 sm:px-6 lg:px-8 lg:pb-28">

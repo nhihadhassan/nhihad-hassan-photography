@@ -56,7 +56,7 @@ export default function Home() {
                 ))}
               </nav>
 
-              <h1 className="col-start-2 justify-self-center whitespace-nowrap text-center font-serif uppercase text-soft-white text-base tracking-[0.22em] sm:text-lg lg:text-xl">
+              <h1 className="col-start-2 justify-self-center whitespace-nowrap text-center font-serif uppercase text-soft-white text-lg tracking-[0.16em] sm:text-xl lg:text-2xl xl:text-[1.7rem]">
                 {brandConfig.name}
               </h1>
 
@@ -221,7 +221,7 @@ export default function Home() {
                   Photographs that keep the atmosphere intact.
                 </h2>
                 <p className="mt-6 max-w-2xl text-base leading-7 text-soft-white/62">
-                  I&rsquo;m a Toronto photographer working across weddings, cultural events, couples sessions, portraits, and nightlife. The approach holds wherever I point the camera: read the room first, then make pictures that still mean something a year later.
+                  I&rsquo;m a Toronto photographer working across weddings, cultural events, couples sessions, portraits, and nightlife. The approach holds wherever I point the camera: work with whatever the moment gives, then make pictures that hold.
                 </p>
                 <div className="mt-8">
                   <ButtonLink href="/contact">

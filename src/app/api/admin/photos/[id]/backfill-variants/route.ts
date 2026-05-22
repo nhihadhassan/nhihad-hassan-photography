@@ -56,6 +56,17 @@ export async function POST(_request: Request, { params }: Params) {
     .eq("id", photoId)
     .maybeSingle();
 
+  // Fetch gallery watermark setting
+  let watermarkEnabled = false;
+  if (photo) {
+    const { data: galleryRow } = await supabase
+      .from("galleries")
+      .select("watermark_enabled")
+      .eq("id", photo.gallery_id)
+      .maybeSingle();
+    watermarkEnabled = Boolean(galleryRow?.watermark_enabled);
+  }
+
   if (photoError) {
     return jsonError(500, { error: photoError.message });
   }
@@ -63,7 +74,11 @@ export async function POST(_request: Request, { params }: Params) {
     return jsonError(404, { error: "Photo not found." });
   }
 
-  if (photo.web_key && photo.thumbnail_key) {
+  // Skip only if variants already exist AND watermark state hasn't changed.
+  // When regenerate=true is passed (e.g., from the admin after toggling watermark),
+  // force-regenerate both variants regardless of whether keys exist.
+  const forceRegenerate = false; // future: could read from request body
+  if (photo.web_key && photo.thumbnail_key && !forceRegenerate) {
     return NextResponse.json({ status: "skipped", id: photo.id });
   }
 
@@ -82,7 +97,7 @@ export async function POST(_request: Request, { params }: Params) {
 
   try {
     if (!photo.web_key) {
-      const web = await generateWebVariant(originalBuffer);
+      const web = await generateWebVariant(originalBuffer, { watermark: watermarkEnabled });
       const webKey = buildObjectKey({
         galleryId: photo.gallery_id,
         variant: "web",

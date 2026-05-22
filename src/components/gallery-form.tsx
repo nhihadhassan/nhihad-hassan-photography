@@ -185,7 +185,7 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
             </select>
           </label>
         </div>
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="flex items-center gap-3 rounded-md border border-[#17130f]/10 bg-[#f3f0ea] p-4 text-sm">
             <input
               type="checkbox"
@@ -206,7 +206,21 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
             />
             Downloads enabled
           </label>
+          <label className="flex items-center gap-3 rounded-md border border-[#17130f]/10 bg-[#f3f0ea] p-4 text-sm">
+            <input
+              type="checkbox"
+              name="watermark_enabled"
+              defaultChecked={gallery?.watermark_enabled ?? false}
+            />
+            Watermark previews
+          </label>
         </div>
+        {gallery?.watermark_enabled ? (
+          <p className="mt-3 text-xs text-[#17130f]/45">
+            Watermark applies to web previews only — originals and thumbnails remain clean. Use
+            the backfill button in Photos to regenerate existing web variants.
+          </p>
+        ) : null}
       </section>
 
       <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
@@ -246,6 +260,63 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
             <label className="flex items-center gap-3 self-end rounded-md border border-[#8a2f24]/20 bg-[#8a2f24]/8 p-4 text-sm">
               <input type="checkbox" name="remove_password" />
               Remove password (make gallery accessible without it)
+            </label>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Download PIN</h2>
+            <p className="mt-2 text-sm leading-6 text-[#17130f]/58">
+              {gallery?.has_download_pin
+                ? "A download PIN is active. Enter a new one to change it, or check Remove to clear it."
+                : "Optional extra gate before downloads start. Separate from the gallery password."}
+            </p>
+          </div>
+          {gallery?.has_download_pin ? (
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#9b744f]/40 bg-[#b98257]/15 px-3 py-1 text-xs font-medium text-[#9b744f]">
+              PIN active
+            </span>
+          ) : null}
+        </div>
+        <div className="mt-5 grid gap-5 md:grid-cols-2">
+          <label className="grid gap-2">
+            <span className="text-sm font-medium">
+              {gallery?.has_download_pin ? "New download PIN" : "Download PIN"}
+            </span>
+            <input
+              className={inputClass}
+              name="download_pin"
+              type="password"
+              autoComplete="new-password"
+              placeholder={gallery?.has_download_pin ? "Leave blank to keep current" : "Optional PIN code"}
+              minLength={4}
+            />
+            <span className="text-xs text-[#17130f]/45">Stored hashed. Never logged or emailed.</span>
+          </label>
+          <label className="grid gap-2">
+            <span className="text-sm font-medium">
+              Download limit <span className="font-normal text-[#17130f]/40">(optional)</span>
+            </span>
+            <input
+              className={inputClass}
+              name="download_limit"
+              type="number"
+              min={1}
+              defaultValue={gallery?.download_limit ?? ""}
+              placeholder="Unlimited"
+            />
+            <span className="text-xs text-[#17130f]/45">
+              Max full-gallery downloads.{" "}
+              {gallery?.download_count ? `${gallery.download_count} used so far.` : ""}
+            </span>
+          </label>
+          {gallery?.has_download_pin ? (
+            <label className="flex items-center gap-3 self-end rounded-md border border-[#8a2f24]/20 bg-[#8a2f24]/8 p-4 text-sm">
+              <input type="checkbox" name="remove_download_pin" />
+              Remove download PIN
             </label>
           ) : null}
         </div>

@@ -28,6 +28,14 @@ export type GalleryRecord = {
   has_password: boolean;
   /** Stored for use in gallery invite emails only. Admin-only — never exposed publicly. */
   password_plain: string | null;
+  /** True when a download_pin_hash is set. The hash itself is never returned. */
+  has_download_pin: boolean;
+  /** Max successful full-gallery downloads (null = unlimited). */
+  download_limit: number | null;
+  /** Count of successful full-gallery downloads so far. */
+  download_count: number;
+  /** When true, web display variants have a text watermark composited in. */
+  watermark_enabled: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -40,11 +48,19 @@ export type GalleryInviteLogEntry = {
   resend_message_id: string | null;
 };
 
-type GalleryRow = Omit<GalleryRecord, "has_password"> & { password_hash: string | null };
+type GalleryRow = Omit<GalleryRecord, "has_password" | "has_download_pin"> & {
+  password_hash: string | null;
+  download_pin_hash: string | null;
+  watermark_enabled: boolean;
+};
 
 function withHasPassword(row: GalleryRow): GalleryRecord {
-  const { password_hash, ...rest } = row;
-  return { ...rest, has_password: Boolean(password_hash) };
+  const { password_hash, download_pin_hash, ...rest } = row;
+  return {
+    ...rest,
+    has_password: Boolean(password_hash),
+    has_download_pin: Boolean(download_pin_hash),
+  };
 }
 
 export type InquiryRecord = {
@@ -62,7 +78,7 @@ export type InquiryRecord = {
 };
 
 const GALLERY_COLUMNS =
-  "id,title,slug,client_name,client_email,event_date,description,location,cover_image_url,cover_image_alt,cover_photo_id,is_public,is_published,is_archived,download_enabled,download_quality,deposit_status,payment_notes,expires_at,password_hash,password_plain,created_at,updated_at";
+  "id,title,slug,client_name,client_email,event_date,description,location,cover_image_url,cover_image_alt,cover_photo_id,is_public,is_published,is_archived,download_enabled,download_quality,download_pin_hash,download_limit,download_count,watermark_enabled,deposit_status,payment_notes,expires_at,password_hash,password_plain,created_at,updated_at";
 
 export async function getAdminGalleries() {
   const supabase = await createSupabaseServerClient();

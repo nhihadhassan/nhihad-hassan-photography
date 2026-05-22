@@ -44,6 +44,8 @@ export function SiteFooter() {
         <div className="flex flex-wrap gap-4">
           <Link href="/portfolio" className="hover:text-soft-white">Portfolio</Link>
           <Link href="/investment" className="hover:text-soft-white">Investment</Link>
+          <Link href="/mini-sessions" className="hover:text-soft-white">Sessions</Link>
+          <Link href="/journal" className="hover:text-soft-white">Journal</Link>
           <Link href="/contact" className="hover:text-soft-white">Contact</Link>
           <Link href="/galleries/moove-ah" className="hover:text-soft-white">Gallery Preview</Link>
           <Link href="/admin/login" className="hover:text-soft-white">Admin</Link>

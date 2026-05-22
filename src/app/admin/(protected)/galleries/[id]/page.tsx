@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ExternalLink, Heart, Images } from "lucide-react";
+import { ExternalLink, Heart, Images, Share2 } from "lucide-react";
 import { GalleryForm } from "@/components/gallery-form";
 import { GalleryRowActions } from "@/components/gallery-row-actions";
 import { SendInviteButton } from "@/components/send-invite-button";
@@ -47,6 +47,13 @@ export default async function EditGalleryPage({ params }: EditGalleryPageProps) 
             >
               <Heart className="size-3.5" aria-hidden="true" />
               Client selects
+            </Link>
+            <Link
+              href={`/admin/galleries/${gallery.id}/share`}
+              className="inline-flex items-center gap-2 rounded-md border border-[#17130f]/12 px-3 py-1.5 text-[#17130f]/72 hover:bg-[#17130f] hover:text-[#fbf8f1]"
+            >
+              <Share2 className="size-3.5" aria-hidden="true" />
+              Share links
             </Link>
             <a
               href={`/galleries/${gallery.slug}`}

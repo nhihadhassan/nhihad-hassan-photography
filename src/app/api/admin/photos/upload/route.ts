@@ -81,7 +81,7 @@ export async function POST(request: Request) {
 
   const { data: gallery, error: galleryError } = await supabase
     .from("galleries")
-    .select("id")
+    .select("id,watermark_enabled")
     .eq("id", galleryId)
     .maybeSingle();
 
@@ -113,11 +113,13 @@ export async function POST(request: Request) {
     filename: webpName,
   });
 
+  const watermarkEnabled = Boolean(gallery.watermark_enabled);
+
   let webVariant;
   let thumbVariant;
   try {
     [webVariant, thumbVariant] = await Promise.all([
-      generateWebVariant(buffer),
+      generateWebVariant(buffer, { watermark: watermarkEnabled }),
       generateThumbnailVariant(buffer),
     ]);
   } catch (error) {

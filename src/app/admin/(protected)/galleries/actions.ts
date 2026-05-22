@@ -84,6 +84,7 @@ function parseGalleryForm(formData: FormData) {
       is_published: formData.get("is_published") === "on",
       download_enabled: formData.get("download_enabled") === "on",
       download_quality: parsed.data.download_quality,
+      watermark_enabled: formData.get("watermark_enabled") === "on",
       deposit_status: parsed.data.deposit_status,
       payment_notes: emptyToNull(parsed.data.payment_notes),
     },
@@ -117,6 +118,29 @@ async function extractPasswordChange(
   return { set: { hash, plain } };
 }
 
+/**
+ * Returns the download PIN mutation for this form submission:
+ * - { set: hash } — admin entered a new PIN
+ * - { remove: true } — admin checked "Remove download PIN"
+ * - null — no change
+ */
+async function extractDownloadPinChange(
+  formData: FormData,
+): Promise<{ set: string } | { remove: true } | null> {
+  if (formData.get("remove_download_pin") === "on") {
+    return { remove: true };
+  }
+  const raw = formData.get("download_pin");
+  if (typeof raw !== "string") return null;
+  const pin = raw.trim();
+  if (!pin) return null;
+  if (pin.length < 4) {
+    throw new Error("Download PIN must be at least 4 characters.");
+  }
+  const hash = await hashPassword(pin);
+  return { set: hash };
+}
+
 export async function createGallery(
   _previousState: GalleryFormState,
   formData: FormData,
@@ -142,10 +166,26 @@ export async function createGallery(
     };
   }
 
-  const insertPayload: Record<string, unknown> = { ...parsed.data };
+  let pinChange: Awaited<ReturnType<typeof extractDownloadPinChange>>;
+  try {
+    pinChange = await extractDownloadPinChange(formData);
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Could not set download PIN.",
+    };
+  }
+
+  const limitRaw = String(formData.get("download_limit") ?? "").trim();
+  const downloadLimit = limitRaw && Number.isFinite(Number(limitRaw)) ? Number(limitRaw) : null;
+
+  const insertPayload: Record<string, unknown> = { ...parsed.data, download_limit: downloadLimit };
   if (passwordChange && "set" in passwordChange) {
     insertPayload.password_hash = passwordChange.set.hash;
     insertPayload.password_plain = passwordChange.set.plain;
+  }
+  if (pinChange && "set" in pinChange) {
+    insertPayload.download_pin_hash = pinChange.set;
   }
 
   const supabase = await createSupabaseServerClient();
@@ -196,8 +236,22 @@ export async function updateGallery(
     };
   }
 
+  let pinChange: Awaited<ReturnType<typeof extractDownloadPinChange>>;
+  try {
+    pinChange = await extractDownloadPinChange(formData);
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Could not set download PIN.",
+    };
+  }
+
+  const limitRaw = String(formData.get("download_limit") ?? "").trim();
+  const downloadLimit = limitRaw && Number.isFinite(Number(limitRaw)) ? Number(limitRaw) : null;
+
   const updatePayload: Record<string, unknown> = {
     ...parsed.data,
+    download_limit: downloadLimit,
     updated_at: new Date().toISOString(),
   };
   if (passwordChange && "set" in passwordChange) {
@@ -206,6 +260,11 @@ export async function updateGallery(
   } else if (passwordChange && "remove" in passwordChange) {
     updatePayload.password_hash = null;
     updatePayload.password_plain = null;
+  }
+  if (pinChange && "set" in pinChange) {
+    updatePayload.download_pin_hash = pinChange.set;
+  } else if (pinChange && "remove" in pinChange) {
+    updatePayload.download_pin_hash = null;
   }
 
   const supabase = await createSupabaseServerClient();

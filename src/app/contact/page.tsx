@@ -8,7 +8,13 @@ import { brandConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Book or inquire with Nhihad Hassan Photography.",
+  description:
+    "Book a wedding, couples, portrait, or event session with Nhihad Hassan Photography in Toronto. Inquiry-based — no checkout on this site.",
+  openGraph: {
+    title: "Contact | Nhihad Hassan Photography",
+    description:
+      "Start an inquiry for weddings, portraits, events, or nightlife coverage in Toronto.",
+  },
 };
 
 export default function ContactPage() {

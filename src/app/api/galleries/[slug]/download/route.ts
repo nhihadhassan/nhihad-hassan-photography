@@ -16,6 +16,7 @@ import {
   recordDownloadAttempt,
   type DownloadScope,
 } from "@/lib/download-log";
+import { verifyPassword } from "@/lib/password";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,7 +73,7 @@ export async function POST(request: Request, { params }: Params) {
 
   const { data: gallery, error: galleryError } = await admin
     .from("galleries")
-    .select("id,is_published,is_archived,expires_at,password_hash,download_enabled,download_quality")
+    .select("id,is_published,is_archived,expires_at,password_hash,download_enabled,download_quality,download_pin_hash,download_limit,download_count")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -144,6 +145,54 @@ export async function POST(request: Request, { params }: Params) {
     }
   }
 
+  // Download PIN check (extra gate on top of gallery password)
+  if (gallery.download_pin_hash) {
+    const submittedPin = String(formData.get("download_pin") ?? "").trim();
+    if (!submittedPin) {
+      await recordDownloadAttempt({
+        galleryId: gallery.id,
+        ipHash,
+        userAgent,
+        scope,
+        photoCount: 0,
+        success: false,
+        reason: "locked",
+      });
+      return jsonError(401, "This gallery requires a download PIN.");
+    }
+    const pinValid = await verifyPassword(submittedPin, gallery.download_pin_hash as string);
+    if (!pinValid) {
+      await recordDownloadAttempt({
+        galleryId: gallery.id,
+        ipHash,
+        userAgent,
+        scope,
+        photoCount: 0,
+        success: false,
+        reason: "locked",
+      });
+      return jsonError(401, "Incorrect download PIN.");
+    }
+  }
+
+  // Download limit check (full-gallery scope only)
+  if (scope === "all" && gallery.download_limit !== null) {
+    const currentCount = (gallery.download_count as number) ?? 0;
+    const limit = gallery.download_limit as number;
+    if (currentCount >= limit) {
+      await recordDownloadAttempt({
+        galleryId: gallery.id,
+        ipHash,
+        userAgent,
+        scope,
+        photoCount: 0,
+        success: false,
+        reason: "not_enabled",
+      });
+      return jsonError(403, "Download limit reached for this gallery.");
+    }
+  }
+
   // Resolve photos
   let query = admin
     .from("photos")
@@ -206,6 +255,15 @@ export async function POST(request: Request, { params }: Params) {
     success: true,
     reason: "success",
   });
+
+  // Increment download_count for full-gallery downloads (best-effort).
+  if (scope === "all") {
+    admin
+      .from("galleries")
+      .update({ download_count: ((gallery.download_count as number) ?? 0) + 1 })
+      .eq("id", gallery.id)
+      .then(() => undefined, () => undefined);
+  }
 
   return new Response(stream, {
     status: 200,

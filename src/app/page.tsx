@@ -87,7 +87,7 @@ export default function Home() {
                   </h2>
                 </div>
                 <p className="max-w-2xl text-base leading-7 text-soft-white/62 lg:justify-self-end">
-                  Weddings, couples sessions, portraits, events, and nightlife — selected frames from real shoots across Toronto and Ontario.
+                  Recent frames pulled from real shoots around Toronto and Ontario, across every kind of work I take on.
                 </p>
               </div>
             </Reveal>
@@ -192,7 +192,7 @@ export default function Home() {
                   Photographs that keep the atmosphere intact.
                 </h2>
                 <p className="mt-6 max-w-2xl text-base leading-7 text-soft-white/62">
-                  Toronto-based photography for weddings, cultural events, couples and engagements, portraits, and nightlife — built around reading the room first and making pictures that hold up long after the moment.
+                  I&rsquo;m a Toronto photographer working across weddings, cultural events, couples sessions, portraits, and nightlife. The approach holds wherever I point the camera: read the room first, then make pictures that still mean something a year later.
                 </p>
                 <div className="mt-8">
                   <ButtonLink href="/contact">

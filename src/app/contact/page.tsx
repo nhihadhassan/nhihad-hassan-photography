@@ -30,7 +30,7 @@ export default function ContactPage() {
                 Tell me about the day you want remembered.
               </h1>
               <p className="mt-6 max-w-xl text-base leading-7 text-soft-white/62">
-                Share the date, place, and mood — wedding, event, portrait, or nightlife. For follow-up details, reach out directly.
+                Tell me the date, the location, and what you want the photos to feel like. If email is easier, that works too.
               </p>
               <div className="mt-8 grid gap-3 text-sm text-soft-white/70">
                 <a

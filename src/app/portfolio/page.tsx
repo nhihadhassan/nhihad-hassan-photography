@@ -33,7 +33,7 @@ export default function PortfolioPage() {
                 </h1>
               </div>
               <p className="max-w-2xl text-base leading-7 text-soft-white/62 lg:justify-self-end">
-                Weddings, couples sessions, portraits, events, and nightlife — a living record of the work, arranged by how each shoot actually felt.
+                A working record of recent shoots around Toronto and Ontario. Less a polished gallery, more a sense of what each one felt like to be in.
               </p>
             </div>
           </Reveal>

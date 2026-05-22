@@ -55,7 +55,7 @@ export function GalleryCover({ gallery }: { gallery: PublicGallery }) {
             </div>
             <div className="border-t border-soft-white/18 pt-6 lg:border-l lg:border-t-0 lg:pl-8">
               <p className="text-sm leading-6 text-soft-white/70">
-                {gallery.description ?? "A private gallery — prepared for delivery and ready to share with the people who matter."}
+                {gallery.description ?? "A private gallery prepared for you, ready to share with everyone who was there."}
               </p>
               <div className="mt-7 flex flex-col gap-3">
                 {showGate ? (

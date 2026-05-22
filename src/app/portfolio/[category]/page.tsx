@@ -33,26 +33,26 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 /** Per-category hero description shown under the H1. */
 const categoryIntros: Record<PortfolioCategory, string> = {
   "weddings-couples":
-    "Ceremony moments, reception energy, engagement portraits, and the quiet frames between — photographed in Toronto and across Ontario.",
+    "Wedding days and engagement sessions photographed across Toronto and Ontario. The ceremony and reception matter, but so do the smaller moments in between that you'll want back later.",
   events:
-    "Cultural celebrations, milestone parties, and private gatherings covered at the pace they actually move.",
+    "Coverage for cultural celebrations and milestone parties. I work quickly and quietly so the night looks the way it actually felt when you look back on it.",
   nightlife:
-    "Club nights, concerts, and after-dark events — energy, colour, and crowd energy kept intact under any light.",
+    "Club nights and concerts, shot for promoters and venues who need the gallery back fast. Flash work tuned to hold colour and keep the crowd energy intact.",
   portraits:
-    "Outdoor and studio portraiture across seasons — clean light, comfortable direction, honest expression.",
+    "Portrait sessions outdoors and in studio. Families, milestones, or a personal project you've been putting off. The pace stays slow enough that nothing ends up looking over-posed.",
   lifestyle:
-    "Editorial lifestyle sessions — real moments in real light, frames that hold up away from the screen.",
+    "Lifestyle sessions with an editorial feel. Real moments in real light, and frames that still hold up once they're off your phone.",
 };
 
 /** Per-category SEO description. */
 const categoryMeta: Partial<Record<PortfolioCategory, { description: string }>> = {
   "weddings-couples": {
     description:
-      "Wedding and engagement photography in Toronto by Nhihad Hassan. Ceremony coverage, couples portraits, and full-day wedding documentation.",
+      "Wedding and engagement photography in Toronto by Nhihad Hassan. Full-day coverage and couples sessions across the GTA and Ontario.",
   },
   events: {
     description:
-      "Event photography in Toronto by Nhihad Hassan — cultural celebrations, milestone parties, and private gatherings.",
+      "Event photography in Toronto by Nhihad Hassan. Cultural celebrations, milestone parties, and private gatherings.",
   },
   nightlife: {
     description:
@@ -60,11 +60,11 @@ const categoryMeta: Partial<Record<PortfolioCategory, { description: string }>> 
   },
   portraits: {
     description:
-      "Portrait photography in Toronto by Nhihad Hassan — family portraits, milestone sessions, and editorial portraiture.",
+      "Portrait photography in Toronto by Nhihad Hassan. Family portraits, milestone sessions, and editorial work.",
   },
   lifestyle: {
     description:
-      "Lifestyle photography in Toronto by Nhihad Hassan — relaxed editorial sessions in real light.",
+      "Lifestyle photography in Toronto by Nhihad Hassan. Relaxed editorial sessions shot in natural light.",
   },
 };
 
@@ -76,27 +76,27 @@ const categoryCallouts: Record<
   "weddings-couples": {
     eyebrow: "Liked what you saw?",
     headline: "Inquire about your wedding or engagement.",
-    body: "Toronto weddings, multi-day cultural events, and couples sessions. Tell me the date, venue, and how you want the day to feel — I'll come back with availability.",
+    body: "Tell me the date and venue, and a little about how you want the day to feel. I'll get back to you with availability and the next step.",
   },
   events: {
     eyebrow: "Have an event coming up?",
     headline: "Let's cover it properly.",
-    body: "Cultural celebrations, milestone parties, and brand activations. Coverage that reads the room and moves with it.",
+    body: "Send me the date and the kind of event it is. I'll come back with availability and what coverage would look like.",
   },
   nightlife: {
-    eyebrow: "Covering a night?",
+    eyebrow: "Got a night coming up?",
     headline: "Get your event photographed.",
-    body: "Club nights, concerts, after-parties, and DJ sets. Fast-turnaround gallery — ready while the night is still being talked about.",
+    body: "Promoters and venues, tell me the date and the venue. The gallery comes back fast, while people are still talking about the night.",
   },
   portraits: {
     eyebrow: "Ready for your session?",
     headline: "Book a portrait session.",
-    body: "Families, milestones, and personal projects. Outdoor or studio — tell me the date and what you're going for.",
+    body: "Tell me what you're marking and roughly when. I'll suggest a location and a time of day that suits the look you're after.",
   },
   lifestyle: {
     eyebrow: "Ready for your session?",
     headline: "Book a lifestyle session.",
-    body: "Relaxed, editorial, or somewhere in between. Tell me what you're working with and we'll build something worth keeping.",
+    body: "Tell me what you have in mind and we'll shape a session around it. No rigid posing, just a pace that feels natural.",
   },
 };
 

@@ -56,7 +56,7 @@ export default function Home() {
                 ))}
               </nav>
 
-              <h1 className="col-start-2 justify-self-center whitespace-nowrap text-center font-serif uppercase text-soft-white text-lg tracking-[0.16em] sm:text-xl lg:text-2xl xl:text-[1.7rem]">
+              <h1 className="col-start-2 justify-self-center whitespace-nowrap text-center uppercase text-soft-white text-lg tracking-[0.16em] sm:text-xl lg:text-2xl xl:text-[1.7rem] [font-family:var(--font-bodoni)]">
                 {brandConfig.name}
               </h1>
 

@@ -72,8 +72,8 @@ export default function Home() {
                   <MobileNav items={navItems} />
                 </div>
               </div>
-              {/* Brand name — full-width, hero-scale */}
-              <h1 className="mt-6 text-center font-serif font-bold uppercase text-soft-white tracking-[0.1em] text-4xl sm:mt-8 sm:text-6xl lg:mt-10 lg:text-[5.5rem] xl:text-[7rem]">
+              {/* Brand name */}
+              <h1 className="mt-5 text-center font-serif font-bold uppercase text-soft-white tracking-[0.12em] text-2xl sm:mt-6 sm:text-3xl lg:text-4xl xl:text-5xl">
                 {brandConfig.name}
               </h1>
             </div>

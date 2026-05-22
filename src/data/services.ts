@@ -29,7 +29,7 @@ export const services: Service[] = [
     longBlurb:
       "Wedding coverage built around the rhythm of the day. Ceremony presence, reception energy, family portraits, and the small moments between speeches that you'll want back later. Delivered in a private online gallery with high-resolution downloads, made for sharing with both families.",
     portfolioHref: "/portfolio/weddings-couples",
-    imageId: "ceremony-family",
+    imageId: "engagement-couple-porch",
   },
   {
     id: "couples",
@@ -39,7 +39,7 @@ export const services: Service[] = [
     longBlurb:
       "Engagement and couples sessions that work around how you actually are together. Comfortable direction, real conversation, golden-hour light where possible. The kind of photos that hold up on a wall, not just a screen.",
     portfolioHref: "/portfolio/weddings-couples",
-    imageId: "couple-porch",
+    imageId: "oishi-cherry-blossoms",
   },
   {
     id: "portraits",
@@ -49,7 +49,7 @@ export const services: Service[] = [
     longBlurb:
       "Portraits for families, milestones, and personal projects. Outdoor or indoor, natural or flash, built around clean composition and an unrushed pace so the result feels considered, not over-posed.",
     portfolioHref: "/portfolio/portraits",
-    imageId: "family-porch",
+    imageId: "rachel-garden-portrait",
   },
   {
     id: "events",
@@ -59,7 +59,7 @@ export const services: Service[] = [
     longBlurb:
       "Coverage for cultural events, milestone parties, brand activations, and private gatherings. I work fast and quietly, prioritising the moments that make the night feel like itself when you look back.",
     portfolioHref: "/portfolio/events",
-    imageId: "mihar-dance-floor",
+    imageId: "choyons-grad-cake",
   },
   {
     id: "nightlife",
@@ -69,6 +69,6 @@ export const services: Service[] = [
     longBlurb:
       "Nightlife coverage for promoters, venues, and artists. Flash work tuned to keep colour and crowd energy intact, with fast turnaround so the gallery hits while the night is still being talked about.",
     portfolioHref: "/portfolio/nightlife",
-    imageId: "dance-performance",
+    imageId: "moove-dj-floor",
   },
 ];

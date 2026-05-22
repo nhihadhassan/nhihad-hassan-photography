@@ -105,6 +105,8 @@ export default function Home() {
           </Reveal>
         </section>
 
+        <ServicesGrid tone="dark" />
+
         <section className="bg-ink px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
           <div className="mx-auto max-w-7xl">
             <Reveal>
@@ -149,8 +151,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        <ServicesGrid tone="light" />
 
         <section className="bg-charcoal px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
           <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.7fr_1fr]">

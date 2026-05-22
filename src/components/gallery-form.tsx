@@ -1,6 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
+import {
+  Download,
+  FileText,
+  Key,
+  Lock,
+  Receipt,
+  Shield,
+} from "lucide-react";
 import type { GalleryRecord } from "@/lib/admin-data";
 import type { GalleryPresetDefaults } from "@/data/gallery-presets";
 import { DEPOSIT_STATUS_LABELS } from "@/lib/payment-constants";
@@ -20,26 +28,46 @@ const inputClass =
   "min-h-11 rounded-md border border-[#17130f]/10 bg-white/70 px-3 text-sm text-[#17130f] outline-none transition placeholder:text-[#17130f]/35 focus:border-[#b98257]";
 
 const textareaClass =
-  "min-h-32 rounded-md border border-[#17130f]/10 bg-white/70 px-3 py-3 text-sm text-[#17130f] outline-none transition placeholder:text-[#17130f]/35 focus:border-[#b98257]";
+  "min-h-28 rounded-md border border-[#17130f]/10 bg-white/70 px-3 py-3 text-sm text-[#17130f] outline-none transition placeholder:text-[#17130f]/35 focus:border-[#b98257]";
 
 function FieldError({ errors }: { errors?: string[] }) {
-  if (!errors?.length) {
-    return null;
-  }
-
+  if (!errors?.length) return null;
   return <p className="text-sm text-[#8a2f24]">{errors[0]}</p>;
 }
 
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+  badge,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description?: string;
+  badge?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-[#17130f]/8">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-[#17130f]/6 text-[#17130f]/60">
+          <Icon className="size-4" aria-hidden="true" />
+        </span>
+        <div>
+          <h2 className="text-base font-semibold tracking-tight text-[#17130f]">{title}</h2>
+          {description && (
+            <p className="mt-0.5 text-sm leading-5 text-[#17130f]/55">{description}</p>
+          )}
+        </div>
+      </div>
+      {badge}
+    </div>
+  );
+}
+
 function toDateTimeLocal(value: string | null) {
-  if (!value) {
-    return "";
-  }
-
+  if (!value) return "";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
+  if (Number.isNaN(date.getTime())) return "";
   return date.toISOString().slice(0, 16);
 }
 
@@ -53,11 +81,6 @@ type GalleryFormDefaults = GalleryPresetDefaults & { expires_at?: string };
 
 type GalleryFormProps = {
   gallery?: GalleryRecord;
-  /**
-   * Preset defaults for new-gallery create mode. Ignored when `gallery` is
-   * provided (edit mode). Applied as `defaultValue` / `defaultChecked` on
-   * each relevant input so the admin can still override any field.
-   */
   defaultValues?: GalleryFormDefaults;
 };
 
@@ -66,10 +89,17 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <form action={formAction} className="grid gap-6">
+    <form action={formAction} className="grid gap-5">
       {gallery ? <input type="hidden" name="id" value={gallery.id} /> : null}
+
+      {/* ── General ───────────────────────────────────────────────────────── */}
       <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
-        <div className="grid gap-5 md:grid-cols-2">
+        <SectionHeader
+          icon={FileText}
+          title="General"
+          description="Basic details shown on the gallery cover page."
+        />
+        <div className="mt-5 grid gap-5 md:grid-cols-2">
           <label className="grid gap-2">
             <span className="text-sm font-medium">Title</span>
             <input
@@ -92,7 +122,12 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
           </label>
           <label className="grid gap-2">
             <span className="text-sm font-medium">Client name</span>
-            <input className={inputClass} name="client_name" defaultValue={gallery?.client_name ?? ""} />
+            <input
+              className={inputClass}
+              name="client_name"
+              defaultValue={gallery?.client_name ?? ""}
+              placeholder="Jane & Mark"
+            />
           </label>
           <label className="grid gap-2">
             <span className="text-sm font-medium">Client email</span>
@@ -101,6 +136,7 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
               name="client_email"
               type="email"
               defaultValue={gallery?.client_email ?? ""}
+              placeholder="jane@example.com"
             />
             <FieldError errors={state.fieldErrors?.client_email} />
           </label>
@@ -132,13 +168,6 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
             placeholder="A short note for the cover page."
           />
         </label>
-      </section>
-
-      <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
-        <h2 className="text-lg font-semibold tracking-tight">Cover and access</h2>
-        <p className="mt-2 text-sm leading-6 text-[#17130f]/58">
-          Optionally link to a hosted cover image. Photos uploaded via the admin are used automatically once available.
-        </p>
         <div className="mt-5 grid gap-5 md:grid-cols-2">
           <label className="grid gap-2 md:col-span-2">
             <span className="text-sm font-medium">Cover image URL</span>
@@ -147,8 +176,11 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
               name="cover_image_url"
               type="url"
               defaultValue={gallery?.cover_image_url ?? ""}
-              placeholder="https://images-pw.pixieset.com/..."
+              placeholder="https://…"
             />
+            <span className="text-xs text-[#17130f]/45">
+              Optional external cover image. Uploaded photos are used automatically when available.
+            </span>
             <FieldError errors={state.fieldErrors?.cover_image_url} />
           </label>
           <label className="grid gap-2 md:col-span-2">
@@ -160,6 +192,43 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
               placeholder="Guests celebrating on a Toronto dance floor."
             />
           </label>
+        </div>
+      </section>
+
+      {/* ── Privacy & Access ──────────────────────────────────────────────── */}
+      <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
+        <SectionHeader
+          icon={Shield}
+          title="Privacy & Access"
+          description="Control who can find and view this gallery."
+        />
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-[#17130f]/10 bg-white/50 px-4 py-3.5">
+            <div>
+              <p className="text-sm font-medium text-[#17130f]">Published</p>
+              <p className="mt-0.5 text-xs text-[#17130f]/50">Visible to clients with the link</p>
+            </div>
+            <input
+              type="checkbox"
+              name="is_published"
+              defaultChecked={gallery?.is_published ?? false}
+              className="size-4 accent-[#9b744f]"
+            />
+          </label>
+          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-[#17130f]/10 bg-white/50 px-4 py-3.5">
+            <div>
+              <p className="text-sm font-medium text-[#17130f]">Public index eligible</p>
+              <p className="mt-0.5 text-xs text-[#17130f]/50">May appear in the gallery listing</p>
+            </div>
+            <input
+              type="checkbox"
+              name="is_public"
+              defaultChecked={gallery?.is_public ?? defaultValues?.is_public ?? false}
+              className="size-4 accent-[#9b744f]"
+            />
+          </label>
+        </div>
+        <div className="mt-5 grid gap-5 md:grid-cols-2">
           <label className="grid gap-2">
             <span className="text-sm font-medium">Expiry</span>
             <input
@@ -172,7 +241,96 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
                   : (defaultValues?.expires_at ?? "")
               }
             />
+            <span className="text-xs text-[#17130f]/45">Leave blank for no expiry.</span>
           </label>
+        </div>
+
+        {/* Password sub-section */}
+        <div className="mt-6 border-t border-[#17130f]/8 pt-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Lock className="size-4 text-[#17130f]/45" aria-hidden="true" />
+              <p className="text-sm font-semibold text-[#17130f]">Password protection</p>
+              {gallery?.has_password && (
+                <span className="inline-flex items-center rounded-full border border-[#9b744f]/40 bg-[#b98257]/15 px-2.5 py-0.5 text-xs font-medium text-[#9b744f]">
+                  Protected
+                </span>
+              )}
+            </div>
+          </div>
+          <p className="mt-1 text-xs text-[#17130f]/50">
+            {gallery?.has_password
+              ? "Enter a new password to change it, or check Remove to clear it."
+              : "Optional. Visitors must enter this before viewing photos."}
+          </p>
+          <div className="mt-4 grid gap-5 md:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="text-sm font-medium">
+                {gallery?.has_password ? "New password" : "Password"}
+              </span>
+              <input
+                className={inputClass}
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                placeholder={
+                  gallery?.has_password ? "Leave blank to keep current" : "Choose a memorable phrase"
+                }
+                minLength={4}
+              />
+              <span className="text-xs text-[#17130f]/45">
+                Stored and included in client invite emails. Never logged or transmitted otherwise.
+              </span>
+            </label>
+            {gallery?.has_password ? (
+              <label className="flex cursor-pointer items-center gap-3 self-end rounded-md border border-[#8a2f24]/20 bg-[#8a2f24]/8 px-4 py-3.5 text-sm">
+                <input type="checkbox" name="remove_password" className="size-4 accent-[#8a2f24]" />
+                Remove password
+              </label>
+            ) : null}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Download ──────────────────────────────────────────────────────── */}
+      <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
+        <SectionHeader
+          icon={Download}
+          title="Download"
+          description="Control how clients can download photos from this gallery."
+        />
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-[#17130f]/10 bg-white/50 px-4 py-3.5">
+            <div>
+              <p className="text-sm font-medium text-[#17130f]">Downloads enabled</p>
+              <p className="mt-0.5 text-xs text-[#17130f]/50">Clients can download the gallery ZIP</p>
+            </div>
+            <input
+              type="checkbox"
+              name="download_enabled"
+              defaultChecked={gallery?.download_enabled ?? defaultValues?.download_enabled ?? false}
+              className="size-4 accent-[#9b744f]"
+            />
+          </label>
+          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-[#17130f]/10 bg-white/50 px-4 py-3.5">
+            <div>
+              <p className="text-sm font-medium text-[#17130f]">Watermark previews</p>
+              <p className="mt-0.5 text-xs text-[#17130f]/50">Web previews only — originals stay clean</p>
+            </div>
+            <input
+              type="checkbox"
+              name="watermark_enabled"
+              defaultChecked={gallery?.watermark_enabled ?? false}
+              className="size-4 accent-[#9b744f]"
+            />
+          </label>
+        </div>
+        {gallery?.watermark_enabled ? (
+          <p className="mt-3 text-xs text-[#17130f]/45">
+            Use the Variants button in Photos to regenerate existing web previews with the watermark.
+          </p>
+        ) : null}
+        <div className="mt-5 grid gap-5 md:grid-cols-2">
           <label className="grid gap-2">
             <span className="text-sm font-medium">Download quality</span>
             <select
@@ -183,118 +341,6 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
               <option value="web">Web-size</option>
               <option value="full">Full resolution</option>
             </select>
-          </label>
-        </div>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="flex items-center gap-3 rounded-md border border-[#17130f]/10 bg-[#f3f0ea] p-4 text-sm">
-            <input
-              type="checkbox"
-              name="is_public"
-              defaultChecked={gallery?.is_public ?? defaultValues?.is_public ?? false}
-            />
-            Public index eligible
-          </label>
-          <label className="flex items-center gap-3 rounded-md border border-[#17130f]/10 bg-[#f3f0ea] p-4 text-sm">
-            <input type="checkbox" name="is_published" defaultChecked={gallery?.is_published ?? false} />
-            Published
-          </label>
-          <label className="flex items-center gap-3 rounded-md border border-[#17130f]/10 bg-[#f3f0ea] p-4 text-sm">
-            <input
-              type="checkbox"
-              name="download_enabled"
-              defaultChecked={gallery?.download_enabled ?? defaultValues?.download_enabled ?? false}
-            />
-            Downloads enabled
-          </label>
-          <label className="flex items-center gap-3 rounded-md border border-[#17130f]/10 bg-[#f3f0ea] p-4 text-sm">
-            <input
-              type="checkbox"
-              name="watermark_enabled"
-              defaultChecked={gallery?.watermark_enabled ?? false}
-            />
-            Watermark previews
-          </label>
-        </div>
-        {gallery?.watermark_enabled ? (
-          <p className="mt-3 text-xs text-[#17130f]/45">
-            Watermark applies to web previews only — originals and thumbnails remain clean. Use
-            the backfill button in Photos to regenerate existing web variants.
-          </p>
-        ) : null}
-      </section>
-
-      <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">Password protection</h2>
-            <p className="mt-2 text-sm leading-6 text-[#17130f]/58">
-              {gallery?.has_password
-                ? "This gallery currently requires a password. Enter a new one to change it, or check Remove to make it accessible without a password."
-                : "Optional. Add a password to require visitors to enter it before viewing photos."}
-            </p>
-          </div>
-          {gallery?.has_password ? (
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#9b744f]/40 bg-[#b98257]/15 px-3 py-1 text-xs font-medium text-[#9b744f]">
-              Currently protected
-            </span>
-          ) : null}
-        </div>
-        <div className="mt-5 grid gap-5 md:grid-cols-2">
-          <label className="grid gap-2">
-            <span className="text-sm font-medium">
-              {gallery?.has_password ? "New password" : "Password"}
-            </span>
-            <input
-              className={inputClass}
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              placeholder={gallery?.has_password ? "Leave blank to keep current" : "Choose a memorable phrase"}
-              minLength={4}
-            />
-            <span className="text-xs text-[#17130f]/45">
-              Saved so it can be included in client invite emails. Stored only in your Supabase database, never logged or transmitted beyond email delivery.
-            </span>
-          </label>
-          {gallery?.has_password ? (
-            <label className="flex items-center gap-3 self-end rounded-md border border-[#8a2f24]/20 bg-[#8a2f24]/8 p-4 text-sm">
-              <input type="checkbox" name="remove_password" />
-              Remove password (make gallery accessible without it)
-            </label>
-          ) : null}
-        </div>
-      </section>
-
-      <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">Download PIN</h2>
-            <p className="mt-2 text-sm leading-6 text-[#17130f]/58">
-              {gallery?.has_download_pin
-                ? "A download PIN is active. Enter a new one to change it, or check Remove to clear it."
-                : "Optional extra gate before downloads start. Separate from the gallery password."}
-            </p>
-          </div>
-          {gallery?.has_download_pin ? (
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#9b744f]/40 bg-[#b98257]/15 px-3 py-1 text-xs font-medium text-[#9b744f]">
-              PIN active
-            </span>
-          ) : null}
-        </div>
-        <div className="mt-5 grid gap-5 md:grid-cols-2">
-          <label className="grid gap-2">
-            <span className="text-sm font-medium">
-              {gallery?.has_download_pin ? "New download PIN" : "Download PIN"}
-            </span>
-            <input
-              className={inputClass}
-              name="download_pin"
-              type="password"
-              autoComplete="new-password"
-              placeholder={gallery?.has_download_pin ? "Leave blank to keep current" : "Optional PIN code"}
-              minLength={4}
-            />
-            <span className="text-xs text-[#17130f]/45">Stored hashed. Never logged or emailed.</span>
           </label>
           <label className="grid gap-2">
             <span className="text-sm font-medium">
@@ -313,24 +359,64 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
               {gallery?.download_count ? `${gallery.download_count} used so far.` : ""}
             </span>
           </label>
-          {gallery?.has_download_pin ? (
-            <label className="flex items-center gap-3 self-end rounded-md border border-[#8a2f24]/20 bg-[#8a2f24]/8 p-4 text-sm">
-              <input type="checkbox" name="remove_download_pin" />
-              Remove download PIN
+        </div>
+
+        {/* Download PIN sub-section */}
+        <div className="mt-6 border-t border-[#17130f]/8 pt-5">
+          <div className="flex items-center gap-2">
+            <Key className="size-4 text-[#17130f]/45" aria-hidden="true" />
+            <p className="text-sm font-semibold text-[#17130f]">Download PIN</p>
+            {gallery?.has_download_pin && (
+              <span className="inline-flex items-center rounded-full border border-[#9b744f]/40 bg-[#b98257]/15 px-2.5 py-0.5 text-xs font-medium text-[#9b744f]">
+                Active
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-[#17130f]/50">
+            {gallery?.has_download_pin
+              ? "Enter a new PIN to change it, or check Remove to clear it."
+              : "Optional extra gate before downloads start. Separate from the gallery password."}
+          </p>
+          <div className="mt-4 grid gap-5 md:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="text-sm font-medium">
+                {gallery?.has_download_pin ? "New download PIN" : "Download PIN"}
+              </span>
+              <input
+                className={inputClass}
+                name="download_pin"
+                type="password"
+                autoComplete="new-password"
+                placeholder={
+                  gallery?.has_download_pin ? "Leave blank to keep current" : "Optional PIN code"
+                }
+                minLength={4}
+              />
+              <span className="text-xs text-[#17130f]/45">Stored hashed. Never logged or emailed.</span>
             </label>
-          ) : null}
+            {gallery?.has_download_pin ? (
+              <label className="flex cursor-pointer items-center gap-3 self-end rounded-md border border-[#8a2f24]/20 bg-[#8a2f24]/8 px-4 py-3.5 text-sm">
+                <input
+                  type="checkbox"
+                  name="remove_download_pin"
+                  className="size-4 accent-[#8a2f24]"
+                />
+                Remove download PIN
+              </label>
+            ) : null}
+          </div>
         </div>
       </section>
 
+      {/* ── Payment ───────────────────────────────────────────────────────── */}
       <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Payment</h2>
-          <p className="mt-2 text-sm leading-6 text-[#17130f]/58">
-            Track deposit and final payment status. Payments are collected manually via{" "}
-            <strong className="font-medium text-[#17130f]">Interac e-Transfer</strong> — nothing is
-            charged through this site.
-          </p>
-        </div>
+        <SectionHeader
+          icon={Receipt}
+          title="Payment"
+          description={
+            "Track deposit and final payment status. Payments are collected manually via Interac e-Transfer — nothing is charged through this site."
+          }
+        />
         <div className="mt-5 grid gap-5 md:grid-cols-2">
           <label className="grid gap-2">
             <span className="text-sm font-medium">Deposit status</span>
@@ -370,10 +456,10 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
           {state.message}
         </p>
       ) : null}
+
       <Button type="submit" variant="light" disabled={pending} className="justify-self-start rounded-md">
-        {pending ? "Saving" : gallery ? "Save gallery" : "Create gallery"}
+        {pending ? "Saving…" : gallery ? "Save settings" : "Create gallery"}
       </Button>
     </form>
   );
 }
-

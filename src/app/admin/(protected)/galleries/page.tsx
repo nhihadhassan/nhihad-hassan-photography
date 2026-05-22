@@ -100,6 +100,7 @@ export default async function AdminGalleriesPage() {
                 <GalleryRowActions
                   id={gallery.id}
                   title={gallery.title}
+                  slug={gallery.slug}
                   isPublished={gallery.is_published}
                   isArchived={gallery.is_archived}
                 />

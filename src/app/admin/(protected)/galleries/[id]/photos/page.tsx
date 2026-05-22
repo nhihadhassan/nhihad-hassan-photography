@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, ArrowLeft, Image as ImageIcon } from "lucide-react";
+import { AlertTriangle, Heart, Images, Settings2, Share2 } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminGallery } from "@/lib/admin-data";
 import { getAdminGalleryPhotos } from "@/lib/photos";
@@ -23,31 +23,61 @@ export default async function GalleryPhotosPage({ params }: PhotosPageProps) {
   const r2Configured = hasR2Config();
   const photos = r2Configured ? await getAdminGalleryPhotos(id) : [];
 
+  const tabs = [
+    { label: "Photos", href: `/admin/galleries/${gallery.id}/photos`, icon: Images, active: true },
+    { label: "Settings", href: `/admin/galleries/${gallery.id}`, icon: Settings2 },
+    { label: "Selects", href: `/admin/galleries/${gallery.id}/favorites`, icon: Heart },
+    { label: "Share", href: `/admin/galleries/${gallery.id}/share`, icon: Share2 },
+  ];
+
   return (
     <div className="mx-auto max-w-6xl">
-      <Link
-        href={`/admin/galleries/${id}`}
-        className="inline-flex items-center gap-2 text-sm text-[#17130f]/58 hover:text-[#17130f]"
-      >
-        <ArrowLeft className="size-3.5" aria-hidden="true" />
-        Back to gallery
+      {/* Back link */}
+      <Link href="/admin/galleries" className="text-sm text-[#17130f]/55 hover:text-[#17130f]">
+        ← All galleries
       </Link>
 
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-medium text-[#9b744f]">Photos</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">{gallery.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#17130f]/60">
-            Upload, hide, reorder, and set the cover photo. Originals are stored privately in
-            Cloudflare R2 and served via short-lived signed URLs.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-[#17130f]/55">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#17130f]/10 px-3 py-1.5">
-            <ImageIcon className="size-3.5" aria-hidden="true" />
-            {photos.length} photo{photos.length === 1 ? "" : "s"}
+      {/* Header */}
+      <div className="mt-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={
+              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium " +
+              (gallery.is_archived
+                ? "bg-[#17130f]/10 text-[#17130f]/60"
+                : gallery.is_published
+                  ? "bg-[#3f6e4a]/15 text-[#3f6e4a]"
+                  : "bg-[#b98257]/20 text-[#9b744f]")
+            }
+          >
+            {gallery.is_archived ? "Archived" : gallery.is_published ? "Published" : "Draft"}
           </span>
         </div>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{gallery.title}</h1>
+        {gallery.client_name && (
+          <p className="mt-0.5 text-sm text-[#17130f]/55">{gallery.client_name}</p>
+        )}
+      </div>
+
+      {/* Tab navigation */}
+      <div className="mt-6 border-b border-[#17130f]/10">
+        <nav className="flex gap-1" aria-label="Gallery sections">
+          {tabs.map(({ label, href, icon: Icon, active }) => (
+            <Link
+              key={href}
+              href={href}
+              className={
+                "inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm transition " +
+                (active
+                  ? "border-[#17130f] font-medium text-[#17130f]"
+                  : "border-transparent text-[#17130f]/55 hover:border-[#17130f]/25 hover:text-[#17130f]")
+              }
+            >
+              <Icon className="size-3.5" aria-hidden="true" />
+              {label}
+            </Link>
+          ))}
+        </nav>
       </div>
 
       {!r2Configured ? (

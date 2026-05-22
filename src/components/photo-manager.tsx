@@ -6,10 +6,13 @@ import { useRouter } from "next/navigation";
 import {
   ArrowDown,
   ArrowUp,
+  ArrowUpDown,
   CheckCircle2,
   CheckSquare,
   Eye,
   EyeOff,
+  Grid2X2,
+  Grid3X3,
   ImageOff,
   Loader2,
   Sparkles,
@@ -218,6 +221,9 @@ export function PhotoManager({
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [gridSize, setGridSize] = useState<"small" | "large">("large");
+  const [sortMode, setSortMode] = useState<"manual" | "newest" | "oldest" | "name-asc" | "name-desc">("manual");
+
   const photos = initialPhotos;
   const activeUploads = uploads.filter((u) => u.status === "uploading" || u.status === "pending");
   const completedUploads = uploads.filter((u) => u.status === "success");
@@ -387,16 +393,31 @@ export function PhotoManager({
     });
   };
 
+  const sortedPhotos = useMemo(() => {
+    if (sortMode === "manual") return photos;
+    const copy = [...photos];
+    if (sortMode === "newest") {
+      copy.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } else if (sortMode === "oldest") {
+      copy.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    } else if (sortMode === "name-asc") {
+      copy.sort((a, b) => a.filename.localeCompare(b.filename));
+    } else if (sortMode === "name-desc") {
+      copy.sort((a, b) => b.filename.localeCompare(a.filename));
+    }
+    return copy;
+  }, [photos, sortMode]);
+
   const photoListItems = useMemo(
     () =>
-      photos.map((photo, index) => ({
+      sortedPhotos.map((photo, index) => ({
         photo,
         index,
         isFirst: index === 0,
-        isLast: index === photos.length - 1,
+        isLast: index === sortedPhotos.length - 1,
         isCover: photo.id === coverPhotoId,
       })),
-    [photos, coverPhotoId],
+    [sortedPhotos, coverPhotoId],
   );
 
   return (
@@ -530,12 +551,58 @@ export function PhotoManager({
         <div>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold tracking-tight">
-              Photos in this gallery
+              Photos
               <span className="ml-2 text-sm font-normal text-[#17130f]/45">
                 {photos.length}
               </span>
             </h2>
             <div className="flex flex-wrap items-center gap-2">
+              {/* Sort dropdown */}
+              <div className="flex items-center gap-1.5 rounded-md border border-[#17130f]/12 bg-white/60 px-2 py-1">
+                <ArrowUpDown className="size-3.5 shrink-0 text-[#17130f]/50" aria-hidden="true" />
+                <select
+                  value={sortMode}
+                  onChange={(e) => setSortMode(e.target.value as typeof sortMode)}
+                  className="bg-transparent text-xs text-[#17130f] outline-none cursor-pointer"
+                >
+                  <option value="manual">Manual order</option>
+                  <option value="newest">Uploaded: Newest first</option>
+                  <option value="oldest">Uploaded: Oldest first</option>
+                  <option value="name-asc">Name: A → Z</option>
+                  <option value="name-desc">Name: Z → A</option>
+                </select>
+              </div>
+
+              {/* Grid size toggle */}
+              <div className="flex items-center rounded-md border border-[#17130f]/12 bg-white/60">
+                <button
+                  type="button"
+                  onClick={() => setGridSize("large")}
+                  title="Large grid"
+                  className={
+                    "flex items-center gap-1 rounded-l-md px-2.5 py-1.5 text-xs transition " +
+                    (gridSize === "large"
+                      ? "bg-[#17130f] text-white"
+                      : "text-[#17130f]/60 hover:bg-[#17130f]/6")
+                  }
+                >
+                  <Grid2X2 className="size-3.5" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGridSize("small")}
+                  title="Small grid"
+                  className={
+                    "flex items-center gap-1 rounded-r-md px-2.5 py-1.5 text-xs transition " +
+                    (gridSize === "small"
+                      ? "bg-[#17130f] text-white"
+                      : "text-[#17130f]/60 hover:bg-[#17130f]/6")
+                  }
+                >
+                  <Grid3X3 className="size-3.5" aria-hidden="true" />
+                </button>
+              </div>
+
               {/* Select all / deselect all */}
               {selectedIds.size === 0 ? (
                 <button
@@ -574,7 +641,7 @@ export function PhotoManager({
                 )}
                 {backfillRunning
                   ? "Optimizing…"
-                  : `Generate missing variants (${missingVariantPhotos.length})`}
+                  : `Variants (${missingVariantPhotos.length} missing)`}
               </button>
               {coverPhotoId ? (
                 <form action={(form) => runAction(form, clearGalleryCover)}>
@@ -616,7 +683,14 @@ export function PhotoManager({
             </div>
           )}
 
-          <ul className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <ul
+            className={
+              "mt-5 grid gap-3 " +
+              (gridSize === "small"
+                ? "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6"
+                : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4")
+            }
+          >
             {photoListItems.map(({ photo, isFirst, isLast, isCover }) => {
               const aspect = photo.width && photo.height ? photo.width / photo.height : 1;
               return (
@@ -668,7 +742,7 @@ export function PhotoManager({
                       </div>
                     )}
                     {isCover && (
-                      <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-[#9b744f] px-2 py-0.5 text-[10px] font-medium text-white">
+                      <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-[#9b744f] px-2 py-0.5 text-[10px] font-medium text-white">
                         <Star className="size-3" aria-hidden="true" />
                         Cover
                       </span>
@@ -764,33 +838,37 @@ export function PhotoManager({
                         </button>
                       </form>
 
-                      <form action={(form) => runAction(form, movePhoto)}>
-                        <input type="hidden" name="id" value={photo.id} />
-                        <input type="hidden" name="gallery_id" value={galleryId} />
-                        <input type="hidden" name="direction" value="up" />
-                        <button
-                          type="submit"
-                          disabled={pending || isFirst}
-                          title="Move up"
-                          className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[10px] text-[#17130f]/65 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          <ArrowUp className="size-3" aria-hidden="true" />
-                        </button>
-                      </form>
+                      {sortMode === "manual" && (
+                        <>
+                          <form action={(form) => runAction(form, movePhoto)}>
+                            <input type="hidden" name="id" value={photo.id} />
+                            <input type="hidden" name="gallery_id" value={galleryId} />
+                            <input type="hidden" name="direction" value="up" />
+                            <button
+                              type="submit"
+                              disabled={pending || isFirst}
+                              title="Move up"
+                              className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[10px] text-[#17130f]/65 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              <ArrowUp className="size-3" aria-hidden="true" />
+                            </button>
+                          </form>
 
-                      <form action={(form) => runAction(form, movePhoto)}>
-                        <input type="hidden" name="id" value={photo.id} />
-                        <input type="hidden" name="gallery_id" value={galleryId} />
-                        <input type="hidden" name="direction" value="down" />
-                        <button
-                          type="submit"
-                          disabled={pending || isLast}
-                          title="Move down"
-                          className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[10px] text-[#17130f]/65 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          <ArrowDown className="size-3" aria-hidden="true" />
-                        </button>
-                      </form>
+                          <form action={(form) => runAction(form, movePhoto)}>
+                            <input type="hidden" name="id" value={photo.id} />
+                            <input type="hidden" name="gallery_id" value={galleryId} />
+                            <input type="hidden" name="direction" value="down" />
+                            <button
+                              type="submit"
+                              disabled={pending || isLast}
+                              title="Move down"
+                              className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[10px] text-[#17130f]/65 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              <ArrowDown className="size-3" aria-hidden="true" />
+                            </button>
+                          </form>
+                        </>
+                      )}
 
                       <form
                         action={(form) => {

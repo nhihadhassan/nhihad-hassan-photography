@@ -44,12 +44,12 @@ export default function Home() {
           {/* Minimal centered header */}
           <header className="absolute inset-x-0 top-0 z-20 px-4 py-6 sm:px-8 sm:py-7">
             <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
-              <nav className="col-start-1 hidden items-center gap-7 text-xs uppercase tracking-[0.18em] text-soft-white/80 md:flex">
+              <nav className="col-start-1 hidden items-center gap-7 text-xs uppercase tracking-[0.18em] text-soft-white md:flex">
                 {navItems.slice(0, 2).map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="transition hover:text-soft-white"
+                    className="transition hover:text-soft-white/70"
                   >
                     {item.label}
                   </Link>
@@ -61,12 +61,12 @@ export default function Home() {
               </h1>
 
               <div className="col-start-3 flex items-center justify-end gap-7">
-                <nav className="hidden items-center gap-7 text-xs uppercase tracking-[0.18em] text-soft-white/80 md:flex">
+                <nav className="hidden items-center gap-7 text-xs uppercase tracking-[0.18em] text-soft-white md:flex">
                   {navItems.slice(2).map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="transition hover:text-soft-white"
+                      className="transition hover:text-soft-white/70"
                     >
                       {item.label}
                     </Link>

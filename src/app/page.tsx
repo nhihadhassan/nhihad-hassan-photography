@@ -41,26 +41,22 @@ export default function Home() {
           {/* Soft top and bottom darkening so the photo carries the screen. */}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,8,8,0.5)_0%,rgba(8,8,8,0.08)_22%,rgba(8,8,8,0)_52%,rgba(8,8,8,0.62)_100%)]" />
 
-          {/* Minimal centered header */}
-          <header className="absolute inset-x-0 top-0 z-20 px-4 py-6 sm:px-8 sm:py-7">
-            <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
-              <nav className="col-start-1 hidden items-center gap-7 text-xs uppercase tracking-[0.18em] text-soft-white/80 md:flex">
-                {navItems.slice(0, 2).map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="transition hover:text-soft-white"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-
-              <h1 className="col-start-2 justify-self-center whitespace-nowrap text-center font-serif font-bold uppercase text-soft-white text-sm tracking-[0.14em] sm:text-lg sm:tracking-[0.28em] lg:text-2xl lg:tracking-[0.3em]">
-                {brandConfig.name}
-              </h1>
-
-              <div className="col-start-3 flex items-center justify-end gap-7">
+          {/* Minimal header */}
+          <header className="absolute inset-x-0 top-0 z-20 px-4 py-6 sm:px-8 sm:py-8">
+            <div className="mx-auto max-w-7xl">
+              {/* Nav row */}
+              <div className="flex items-center justify-between">
+                <nav className="hidden items-center gap-7 text-xs uppercase tracking-[0.18em] text-soft-white/80 md:flex">
+                  {navItems.slice(0, 2).map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="transition hover:text-soft-white"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </nav>
                 <nav className="hidden items-center gap-7 text-xs uppercase tracking-[0.18em] text-soft-white/80 md:flex">
                   {navItems.slice(2).map((item) => (
                     <Link
@@ -76,6 +72,10 @@ export default function Home() {
                   <MobileNav items={navItems} />
                 </div>
               </div>
+              {/* Brand name — full-width, hero-scale */}
+              <h1 className="mt-6 text-center font-serif font-bold uppercase text-soft-white tracking-[0.1em] text-4xl sm:mt-8 sm:text-6xl lg:mt-10 lg:text-[5.5rem] xl:text-[7rem]">
+                {brandConfig.name}
+              </h1>
             </div>
           </header>
 

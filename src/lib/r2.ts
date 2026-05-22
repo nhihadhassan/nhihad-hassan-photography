@@ -122,6 +122,25 @@ export async function downloadFromR2(key: string): Promise<Buffer> {
   return Buffer.concat(chunks);
 }
 
+export async function getSignedPutUrl(
+  key: string,
+  contentType: string,
+  ttlSeconds = 3600,
+) {
+  const { bucket } = requireR2Config();
+  const client = getClient();
+
+  return getSignedUrl(
+    client,
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ContentType: contentType,
+    }),
+    { expiresIn: ttlSeconds },
+  );
+}
+
 export async function getSignedReadUrl(key: string, ttlSeconds = 3600) {
   const { bucket } = requireR2Config();
   const client = getClient();

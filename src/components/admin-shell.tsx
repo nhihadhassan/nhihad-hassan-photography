@@ -62,8 +62,6 @@ export function AdminShell({
             </Link>
             <div className="flex items-center gap-3 text-xs text-[#17130f]/52">
               <span className="hidden sm:inline">{adminEmail}</span>
-              <span className="size-2 rounded-full bg-[#b98257]" />
-              Phase 3A
               <form action={logoutAdmin} className="lg:hidden">
                 <button className="inline-flex min-h-9 items-center gap-2 rounded-md border border-[#17130f]/10 px-3 text-xs text-[#17130f]/68">
                   <LogOut className="size-3.5" aria-hidden="true" />

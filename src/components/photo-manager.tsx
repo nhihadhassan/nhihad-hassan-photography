@@ -69,7 +69,18 @@ async function readImageDimensions(file: File): Promise<{ width: number; height:
   });
 }
 
-function uploadWithProgress({
+/**
+ * Three-step upload that bypasses Vercel's request body size limit:
+ *   1. POST /api/admin/photos/presign  → get a presigned R2 PUT URL (tiny JSON payload)
+ *   2. PUT  <presigned R2 URL>         → upload file directly to R2 (skips Vercel entirely)
+ *   3. POST /api/admin/photos/process  → server downloads from R2, runs Sharp, inserts DB row
+ *
+ * Progress is reported in three phases:
+ *   0–5 %   presigning
+ *   5–85 %  direct upload to R2 (XHR progress events)
+ *   85–100% Sharp processing on the server
+ */
+async function uploadWithProgress({
   file,
   galleryId,
   width,
@@ -82,40 +93,104 @@ function uploadWithProgress({
   height: number | null;
   onProgress: (pct: number) => void;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
-  return new Promise((resolve) => {
-    const form = new FormData();
-    form.set("gallery_id", galleryId);
-    form.set("file", file);
-    if (width) form.set("width", String(width));
-    if (height) form.set("height", String(height));
+  // ── Step 1: presign ────────────────────────────────────────────────────────
+  onProgress(2);
+  let presignData: {
+    presigned_url: string;
+    original_key: string;
+    gallery_id: string;
+    filename: string;
+    content_type: string;
+    size: number;
+    width: number | null;
+    height: number | null;
+  };
+  try {
+    const res = await fetch("/api/admin/photos/presign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        gallery_id: galleryId,
+        filename: file.name,
+        content_type: file.type,
+        size: file.size,
+        width,
+        height,
+      }),
+    });
+    if (!res.ok) {
+      let message = `Presign failed (${res.status})`;
+      try {
+        const body = (await res.json()) as { error?: string };
+        if (body.error) message = body.error;
+      } catch { /* ignore */ }
+      return { ok: false, error: message };
+    }
+    presignData = (await res.json()) as typeof presignData;
+  } catch {
+    return { ok: false, error: "Network error (presign)." };
+  }
 
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/admin/photos/upload");
+  // ── Step 2: direct PUT to R2 ───────────────────────────────────────────────
+  const uploadResult = await new Promise<{ ok: true } | { ok: false; error: string }>(
+    (resolve) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", presignData.presigned_url);
+      xhr.setRequestHeader("Content-Type", file.type);
 
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        onProgress(Math.round((event.loaded / event.total) * 100));
-      }
-    };
-
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve({ ok: true });
-      } else {
-        let message = `Upload failed (${xhr.status})`;
-        try {
-          const body = JSON.parse(xhr.responseText) as { error?: string };
-          if (body.error) message = body.error;
-        } catch {
-          // ignore
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          // Map 0→100% upload progress into the 5–85% overall range.
+          const pct = 5 + Math.round((event.loaded / event.total) * 80);
+          onProgress(pct);
         }
-        resolve({ ok: false, error: message });
-      }
-    };
+      };
 
-    xhr.onerror = () => resolve({ ok: false, error: "Network error." });
-    xhr.send(form);
-  });
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve({ ok: true });
+        } else {
+          resolve({ ok: false, error: `Direct upload failed (${xhr.status}).` });
+        }
+      };
+
+      xhr.onerror = () => resolve({ ok: false, error: "Network error (direct upload)." });
+      xhr.send(file);
+    },
+  );
+
+  if (!uploadResult.ok) return uploadResult;
+  onProgress(87);
+
+  // ── Step 3: process (Sharp + DB insert) ───────────────────────────────────
+  try {
+    const res = await fetch("/api/admin/photos/process", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        gallery_id: presignData.gallery_id,
+        original_key: presignData.original_key,
+        filename: presignData.filename,
+        content_type: presignData.content_type,
+        size: presignData.size,
+        width: presignData.width,
+        height: presignData.height,
+      }),
+    });
+    if (!res.ok) {
+      let message = `Processing failed (${res.status})`;
+      try {
+        const body = (await res.json()) as { error?: string };
+        if (body.error) message = body.error;
+      } catch { /* ignore */ }
+      return { ok: false, error: message };
+    }
+  } catch {
+    return { ok: false, error: "Network error (processing)." };
+  }
+
+  onProgress(100);
+  return { ok: true };
 }
 
 export function PhotoManager({

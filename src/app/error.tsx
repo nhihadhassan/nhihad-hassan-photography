@@ -21,7 +21,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
         Something went wrong.
       </h1>
       <p className="mt-3 max-w-sm text-sm text-soft-white/55">
-        An unexpected error occurred. Try refreshing — if it keeps happening, reach out.
+        An unexpected error occurred. Try refreshing. If it keeps happening, reach out.
       </p>
       <div className="mt-8 flex flex-wrap justify-center gap-4">
         <button

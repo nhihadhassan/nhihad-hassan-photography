@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   description: `Portrait, couples, and event photography sessions in Toronto. Inquire to book with ${brandConfig.name}.`,
   openGraph: {
     title: `Sessions | ${brandConfig.name}`,
-    description: "Portrait, couples, and event sessions in Toronto. No dollar figures — book by inquiry.",
+    description: "Portrait, couples, and event sessions in Toronto. No dollar figures, book by inquiry.",
   },
 };
 
@@ -33,7 +33,7 @@ export default function MiniSessionsPage() {
               Photographs worth keeping.
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-ink/60">
-              Couples, portraits, events — shot with intention across Toronto. Every session
+              Couples, portraits, events. Shot with intention across Toronto. Every session
               is focused, personal, and booked by inquiry.
             </p>
             <p className="mt-3 text-sm text-ink/45">

@@ -72,7 +72,7 @@ export default async function GalleryViewPage({ params }: GalleryViewPageProps) 
               type="button"
               aria-disabled="true"
               tabIndex={-1}
-              title="Slideshow — coming in a future update"
+              title="Slideshow: coming in a future update"
               className="inline-flex min-h-10 cursor-not-allowed items-center gap-2 rounded-full border border-ink/10 px-3 text-sm text-ink/35"
             >
               <Play className="size-4" aria-hidden="true" />
@@ -148,7 +148,7 @@ export default async function GalleryViewPage({ params }: GalleryViewPageProps) 
               type="button"
               aria-disabled="true"
               tabIndex={-1}
-              title="Slideshow — coming in a future update"
+              title="Slideshow: coming in a future update"
               className="inline-flex min-h-11 cursor-not-allowed items-center gap-2 rounded-full border border-ink/10 px-4 text-sm text-ink/35"
             >
               <Play className="size-4" aria-hidden="true" />

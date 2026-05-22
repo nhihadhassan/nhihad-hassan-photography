@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   if (!label) return {};
   return {
     title: `${label} Photography Toronto | Nhihad Hassan`,
-    description: categoryMeta[category as PortfolioCategory]?.description ?? `${label} photography by Nhihad Hassan — Toronto-based photographer.`,
+    description: categoryMeta[category as PortfolioCategory]?.description ?? `${label} photography by Nhihad Hassan, Toronto-based photographer.`,
   };
 }
 
@@ -159,7 +159,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
           {items.length === 0 ? (
             <p className="mt-16 text-center text-soft-white/45">
-              No photos in this category yet — check back soon.
+              No photos in this category yet. Check back soon.
             </p>
           ) : (
             <div className="mt-12 columns-1 gap-6 sm:columns-2 lg:columns-3">

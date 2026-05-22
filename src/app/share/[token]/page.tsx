@@ -80,7 +80,7 @@ export default async function SharePage({ params }: Props) {
           {brandConfig.name}
         </Link>
         <span className="mx-2">·</span>
-        Shared photos — not for redistribution
+        Shared photos, not for redistribution
       </footer>
     </div>
   );

@@ -31,14 +31,14 @@ export const miniSessionOfferings: MiniSessionOffering[] = [
     title: "Couples & Engagements",
     tagline: "Toronto parks · golden hour · intimate sessions",
     description:
-      "A focused 60-minute outdoor session built around natural light, honest moments, and locations that feel personal to you — High Park, the Distillery, Trinity Bellwoods, or wherever means something.",
+      "A 60-minute outdoor session in natural light, at a location that means something to you: High Park, the Distillery, Trinity Bellwoods, or wherever you have in mind.",
     includes: [
       "Up to 60 minutes on location",
       "Edited gallery delivered within two weeks",
       "Web-optimized photos for sharing",
       "One location",
     ],
-    availability: "Spring and autumn — inquire for current availability",
+    availability: "Spring and autumn. Inquire for current availability.",
     portfolioCategory: "weddings-couples",
   },
   {
@@ -46,14 +46,14 @@ export const miniSessionOfferings: MiniSessionOffering[] = [
     title: "Portrait Session",
     tagline: "Individuals · content creators · professionals",
     description:
-      "A relaxed portrait session in a setting that suits you. Editorial, candid, or somewhere in between — tailored to how you want to show up.",
+      "A relaxed portrait session in a setting that suits you. Editorial, candid, or somewhere in between, tailored to how you want to show up.",
     includes: [
       "Up to 60 minutes on location",
       "Edited gallery delivered within two weeks",
       "Multiple outfit changes welcome",
       "Direction and posing throughout",
     ],
-    availability: "Year-round — inquire for current availability",
+    availability: "Year-round. Inquire for current availability.",
     portfolioCategory: "portraits",
   },
   {
@@ -61,14 +61,14 @@ export const miniSessionOfferings: MiniSessionOffering[] = [
     title: "Event Coverage",
     tagline: "Birthdays · graduations · celebrations",
     description:
-      "Documentary-style event photography that captures the energy of the room — candids, group moments, and the details you arranged.",
+      "Documentary-style event photography that captures the energy of the room: candids, group moments, and the details you arranged.",
     includes: [
       "2–4 hours of coverage",
       "Full edited gallery",
       "Delivered within two weeks",
       "Printed prints available on request",
     ],
-    availability: "Year-round — inquire for your date",
+    availability: "Year-round. Inquire for your date.",
     portfolioCategory: "events",
   },
 ];
@@ -81,7 +81,7 @@ export type MiniSessionFaq = {
 export const miniSessionFaqs: MiniSessionFaq[] = [
   {
     q: "How does booking work?",
-    a: "Send an inquiry with your preferred date and session type. Once confirmed, a deposit via Interac e-Transfer holds your date — no checkout on this site.",
+    a: "Send an inquiry with your preferred date and session type. Once confirmed, a deposit via Interac e-Transfer holds your date. No checkout on this site.",
   },
   {
     q: "Where do sessions take place?",
@@ -89,7 +89,7 @@ export const miniSessionFaqs: MiniSessionFaq[] = [
   },
   {
     q: "When will I receive my photos?",
-    a: "Edited galleries are delivered within two weeks of the session via your private client gallery. Rush delivery may be available — ask when you inquire.",
+    a: "Edited galleries are delivered within two weeks of the session via your private client gallery. Rush delivery may be available, so ask when you inquire.",
   },
   {
     q: "Can I request a session not listed here?",

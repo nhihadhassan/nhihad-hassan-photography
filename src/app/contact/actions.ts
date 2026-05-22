@@ -69,7 +69,7 @@ export async function submitInquiry(
     return {
       status: "success",
       message:
-        "Your inquiry was sent. If we're a good fit, you'll hear back to confirm the booking — deposit payment instructions will be included in that reply via Interac e-Transfer.",
+        "Your inquiry was sent. If we're a good fit, you'll hear back to confirm the booking. Deposit payment instructions will be included in that reply via Interac e-Transfer.",
     };
   } catch {
     return {

@@ -10,7 +10,7 @@ import { categoryLabels, portfolioItems } from "@/data/photography";
 export const metadata: Metadata = {
   title: "Portfolio",
   description:
-    "Weddings, couples, events, nightlife, portraits, and lifestyle photography by Nhihad Hassan — Toronto-based photographer.",
+    "Weddings, couples, events, nightlife, portraits, and lifestyle photography by Nhihad Hassan, Toronto-based photographer.",
   openGraph: {
     title: "Portfolio | Nhihad Hassan Photography",
     description:

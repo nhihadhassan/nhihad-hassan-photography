@@ -11,7 +11,7 @@ import { brandConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "Journal",
-  description: `Photography notes, tips, and location guides from ${brandConfig.name} — Toronto-based photographer.`,
+  description: `Photography notes, tips, and location guides from ${brandConfig.name}, Toronto-based photographer.`,
   openGraph: {
     title: `Journal | ${brandConfig.name}`,
     description: "Photography notes, location guides, and session tips.",
@@ -46,7 +46,7 @@ export default function JournalPage() {
               </h1>
               <p className="mt-4 text-base leading-relaxed text-ink/60">
                 Location guides, session tips, and the occasional behind-the-scenes thought.
-                Not a content farm — just useful things worth writing down.
+                Not a content farm. Just useful things worth writing down.
               </p>
             </Reveal>
           </div>
@@ -57,7 +57,7 @@ export default function JournalPage() {
           <div className="mx-auto max-w-3xl">
             {published.length === 0 ? (
               <Reveal>
-                <p className="text-sm text-ink/50">No posts yet — check back soon.</p>
+                <p className="text-sm text-ink/50">No posts yet. Check back soon.</p>
               </Reveal>
             ) : (
               <div className="divide-y divide-ink/8">

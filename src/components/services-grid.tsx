@@ -25,7 +25,7 @@ const imageById = new Map(portfolioItems.map((item) => [item.id, item] as const)
 export function ServicesGrid({
   eyebrow = "What I shoot",
   headline = "Built for weddings, couples, portraits, events, and nightlife.",
-  intro = "Five shoot types, one approach: read the room first, then make pictures that hold up away from the moment.",
+  intro = "Five different shoots. One consistent approach.",
   tone = "dark",
 }: ServicesGridProps) {
   const isDark = tone === "dark";

@@ -207,7 +207,7 @@ export function SelectsDrawer({ slug, photos, downloadEnabled = false }: Selects
                       <input key={p.id} type="hidden" name="photo_ids" value={p.id} />
                     ))}
                     <p className="text-xs text-ink/55">
-                      Download your selects as a ZIP — no need to send them first.
+                      Download your selects as a ZIP. No need to send them first.
                     </p>
                     <button
                       type="submit"

@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Investment | Nhihad Hassan Photography",
     description:
-      "Wedding, couples, portrait, and event photography in Toronto. Inquiry-based — no checkout on this site. Deposits via Interac e-Transfer.",
+      "Wedding, couples, portrait, and event photography in Toronto. Inquiry-based, no checkout on this site. Deposits via Interac e-Transfer.",
   },
 };
 
@@ -88,7 +88,7 @@ export default function InvestmentPage() {
                   Wedding, couples, portrait, and event coverage in Toronto and across Ontario. Built around the feel of the day, delivered in a private gallery that&rsquo;s easy to share with everyone who matters.
                 </p>
                 <p className="mt-5 max-w-2xl text-sm leading-6 text-soft-white/55">
-                  Bookings are confirmed manually. Deposit instructions are sent after booking confirmation via <strong className="font-medium text-soft-white">Interac e-Transfer</strong> &mdash; there is no checkout on this site.
+                  Bookings are confirmed manually. Once confirmed, deposit instructions arrive via <strong className="font-medium text-soft-white">Interac e-Transfer</strong>. No checkout on this site.
                 </p>
                 <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                   <ButtonLink href="/contact">
@@ -144,7 +144,7 @@ export default function InvestmentPage() {
           tone="dark"
           eyebrow="What I shoot"
           headline="Coverage for the five things I shoot most."
-          intro="Each shoot type has its own pace, light, and rhythm. The approach stays the same: read the room, then make pictures that hold up away from the moment."
+          intro="Each shoot type runs differently. The approach behind the camera doesn't."
         />
 
         {/* Per-service blocks */}

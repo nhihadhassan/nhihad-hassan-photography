@@ -7,11 +7,13 @@ import {
   ArrowDown,
   ArrowUp,
   CheckCircle2,
+  CheckSquare,
   Eye,
   EyeOff,
   ImageOff,
   Loader2,
   Sparkles,
+  Square,
   Star,
   StarOff,
   Trash2,
@@ -24,6 +26,7 @@ import type { PhotoWithUrls } from "@/lib/photos";
 import {
   clearGalleryCover,
   deletePhoto,
+  deletePhotos,
   movePhoto,
   setGalleryCover,
   togglePhotoHidden,
@@ -211,6 +214,8 @@ export function PhotoManager({
   const [isDragging, setIsDragging] = useState(false);
   const [backfillStates, setBackfillStates] = useState<Record<string, BackfillState>>({});
   const [backfillRunning, setBackfillRunning] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const photos = initialPhotos;
@@ -260,6 +265,37 @@ export function PhotoManager({
     setBackfillRunning(false);
     router.refresh();
   }, [backfillRunning, missingVariantPhotos, router]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => {
+    setSelectedIds(new Set(photos.map((p) => p.id)));
+  }, [photos]);
+
+  const deselectAll = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  const handleBulkDelete = useCallback(async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (!window.confirm(`Permanently delete ${ids.length} photo${ids.length === 1 ? "" : "s"}? This cannot be undone.`)) return;
+    setBulkDeleting(true);
+    try {
+      await deletePhotos(ids, galleryId);
+      setSelectedIds(new Set());
+    } finally {
+      setBulkDeleting(false);
+      router.refresh();
+    }
+  }, [selectedIds, galleryId, router]);
 
   const handleFiles = useCallback(
     async (filesList: FileList | File[]) => {
@@ -493,8 +529,33 @@ export function PhotoManager({
       ) : (
         <div>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold tracking-tight">Photos in this gallery</h2>
+            <h2 className="text-lg font-semibold tracking-tight">
+              Photos in this gallery
+              <span className="ml-2 text-sm font-normal text-[#17130f]/45">
+                {photos.length}
+              </span>
+            </h2>
             <div className="flex flex-wrap items-center gap-2">
+              {/* Select all / deselect all */}
+              {selectedIds.size === 0 ? (
+                <button
+                  type="button"
+                  onClick={selectAll}
+                  className="inline-flex items-center gap-2 rounded-md border border-[#17130f]/12 px-3 py-1.5 text-xs text-[#17130f]/68 hover:bg-[#17130f]/6"
+                >
+                  <CheckSquare className="size-3.5" aria-hidden="true" />
+                  Select all
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={deselectAll}
+                  className="inline-flex items-center gap-2 rounded-md border border-[#17130f]/12 px-3 py-1.5 text-xs text-[#17130f]/68 hover:bg-[#17130f]/6"
+                >
+                  <Square className="size-3.5" aria-hidden="true" />
+                  Deselect all
+                </button>
+              )}
               <button
                 type="button"
                 onClick={runBackfill}
@@ -531,6 +592,30 @@ export function PhotoManager({
             </div>
           </div>
 
+          {/* Bulk action bar — shown when photos are selected */}
+          {selectedIds.size > 0 && (
+            <div className="flex items-center justify-between gap-3 rounded-md border border-[#8a2f24]/20 bg-[#8a2f24]/8 px-4 py-3">
+              <p className="text-sm font-medium text-[#8a2f24]">
+                {selectedIds.size} photo{selectedIds.size === 1 ? "" : "s"} selected
+              </p>
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+                className="inline-flex items-center gap-2 rounded-md bg-[#8a2f24] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#6e2419] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {bulkDeleting ? (
+                  <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Trash2 className="size-3.5" aria-hidden="true" />
+                )}
+                {bulkDeleting
+                  ? "Deleting…"
+                  : `Delete ${selectedIds.size} photo${selectedIds.size === 1 ? "" : "s"}`}
+              </button>
+            </div>
+          )}
+
           <ul className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {photoListItems.map(({ photo, isFirst, isLast, isCover }) => {
               const aspect = photo.width && photo.height ? photo.width / photo.height : 1;
@@ -539,10 +624,33 @@ export function PhotoManager({
                   key={photo.id}
                   className={
                     "group overflow-hidden rounded-md border bg-[#fbf8f1] transition " +
-                    (isCover ? "border-[#9b744f] shadow-[0_0_0_1px_#9b744f]" : "border-[#17130f]/10")
+                    (selectedIds.has(photo.id)
+                      ? "border-[#8a2f24] shadow-[0_0_0_2px_#8a2f24]"
+                      : isCover
+                        ? "border-[#9b744f] shadow-[0_0_0_1px_#9b744f]"
+                        : "border-[#17130f]/10")
                   }
                 >
                   <div className="relative bg-[#17130f]/8" style={{ aspectRatio: aspect || 1 }}>
+                    {/* Selection checkbox */}
+                    <button
+                      type="button"
+                      onClick={() => toggleSelect(photo.id)}
+                      aria-label={selectedIds.has(photo.id) ? "Deselect photo" : "Select photo"}
+                      className={
+                        "absolute left-2 top-2 z-10 flex size-6 items-center justify-center rounded-full border-2 transition " +
+                        (selectedIds.has(photo.id)
+                          ? "border-[#8a2f24] bg-[#8a2f24] text-white"
+                          : "border-white/70 bg-black/30 text-white opacity-0 group-hover:opacity-100 " +
+                            (selectedIds.size > 0 ? "opacity-100" : ""))
+                      }
+                    >
+                      {selectedIds.has(photo.id) ? (
+                        <CheckCircle2 className="size-3.5" aria-hidden="true" />
+                      ) : (
+                        <span className="size-2.5 rounded-full" />
+                      )}
+                    </button>
                     {photo.display_url ? (
                       <Image
                         src={photo.thumbnail_url || photo.display_url}

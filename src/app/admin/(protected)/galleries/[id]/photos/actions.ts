@@ -24,6 +24,31 @@ async function getGallerySlug(galleryId: string) {
   return data?.slug as string | undefined;
 }
 
+export async function deletePhotos(ids: string[], galleryId: string): Promise<void> {
+  await requireAdmin();
+  if (!ids.length || !galleryId) return;
+
+  const supabase = await createSupabaseServerClient();
+
+  const { data: photos } = await supabase
+    .from("photos")
+    .select("id,original_key,web_key,thumbnail_key")
+    .in("id", ids)
+    .eq("gallery_id", galleryId);
+
+  if (!photos?.length) return;
+
+  await supabase.from("photos").delete().in("id", ids);
+
+  const keys = photos.flatMap((p) =>
+    [p.original_key, p.web_key, p.thumbnail_key].filter((k): k is string => Boolean(k)),
+  );
+  await deleteManyFromR2(keys).catch(() => undefined);
+
+  const slug = await getGallerySlug(galleryId);
+  revalidateGalleryPhotos(galleryId, slug);
+}
+
 export async function deletePhoto(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");

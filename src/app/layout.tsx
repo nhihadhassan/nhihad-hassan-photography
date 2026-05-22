@@ -20,7 +20,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://nhihadhassanphotography.com"),
+  metadataBase: new URL("https://nhihadhassan.ca"),
   title: {
     default: brandConfig.name,
     template: `%s | ${brandConfig.name}`,

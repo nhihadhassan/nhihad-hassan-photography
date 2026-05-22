@@ -105,9 +105,15 @@ export default function Home() {
           </Reveal>
         </section>
 
-        <ServicesGrid tone="dark" />
+        <ServicesGrid tone="light" />
 
-        <section className="bg-ink px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+        {/* Warm gradient bridge: cream services section into the dark portfolio */}
+        <div
+          aria-hidden="true"
+          className="h-40 bg-[linear-gradient(180deg,#f3eee5_0%,#b98257_44%,#211b17_76%,#080808_100%)] sm:h-56"
+        />
+
+        <section className="bg-ink px-4 pb-20 pt-4 sm:px-6 lg:px-8 lg:pb-28">
           <div className="mx-auto max-w-7xl">
             <Reveal>
               <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">

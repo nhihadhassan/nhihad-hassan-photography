@@ -1,7 +1,7 @@
 export const brandConfig = {
   name: "Nhihad Hassan Photography",
   shortName: "NHP",
-  tagline: "Event, nightlife, lifestyle, and portrait photography based in Toronto.",
+  tagline: "Wedding, couples, portrait, and event photography based in Toronto.",
   contactEmail: "nhihadhassanphotography@gmail.com",
   instagram: [
     {

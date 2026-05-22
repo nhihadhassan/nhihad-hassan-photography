@@ -22,6 +22,11 @@ export const metadata: Metadata = {
   title: "Investment",
   description:
     "Considered photography for weddings, couples, portraits, events, and nightlife in Toronto. Bookings are confirmed manually; deposits are sent via Interac e-Transfer.",
+  openGraph: {
+    title: "Investment | Nhihad Hassan Photography",
+    description:
+      "Wedding, couples, portrait, and event photography in Toronto. Inquiry-based — no checkout on this site. Deposits via Interac e-Transfer.",
+  },
 };
 
 const heroImage = portfolioItems[0];

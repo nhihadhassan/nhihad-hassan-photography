@@ -45,7 +45,7 @@ export function ContactForm() {
         </label>
         <label className="grid gap-2">
           <span className="text-sm font-medium text-ink">Event type</span>
-          <input className={inputClass} name="eventType" placeholder="Nightlife, wedding, portrait, birthday" />
+          <input className={inputClass} name="eventType" placeholder="Wedding, engagement, event, portrait, nightlife…" />
         </label>
       </div>
       <div className="grid gap-5 md:grid-cols-2">

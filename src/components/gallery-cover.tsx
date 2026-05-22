@@ -44,18 +44,18 @@ export function GalleryCover({ gallery }: { gallery: PublicGallery }) {
           <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(320px,0.42fr)] lg:items-end">
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-beige/75">
-                {gallery.location ?? "Private gallery"}
+                {[gallery.location, gallery.clientName].filter(Boolean).join(" · ") || "Private gallery"}
               </p>
               <h1 className="mt-5 max-w-4xl font-serif text-7xl font-medium leading-[0.84] tracking-tight text-soft-white sm:text-8xl lg:text-[8.5rem]">
                 {gallery.title}
               </h1>
               <p className="mt-6 text-xl text-soft-white/72">
-                {gallery.date ? formatDisplayDate(gallery.date) : "Date to be announced"}
+                {gallery.date ? formatDisplayDate(gallery.date) : ""}
               </p>
             </div>
             <div className="border-t border-soft-white/18 pt-6 lg:border-l lg:border-t-0 lg:pl-8">
               <p className="text-sm leading-6 text-soft-white/70">
-                {gallery.description ?? "A private client gallery prepared for delivery."}
+                {gallery.description ?? "A private gallery — prepared for delivery and ready to share with the people who matter."}
               </p>
               <div className="mt-7 flex flex-col gap-3">
                 {showGate ? (

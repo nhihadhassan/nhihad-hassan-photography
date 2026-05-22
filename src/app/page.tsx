@@ -36,7 +36,7 @@ export default function Home() {
               <Reveal>
                 <div>
                   <p className="text-xs uppercase tracking-[0.22em] text-beige/75">
-                    Toronto weddings, couples, events, and nightlife
+                    Toronto wedding, couples, event, and nightlife photography
                   </p>
                   <h1 className="mt-5 max-w-5xl font-serif text-6xl font-medium leading-[0.88] tracking-tight text-soft-white sm:text-8xl lg:text-[9.2rem]">
                     {brandConfig.name}
@@ -87,7 +87,7 @@ export default function Home() {
                   </h2>
                 </div>
                 <p className="max-w-2xl text-base leading-7 text-soft-white/62 lg:justify-self-end">
-                  A portfolio with wedding warmth, portrait calm, and event pace — paired with enough negative space to let each image hold the room.
+                  Weddings, couples sessions, portraits, events, and nightlife — selected frames from real shoots across Toronto and Ontario.
                 </p>
               </div>
             </Reveal>
@@ -127,9 +127,9 @@ export default function Home() {
           <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.7fr_1fr]">
             <Reveal>
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-copper">Client delivery preview</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-copper">Client galleries</p>
                 <h2 className="mt-4 font-serif text-5xl leading-[0.96] text-soft-white sm:text-6xl">
-                  Private galleries with a stronger first impression.
+                  Your photos, delivered in a gallery worth opening.
                 </h2>
               </div>
             </Reveal>
@@ -192,7 +192,7 @@ export default function Home() {
                   Photographs that keep the atmosphere intact.
                 </h2>
                 <p className="mt-6 max-w-2xl text-base leading-7 text-soft-white/62">
-                  Nhihad Hassan Photography covers Toronto weddings, couples and engagements, portraits, events, and nightlife with a clean eye for light, gesture, and emotional pace.
+                  Toronto-based photography for weddings, cultural events, couples and engagements, portraits, and nightlife — built around reading the room first and making pictures that hold up long after the moment.
                 </p>
                 <div className="mt-8">
                   <ButtonLink href="/contact">

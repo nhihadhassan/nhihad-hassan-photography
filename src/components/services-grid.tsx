@@ -97,8 +97,7 @@ function ServiceCard({ service, tone }: { service: Service; tone: "dark" | "ligh
         }
       />
       <div className="absolute inset-x-0 bottom-0 p-6 sm:p-7">
-        <p className="text-xs uppercase tracking-[0.18em] text-beige/80">Service</p>
-        <h3 className="mt-2 font-serif text-3xl leading-none text-soft-white sm:text-4xl">
+        <h3 className="font-serif text-3xl leading-none text-soft-white sm:text-4xl">
           {service.label}
         </h3>
         <p className="mt-3 max-w-md text-sm leading-6 text-soft-white/82">{service.shortBlurb}</p>

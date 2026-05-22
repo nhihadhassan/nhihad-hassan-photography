@@ -7,8 +7,7 @@ import { MobileNav, type MobileNavItem } from "@/components/mobile-nav";
 const navItems: MobileNavItem[] = [
   { href: "/portfolio", label: "Portfolio" },
   { href: "/investment", label: "Investment" },
-  { href: "/mini-sessions", label: "Sessions" },
-  { href: "/galleries/moove-ah", label: "Client Gallery" },
+  { href: "/galleries/moove-ah", label: "Galleries" },
   { href: "/contact", label: "Contact" },
 ];
 

@@ -27,10 +27,10 @@ export default function ContactPage() {
             <div className="lg:sticky lg:top-28">
               <p className="text-xs uppercase tracking-[0.22em] text-copper">Book / inquire</p>
               <h1 className="mt-4 font-serif text-6xl leading-[0.9] text-soft-white sm:text-8xl">
-                Tell me what the night should feel like.
+                Tell me about the day you want remembered.
               </h1>
               <p className="mt-6 max-w-xl text-base leading-7 text-soft-white/62">
-                Share the date, place, and mood. For urgent bookings or follow-up details, email directly.
+                Share the date, place, and mood — wedding, event, portrait, or nightlife. For follow-up details, reach out directly.
               </p>
               <div className="mt-8 grid gap-3 text-sm text-soft-white/70">
                 <a

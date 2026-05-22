@@ -33,7 +33,7 @@ export default function PortfolioPage() {
                 </h1>
               </div>
               <p className="max-w-2xl text-base leading-7 text-soft-white/62 lg:justify-self-end">
-                Event coverage, nightlife, portraits, lifestyle sessions, and celebrations, arranged as a living portfolio rather than a platform demo.
+                Weddings, couples sessions, portraits, events, and nightlife — a living record of the work, arranged by how each shoot actually felt.
               </p>
             </div>
           </Reveal>

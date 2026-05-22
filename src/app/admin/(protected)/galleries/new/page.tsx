@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GalleryForm } from "@/components/gallery-form";
+import { NewGalleryWithPresets } from "@/components/new-gallery-with-presets";
 
 export default function NewGalleryPage() {
   return (
@@ -11,11 +11,11 @@ export default function NewGalleryPage() {
         <p className="text-sm font-medium text-[#9b744f]">New gallery</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">Create gallery</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-[#17130f]/60">
-          This creates the gallery cover record now. R2 uploads and real photo management are reserved for Phase 3B.
+          Choose a preset to pre-fill common settings, or start blank and configure everything manually.
         </p>
       </div>
       <div className="mt-8">
-        <GalleryForm />
+        <NewGalleryWithPresets />
       </div>
     </div>
   );

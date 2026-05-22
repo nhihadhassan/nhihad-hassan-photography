@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import type { GalleryRecord } from "@/lib/admin-data";
+import type { GalleryPresetDefaults } from "@/data/gallery-presets";
 import { DEPOSIT_STATUS_LABELS } from "@/lib/payment-constants";
 import {
   createGallery,
@@ -42,7 +43,25 @@ function toDateTimeLocal(value: string | null) {
   return date.toISOString().slice(0, 16);
 }
 
-export function GalleryForm({ gallery }: { gallery?: GalleryRecord }) {
+/**
+ * Extends GalleryPresetDefaults with the computed expires_at string that the
+ * datetime-local input requires. The preset stores expiry_days (raw); the
+ * wrapper component converts it to a datetime-local string before passing it
+ * here.
+ */
+type GalleryFormDefaults = GalleryPresetDefaults & { expires_at?: string };
+
+type GalleryFormProps = {
+  gallery?: GalleryRecord;
+  /**
+   * Preset defaults for new-gallery create mode. Ignored when `gallery` is
+   * provided (edit mode). Applied as `defaultValue` / `defaultChecked` on
+   * each relevant input so the admin can still override any field.
+   */
+  defaultValues?: GalleryFormDefaults;
+};
+
+export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
   const action = gallery ? updateGallery : createGallery;
   const [state, formAction, pending] = useActionState(action, initialState);
 
@@ -109,7 +128,7 @@ export function GalleryForm({ gallery }: { gallery?: GalleryRecord }) {
           <textarea
             className={textareaClass}
             name="description"
-            defaultValue={gallery?.description ?? ""}
+            defaultValue={gallery?.description ?? defaultValues?.description ?? ""}
             placeholder="A short note for the cover page."
           />
         </label>
@@ -147,7 +166,11 @@ export function GalleryForm({ gallery }: { gallery?: GalleryRecord }) {
               className={inputClass}
               name="expires_at"
               type="datetime-local"
-              defaultValue={toDateTimeLocal(gallery?.expires_at ?? null)}
+              defaultValue={
+                gallery?.expires_at
+                  ? toDateTimeLocal(gallery.expires_at)
+                  : (defaultValues?.expires_at ?? "")
+              }
             />
           </label>
           <label className="grid gap-2">
@@ -155,7 +178,7 @@ export function GalleryForm({ gallery }: { gallery?: GalleryRecord }) {
             <select
               className={inputClass}
               name="download_quality"
-              defaultValue={gallery?.download_quality ?? "web"}
+              defaultValue={gallery?.download_quality ?? defaultValues?.download_quality ?? "web"}
             >
               <option value="web">Web-size</option>
               <option value="full">Full resolution</option>
@@ -164,7 +187,11 @@ export function GalleryForm({ gallery }: { gallery?: GalleryRecord }) {
         </div>
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <label className="flex items-center gap-3 rounded-md border border-[#17130f]/10 bg-[#f3f0ea] p-4 text-sm">
-            <input type="checkbox" name="is_public" defaultChecked={gallery?.is_public ?? false} />
+            <input
+              type="checkbox"
+              name="is_public"
+              defaultChecked={gallery?.is_public ?? defaultValues?.is_public ?? false}
+            />
             Public index eligible
           </label>
           <label className="flex items-center gap-3 rounded-md border border-[#17130f]/10 bg-[#f3f0ea] p-4 text-sm">
@@ -175,7 +202,7 @@ export function GalleryForm({ gallery }: { gallery?: GalleryRecord }) {
             <input
               type="checkbox"
               name="download_enabled"
-              defaultChecked={gallery?.download_enabled ?? false}
+              defaultChecked={gallery?.download_enabled ?? defaultValues?.download_enabled ?? false}
             />
             Downloads enabled
           </label>

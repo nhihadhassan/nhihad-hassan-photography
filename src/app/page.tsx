@@ -56,7 +56,7 @@ export default function Home() {
                 ))}
               </nav>
 
-              <h1 className="col-start-2 justify-self-center whitespace-nowrap text-center font-serif uppercase text-soft-white text-[10px] tracking-[0.14em] sm:text-sm sm:tracking-[0.28em] lg:text-lg lg:tracking-[0.3em]">
+              <h1 className="col-start-2 justify-self-center whitespace-nowrap text-center font-serif font-bold uppercase text-soft-white text-sm tracking-[0.14em] sm:text-lg sm:tracking-[0.28em] lg:text-2xl lg:tracking-[0.3em]">
                 {brandConfig.name}
               </h1>
 
@@ -94,6 +94,15 @@ export default function Home() {
               </Link>
             </Reveal>
           </div>
+        </section>
+
+        {/* Tagline strip */}
+        <section className="bg-[#f3eee5] px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <Reveal>
+            <p className="mx-auto max-w-4xl text-center font-serif text-4xl leading-[1.1] text-ink sm:text-5xl lg:text-6xl">
+              Toronto wedding, engagement and event photographer.
+            </p>
+          </Reveal>
         </section>
 
         <section className="bg-ink px-4 py-20 sm:px-6 lg:px-8 lg:py-28">

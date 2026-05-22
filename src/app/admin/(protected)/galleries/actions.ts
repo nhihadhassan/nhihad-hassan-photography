@@ -93,15 +93,16 @@ function parseGalleryForm(formData: FormData) {
 
 /**
  * Returns the password mutation for this form submission:
- * - { set: hash } — admin entered a new password (hash and store)
+ * - { set: { hash, plain } } — admin entered a new password
  * - { remove: true } — admin checked "Remove password"
- * - null — no change (don't touch password_hash)
+ * - null — no change (don't touch password columns)
  *
- * The plaintext value is read once, hashed, and never persisted or returned.
+ * Both the hash and the plain-text value are returned so callers can
+ * persist password_plain for gallery invite emails.
  */
 async function extractPasswordChange(
   formData: FormData,
-): Promise<{ set: string } | { remove: true } | null> {
+): Promise<{ set: { hash: string; plain: string } } | { remove: true } | null> {
   if (formData.get("remove_password") === "on") {
     return { remove: true };
   }
@@ -113,7 +114,7 @@ async function extractPasswordChange(
     throw new Error("Password must be at least 4 characters.");
   }
   const hash = await hashPassword(plain);
-  return { set: hash };
+  return { set: { hash, plain } };
 }
 
 export async function createGallery(
@@ -143,7 +144,8 @@ export async function createGallery(
 
   const insertPayload: Record<string, unknown> = { ...parsed.data };
   if (passwordChange && "set" in passwordChange) {
-    insertPayload.password_hash = passwordChange.set;
+    insertPayload.password_hash = passwordChange.set.hash;
+    insertPayload.password_plain = passwordChange.set.plain;
   }
 
   const supabase = await createSupabaseServerClient();
@@ -199,9 +201,11 @@ export async function updateGallery(
     updated_at: new Date().toISOString(),
   };
   if (passwordChange && "set" in passwordChange) {
-    updatePayload.password_hash = passwordChange.set;
+    updatePayload.password_hash = passwordChange.set.hash;
+    updatePayload.password_plain = passwordChange.set.plain;
   } else if (passwordChange && "remove" in passwordChange) {
     updatePayload.password_hash = null;
+    updatePayload.password_plain = null;
   }
 
   const supabase = await createSupabaseServerClient();

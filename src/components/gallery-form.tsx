@@ -212,7 +212,7 @@ export function GalleryForm({ gallery }: { gallery?: GalleryRecord }) {
               minLength={4}
             />
             <span className="text-xs text-[#17130f]/45">
-              Stored only as a salted scrypt hash. Plaintext is never saved.
+              Saved so it can be included in client invite emails. Stored only in your Supabase database, never logged or transmitted beyond email delivery.
             </span>
           </label>
           {gallery?.has_password ? (

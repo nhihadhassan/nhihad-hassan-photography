@@ -109,6 +109,22 @@ export function getSelectsEmailConfig() {
   };
 }
 
+/**
+ * Gallery invite emails are sent TO the client (dynamic per gallery) FROM the
+ * same address used for selects notifications. Only RESEND_API_KEY and
+ * SELECTS_NOTIFICATION_FROM are required.
+ */
+export function hasGalleryInviteConfig() {
+  return Boolean(env.RESEND_API_KEY && env.SELECTS_NOTIFICATION_FROM);
+}
+
+export function getGalleryInviteConfig() {
+  return {
+    apiKey: env.RESEND_API_KEY ?? null,
+    from: env.SELECTS_NOTIFICATION_FROM ?? null,
+  };
+}
+
 export function requireR2Config() {
   if (!hasR2Config()) {
     throw new Error(

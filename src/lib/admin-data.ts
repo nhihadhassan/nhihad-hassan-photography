@@ -24,9 +24,20 @@ export type GalleryRecord = {
   deposit_status: DepositStatus;
   payment_notes: string | null;
   expires_at: string | null;
+  /** True when a password_hash is set. password_hash itself is never returned. */
   has_password: boolean;
+  /** Stored for use in gallery invite emails only. Admin-only — never exposed publicly. */
+  password_plain: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type GalleryInviteLogEntry = {
+  id: string;
+  gallery_id: string;
+  sent_to: string;
+  sent_at: string;
+  resend_message_id: string | null;
 };
 
 type GalleryRow = Omit<GalleryRecord, "has_password"> & { password_hash: string | null };
@@ -51,7 +62,7 @@ export type InquiryRecord = {
 };
 
 const GALLERY_COLUMNS =
-  "id,title,slug,client_name,client_email,event_date,description,location,cover_image_url,cover_image_alt,cover_photo_id,is_public,is_published,is_archived,download_enabled,download_quality,deposit_status,payment_notes,expires_at,password_hash,created_at,updated_at";
+  "id,title,slug,client_name,client_email,event_date,description,location,cover_image_url,cover_image_alt,cover_photo_id,is_public,is_published,is_archived,download_enabled,download_quality,deposit_status,payment_notes,expires_at,password_hash,password_plain,created_at,updated_at";
 
 export async function getAdminGalleries() {
   const supabase = await createSupabaseServerClient();
@@ -94,6 +105,25 @@ export async function getAdminInquiries() {
   }
 
   return (data ?? []) as InquiryRecord[];
+}
+
+export async function getGalleryLastInvite(galleryId: string): Promise<GalleryInviteLogEntry | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("gallery_invite_log")
+    .select("id,gallery_id,sent_to,sent_at,resend_message_id")
+    .eq("gallery_id", galleryId)
+    .order("sent_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    // Non-fatal — page still renders without invite history
+    console.warn("[gallery-invite-log] query failed:", error.message);
+    return null;
+  }
+
+  return data as GalleryInviteLogEntry | null;
 }
 
 export async function getAdminDashboardCounts() {

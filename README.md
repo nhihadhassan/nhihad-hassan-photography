@@ -760,3 +760,26 @@ strings in `src/data/services.ts`; no component changes needed.
   roadmap.
 - **No admin-editable hero copy.** Hero / About copy still lives in source
   files for this phase; editing it requires a deploy.
+
+## Brand assets
+
+The "NH" monogram logo is the brand mark across the site.
+
+| File | Purpose |
+|---|---|
+| `brand/nhp-logo-source.jpeg` | Master source (1563×1563, black-on-white, Canva export). Not web-served — kept in the repo so variants can be regenerated. |
+| `public/logo-mark.png` | Monogram only, soft-white on transparent. Used in the site header badge. |
+| `public/logo-lockup.png` | Full lockup (monogram + "NHIHAD HASSAN PHOTOGRAPHY"), soft-white on transparent. Used in the site footer. |
+| `src/app/icon.png` | Favicon — monogram on an ink square. Auto-detected by Next.js App Router. |
+| `src/app/apple-icon.png` | Apple touch icon — monogram on an ink square. Auto-detected. |
+
+Notes:
+- The web variants are tinted to the site's `--soft-white` (`#f7f3ed`),
+  not pure white, so the logo matches body text exactly.
+- Variants were generated from the source with `sharp`: trim the white
+  border, isolate the monogram, convert white→transparent (inverted
+  luminance as the alpha channel), and composite onto an ink square for
+  the favicons. To regenerate after a logo change, re-run that transform
+  against a replacement `brand/nhp-logo-source.jpeg`.
+- The default Next.js `favicon.ico` was removed in favour of the branded
+  `icon.png` (modern browsers fully support PNG icons).

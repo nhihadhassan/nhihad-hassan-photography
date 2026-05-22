@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { AtSign, Mail } from "lucide-react";
 import { brandConfig } from "@/lib/config";
 
@@ -7,8 +8,14 @@ export function SiteFooter() {
     <footer className="border-t border-soft-white/10 bg-ink px-4 py-10 text-soft-white sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1fr_auto] md:items-end">
         <div>
-          <p className="font-serif text-3xl text-soft-white">{brandConfig.name}</p>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-soft-white/60">{brandConfig.tagline}</p>
+          <Image
+            src="/logo-lockup.png"
+            alt={brandConfig.name}
+            width={1097}
+            height={802}
+            className="h-28 w-auto"
+          />
+          <p className="mt-5 max-w-xl text-sm leading-6 text-soft-white/60">{brandConfig.tagline}</p>
         </div>
         <div className="flex flex-wrap gap-3 text-sm text-soft-white/70">
           <a

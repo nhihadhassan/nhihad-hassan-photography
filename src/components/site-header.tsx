@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Camera } from "lucide-react";
+import Image from "next/image";
 import { brandConfig } from "@/lib/config";
 import { ButtonLink } from "@/components/ui/button";
 import { MobileNav, type MobileNavItem } from "@/components/mobile-nav";
@@ -21,7 +21,14 @@ export function SiteHeader() {
           aria-label={`${brandConfig.name} home`}
         >
           <span className="flex size-10 items-center justify-center rounded-full border border-soft-white/20 bg-ink/35 backdrop-blur">
-            <Camera aria-hidden="true" className="size-4" strokeWidth={1.7} />
+            <Image
+              src="/logo-mark.png"
+              alt=""
+              width={760}
+              height={510}
+              priority
+              className="h-4 w-auto"
+            />
           </span>
           <span className="hidden text-sm font-medium tracking-wide sm:inline">
             {brandConfig.name}

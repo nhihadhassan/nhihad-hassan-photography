@@ -115,7 +115,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   return (
     <div className="min-h-[100dvh] bg-ink text-soft-white">
       <SiteHeader />
-      <main className="px-4 pb-20 pt-32 sm:px-6 lg:px-8">
+      <main className="px-4 pb-20 pt-40 sm:px-6 lg:px-8">
         <section className="mx-auto max-w-7xl">
           <Reveal>
             <div className="border-b border-soft-white/12 pb-10">

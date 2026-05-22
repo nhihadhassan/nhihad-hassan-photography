@@ -1,7 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
 import { brandConfig } from "@/lib/config";
-import { ButtonLink } from "@/components/ui/button";
 import { MobileNav, type MobileNavItem } from "@/components/mobile-nav";
 
 const navItems: MobileNavItem[] = [
@@ -11,46 +9,50 @@ const navItems: MobileNavItem[] = [
   { href: "/contact", label: "Contact" },
 ];
 
+/**
+ * Minimal centered header used across every page except the homepage
+ * (which bakes the same layout into its hero). Nav links flank a
+ * centered brand wordmark that links home.
+ */
 export function SiteHeader() {
   return (
-    <header className="absolute inset-x-0 top-0 z-20">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-3 text-soft-white transition hover:text-beige"
-          aria-label={`${brandConfig.name} home`}
-        >
-          <span className="flex size-10 items-center justify-center rounded-full border border-soft-white/20 bg-ink/35 backdrop-blur">
-            <Image
-              src="/logo-mark.png"
-              alt=""
-              width={760}
-              height={510}
-              priority
-              className="h-4 w-auto"
-            />
-          </span>
-          <span className="hidden text-sm font-medium tracking-wide sm:inline">
-            {brandConfig.name}
-          </span>
-          <span className="text-sm font-medium tracking-wide sm:hidden">{brandConfig.shortName}</span>
-        </Link>
-        <nav className="hidden items-center gap-1 rounded-full border border-soft-white/14 bg-ink/35 p-1 backdrop-blur md:flex">
-          {navItems.map((item) => (
+    <header className="absolute inset-x-0 top-0 z-20 px-4 py-6 sm:px-8 sm:py-7">
+      <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
+        <nav className="col-start-1 hidden items-center gap-7 text-xs uppercase tracking-[0.18em] text-soft-white md:flex">
+          {navItems.slice(0, 2).map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-full px-4 py-2 text-sm text-soft-white/72 transition hover:bg-soft-white/8 hover:text-soft-white"
+              className="transition hover:text-soft-white/70"
             >
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
-          <ButtonLink href="/contact" variant="secondary" className="hidden md:inline-flex">
-            Inquire
-          </ButtonLink>
-          <MobileNav items={navItems} />
+
+        <Link
+          href="/"
+          aria-label={`${brandConfig.name} home`}
+          className="col-start-2 justify-self-center whitespace-nowrap text-center font-serif uppercase text-soft-white text-2xl tracking-normal transition hover:text-soft-white/80 sm:text-3xl lg:text-4xl xl:text-[2.8rem]"
+        >
+          {brandConfig.name}
+        </Link>
+
+        <div className="col-start-3 flex items-center justify-end gap-7">
+          <nav className="hidden items-center gap-7 text-xs uppercase tracking-[0.18em] text-soft-white md:flex">
+            {navItems.slice(2).map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="transition hover:text-soft-white/70"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="md:hidden">
+            <MobileNav items={navItems} />
+          </div>
         </div>
       </div>
     </header>

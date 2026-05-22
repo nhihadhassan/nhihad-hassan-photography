@@ -21,24 +21,24 @@ export const metadata: Metadata = {
 
 export default function MiniSessionsPage() {
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-soft-white text-ink">
+    <div className="flex min-h-[100dvh] flex-col bg-ink text-soft-white">
       <SiteHeader />
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="border-b border-ink/8 px-5 py-20 text-center sm:py-28 lg:px-8">
+        <section className="border-b border-soft-white/10 px-5 pb-20 pt-32 text-center sm:pb-28 sm:pt-40 lg:px-8">
           <Reveal>
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-copper">Sessions</p>
             <h1 className="mt-4 font-serif text-5xl font-medium leading-tight tracking-tight sm:text-6xl lg:text-7xl">
               Photographs worth keeping.
             </h1>
-            <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-ink/60">
+            <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-soft-white/62">
               Couples, portraits, events. Shot with intention across Toronto. Every session
               is focused, personal, and booked by inquiry.
             </p>
-            <p className="mt-3 text-sm text-ink/45">
+            <p className="mt-3 text-sm text-soft-white/50">
               No checkout on this site. Deposit via{" "}
-              <strong className="font-medium text-ink/65">Interac e-Transfer</strong> after booking confirmation.
+              <strong className="font-medium text-soft-white/75">Interac e-Transfer</strong> after booking confirmation.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <ButtonLink href="/contact" variant="primary">
@@ -69,10 +69,10 @@ export default function MiniSessionsPage() {
 
                 return (
                   <Reveal key={offering.id} delay={i * 0.1}>
-                    <article className="group overflow-hidden rounded-md border border-ink/8 bg-beige/40">
+                    <article className="group overflow-hidden rounded-md border border-soft-white/10 bg-soft-white/5">
                       {/* Cover image */}
                       {samplePhoto ? (
-                        <div className="relative aspect-[4/3] overflow-hidden bg-ink/10">
+                        <div className="relative aspect-[4/3] overflow-hidden bg-soft-white/10">
                           <Image
                             src={samplePhoto.imageUrl}
                             alt={samplePhoto.alt}
@@ -90,23 +90,23 @@ export default function MiniSessionsPage() {
                         <h3 className="mt-2 font-serif text-2xl font-medium">
                           {offering.title}
                         </h3>
-                        <p className="mt-1 text-sm text-ink/50">{offering.tagline}</p>
-                        <p className="mt-4 text-sm leading-relaxed text-ink/70">
+                        <p className="mt-1 text-sm text-soft-white/55">{offering.tagline}</p>
+                        <p className="mt-4 text-sm leading-relaxed text-soft-white/72">
                           {offering.description}
                         </p>
 
                         {/* What's included */}
                         <ul className="mt-5 space-y-1.5">
                           {offering.includes.map((item) => (
-                            <li key={item} className="flex items-start gap-2 text-sm text-ink/65">
+                            <li key={item} className="flex items-start gap-2 text-sm text-soft-white/70">
                               <span className="mt-1 size-1.5 shrink-0 rounded-full bg-copper" aria-hidden="true" />
                               {item}
                             </li>
                           ))}
                         </ul>
 
-                        <p className="mt-5 text-xs text-ink/40">
-                          <strong className="font-medium text-ink/60">Availability:</strong>{" "}
+                        <p className="mt-5 text-xs text-soft-white/45">
+                          <strong className="font-medium text-soft-white/70">Availability:</strong>{" "}
                           {offering.availability}
                         </p>
 
@@ -120,7 +120,7 @@ export default function MiniSessionsPage() {
                           </ButtonLink>
                           <Link
                             href={`/portfolio/${offering.portfolioCategory}`}
-                            className="text-sm text-ink/55 underline-offset-2 hover:text-ink hover:underline"
+                            className="text-sm text-soft-white/60 underline-offset-2 hover:text-soft-white hover:underline"
                           >
                             See portfolio →
                           </Link>
@@ -135,7 +135,7 @@ export default function MiniSessionsPage() {
         </section>
 
         {/* FAQ */}
-        <section className="border-t border-ink/8 bg-[#f6f2ea] px-5 py-20 lg:px-8">
+        <section className="border-t border-soft-white/10 bg-charcoal px-5 py-20 lg:px-8">
           <div className="mx-auto max-w-3xl">
             <Reveal>
               <h2 className="font-serif text-3xl font-medium tracking-tight sm:text-4xl">
@@ -143,12 +143,12 @@ export default function MiniSessionsPage() {
               </h2>
             </Reveal>
 
-            <dl className="mt-10 divide-y divide-ink/8">
+            <dl className="mt-10 divide-y divide-soft-white/10">
               {miniSessionFaqs.map((faq, i) => (
                 <Reveal key={faq.q} delay={i * 0.06}>
                   <div className="py-6">
                     <dt className="text-base font-medium">{faq.q}</dt>
-                    <dd className="mt-2 text-sm leading-relaxed text-ink/65">{faq.a}</dd>
+                    <dd className="mt-2 text-sm leading-relaxed text-soft-white/70">{faq.a}</dd>
                   </div>
                 </Reveal>
               ))}

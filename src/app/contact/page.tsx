@@ -21,7 +21,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-[100dvh] bg-ink text-soft-white">
       <SiteHeader />
-      <main className="px-4 pb-20 pt-32 sm:px-6 lg:px-8">
+      <main className="px-4 pb-20 pt-40 sm:px-6 lg:px-8">
         <section className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.72fr_1fr]">
           <Reveal>
             <div className="lg:sticky lg:top-28">

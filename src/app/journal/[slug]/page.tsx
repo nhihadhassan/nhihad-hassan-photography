@@ -63,7 +63,7 @@ function renderParagraph(text: string, key: number) {
     return part;
   });
   return (
-    <p key={key} className="mt-5 leading-[1.85] text-ink/75 first:mt-0">
+    <p key={key} className="mt-5 leading-[1.85] text-soft-white/75 first:mt-0">
       {nodes}
     </p>
   );
@@ -80,13 +80,13 @@ export default async function JournalPostPage({ params }: Props) {
     : null;
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-soft-white text-ink">
+    <div className="flex min-h-[100dvh] flex-col bg-ink text-soft-white">
       <SiteHeader />
 
-      <main className="flex-1 pt-24">
+      <main className="flex-1 pt-40">
         {/* Cover image */}
         {cover ? (
-          <div className="relative h-64 w-full overflow-hidden bg-ink/10 sm:h-80 lg:h-96">
+          <div className="relative h-64 w-full overflow-hidden bg-soft-white/10 sm:h-80 lg:h-96">
             <Image
               src={cover.imageUrl}
               alt={cover.alt}
@@ -103,30 +103,30 @@ export default async function JournalPostPage({ params }: Props) {
           <Reveal>
             <Link
               href="/journal"
-              className="inline-flex items-center gap-1.5 text-sm text-ink/50 hover:text-ink"
+              className="inline-flex items-center gap-1.5 text-sm text-soft-white/55 hover:text-soft-white"
             >
               <ArrowLeft className="size-3.5" aria-hidden="true" />
               Journal
             </Link>
 
             <div className="mt-6">
-              <p className="text-xs text-ink/40">{formatDate(post.date)}</p>
+              <p className="text-xs text-soft-white/45">{formatDate(post.date)}</p>
               <h1 className="mt-3 font-serif text-4xl font-medium leading-tight tracking-tight sm:text-5xl">
                 {post.title}
               </h1>
-              <p className="mt-3 text-base leading-relaxed text-ink/55">{post.excerpt}</p>
+              <p className="mt-3 text-base leading-relaxed text-soft-white/60">{post.excerpt}</p>
             </div>
           </Reveal>
 
           <Reveal delay={0.1}>
-            <div className="mt-10 border-t border-ink/8 pt-10 text-[1.0625rem]">
+            <div className="mt-10 border-t border-soft-white/10 pt-10 text-[1.0625rem]">
               {post.body.map((paragraph, i) => renderParagraph(paragraph, i))}
             </div>
 
-            <div className="mt-12 border-t border-ink/8 pt-8">
-              <p className="text-sm text-ink/45">
+            <div className="mt-12 border-t border-soft-white/10 pt-8">
+              <p className="text-sm text-soft-white/45">
                 Written by{" "}
-                <Link href="/" className="font-medium text-ink/70 hover:text-ink">
+                <Link href="/" className="font-medium text-soft-white/70 hover:text-soft-white">
                   {brandConfig.name}
                 </Link>
               </p>

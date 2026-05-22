@@ -32,19 +32,19 @@ function formatDate(iso: string) {
 
 export default function JournalPage() {
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-soft-white text-ink">
+    <div className="flex min-h-[100dvh] flex-col bg-ink text-soft-white">
       <SiteHeader />
 
-      <main className="flex-1 pt-24">
+      <main className="flex-1 pt-40">
         {/* Hero */}
-        <section className="border-b border-ink/8 px-5 py-16 lg:px-8">
+        <section className="border-b border-soft-white/10 px-5 py-16 lg:px-8">
           <div className="mx-auto max-w-3xl">
             <Reveal>
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-copper">Journal</p>
               <h1 className="mt-4 font-serif text-5xl font-medium leading-tight tracking-tight sm:text-6xl">
                 Notes on photography.
               </h1>
-              <p className="mt-4 text-base leading-relaxed text-ink/60">
+              <p className="mt-4 text-base leading-relaxed text-soft-white/62">
                 Location guides, session tips, and the occasional behind-the-scenes thought.
                 Not a content farm. Just useful things worth writing down.
               </p>
@@ -57,10 +57,10 @@ export default function JournalPage() {
           <div className="mx-auto max-w-3xl">
             {published.length === 0 ? (
               <Reveal>
-                <p className="text-sm text-ink/50">No posts yet. Check back soon.</p>
+                <p className="text-sm text-soft-white/55">No posts yet. Check back soon.</p>
               </Reveal>
             ) : (
-              <div className="divide-y divide-ink/8">
+              <div className="divide-y divide-soft-white/10">
                 {published.map((post, i) => {
                   const cover = post.coverImageId
                     ? portfolioItems.find((p) => p.id === post.coverImageId)
@@ -82,11 +82,11 @@ export default function JournalPage() {
                             </div>
                           ) : null}
                           <div className="min-w-0">
-                            <p className="text-xs text-ink/40">{formatDate(post.date)}</p>
+                            <p className="text-xs text-soft-white/45">{formatDate(post.date)}</p>
                             <h2 className="mt-1 font-serif text-2xl font-medium leading-snug group-hover:text-copper transition-colors">
                               {post.title}
                             </h2>
-                            <p className="mt-2 text-sm leading-relaxed text-ink/60 line-clamp-2">
+                            <p className="mt-2 text-sm leading-relaxed text-soft-white/62 line-clamp-2">
                               {post.excerpt}
                             </p>
                             <p className="mt-3 text-sm font-medium text-copper">

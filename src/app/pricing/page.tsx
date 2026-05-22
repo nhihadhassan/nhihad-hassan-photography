@@ -52,13 +52,31 @@ export default function PricingPage() {
                 View portfolio
               </ButtonLink>
             </div>
+
+            {/* All services — jump links to each pricing section */}
+            <div className="mt-10 border-t border-ink/12 pt-6">
+              <p className="text-xs uppercase tracking-[0.18em] text-ink/45">
+                What I shoot
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2.5">
+                {pricingCategories.map((category) => (
+                  <a
+                    key={category.id}
+                    href={`#${category.id}`}
+                    className="rounded-full border border-ink/15 bg-soft-white/50 px-4 py-2 text-xs uppercase tracking-[0.13em] text-ink/72 transition hover:border-ink/40 hover:text-ink"
+                  >
+                    {category.label}
+                  </a>
+                ))}
+              </div>
+            </div>
           </Reveal>
         </section>
 
         {/* Pricing sections */}
         <div className="mx-auto mt-16 max-w-7xl space-y-16 lg:mt-20 lg:space-y-20">
           {pricingCategories.map((category) => (
-            <section key={category.id}>
+            <section key={category.id} id={category.id} className="scroll-mt-28">
               <Reveal>
                 <div className="grid gap-4 border-b border-ink/12 pb-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
                   <div>

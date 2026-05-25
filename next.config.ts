@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["sharp", "archiver"],
+  serverExternalPackages: ["sharp", "archiver", "node-ical"],
   async redirects() {
     // /investment was merged into /pricing.
     return [

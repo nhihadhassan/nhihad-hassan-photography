@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ContactForm } from "@/components/contact-form";
 import { Reveal } from "@/components/reveal";
+import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { brandConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
@@ -62,6 +63,7 @@ export default function ContactPage() {
           </Reveal>
         </section>
       </main>
+      <AvailabilityCalendar />
       <SiteFooter />
     </div>
   );

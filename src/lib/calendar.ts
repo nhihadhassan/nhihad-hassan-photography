@@ -105,16 +105,22 @@ function addDaysUTC(d: Date, n: number): Date {
   return new Date(d.getTime() + n * 86_400_000);
 }
 
-/** Fetch through the end of October for the public booking season view. */
+/**
+ * Match the UI's seasonal window in availability-calendar.tsx:
+ *  - In peak booking season (May–October): fetch through end of October.
+ *  - Off-season (November–April): rolling ~3-month window.
+ * Keep aligned with availabilityWindow() in availability-calendar.tsx.
+ */
 function availabilityHorizonUTC(today: Date): Date {
-  const year = today.getUTCFullYear();
-  const octoberEndExclusive = new Date(Date.UTC(year, 10, 1)); // Nov 1
+  const month = today.getUTCMonth();
+  const MAY = 4;
+  const OCTOBER = 9;
+  const inPeakSeason = month >= MAY && month <= OCTOBER;
 
-  if (today < octoberEndExclusive) {
-    return octoberEndExclusive;
+  if (inPeakSeason) {
+    const year = today.getUTCFullYear();
+    return new Date(Date.UTC(year, OCTOBER + 1, 1)); // Nov 1
   }
-
-  // After October, fall back to a practical three-month window.
   return addDaysUTC(today, 95);
 }
 

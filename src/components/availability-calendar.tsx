@@ -12,7 +12,7 @@ export async function AvailabilityCalendar() {
   const busy = await fetchBusyDates();
   if (!busy) return null;
 
-  const months = monthsThroughOctober();
+  const { months, headline } = availabilityWindow();
 
   return (
     <section className="border-t border-soft-white/10 bg-charcoal px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
@@ -22,7 +22,7 @@ export async function AvailabilityCalendar() {
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-copper">Availability</p>
               <h2 className="mt-4 font-serif text-4xl leading-[0.96] text-soft-white sm:text-5xl">
-                Open dates through October.
+                {headline}
               </h2>
             </div>
             <p className="max-w-xl text-sm leading-6 text-soft-white/60 lg:justify-self-end lg:text-right">
@@ -46,16 +46,33 @@ export async function AvailabilityCalendar() {
 
 type MonthMeta = { year: number; month: number; index: number };
 
-function monthsThroughOctober(): MonthMeta[] {
+/**
+ * Peak booking season (May–October): show every month from the current
+ * month through October. Off-season (November–April): rolling three-month
+ * view. Returns the months to render plus a matching headline so the two
+ * can't drift apart.
+ *
+ * Keep this in sync with availabilityHorizonUTC() in lib/calendar.ts —
+ * the backend fetches the same window of events.
+ */
+function availabilityWindow(): { months: MonthMeta[]; headline: string } {
   const now = new Date();
   const currentMonth = now.getMonth();
-  const october = 9;
-  const monthCount = currentMonth <= october ? october - currentMonth + 1 : 3;
+  const MAY = 4;
+  const OCTOBER = 9;
+  const inPeakSeason = currentMonth >= MAY && currentMonth <= OCTOBER;
 
-  return Array.from({ length: monthCount }, (_, offset) => {
+  const monthCount = inPeakSeason ? OCTOBER - currentMonth + 1 : 3;
+  const months: MonthMeta[] = Array.from({ length: monthCount }, (_, offset) => {
     const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
     return { year: d.getFullYear(), month: d.getMonth(), index: offset };
   });
+
+  const headline = inPeakSeason
+    ? "Open dates through October."
+    : "Open dates over the next three months.";
+
+  return { months, headline };
 }
 
 const MONTH_NAMES = [

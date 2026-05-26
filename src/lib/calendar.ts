@@ -18,7 +18,6 @@ import ical, { type VEvent } from "node-ical";
 export type BusyDates = ReadonlySet<string>; // entries are "YYYY-MM-DD" in TZ
 
 const TZ = "America/Toronto";
-const LOOKAHEAD_DAYS = 95; // current month + next two = up to ~92 days
 const REVALIDATE_SECONDS = 600; // 10 min — calendar changes infrequently
 
 /**
@@ -48,7 +47,7 @@ export async function fetchBusyDates(): Promise<BusyDates | null> {
 
   const busy = new Set<string>();
   const today = startOfTodayUTC();
-  const horizon = addDaysUTC(today, LOOKAHEAD_DAYS);
+  const horizon = availabilityHorizonUTC(today);
 
   for (const key of Object.keys(events)) {
     const ev = events[key];
@@ -104,6 +103,19 @@ function startOfTodayUTC(): Date {
 
 function addDaysUTC(d: Date, n: number): Date {
   return new Date(d.getTime() + n * 86_400_000);
+}
+
+/** Fetch through the end of October for the public booking season view. */
+function availabilityHorizonUTC(today: Date): Date {
+  const year = today.getUTCFullYear();
+  const octoberEndExclusive = new Date(Date.UTC(year, 10, 1)); // Nov 1
+
+  if (today < octoberEndExclusive) {
+    return octoberEndExclusive;
+  }
+
+  // After October, fall back to a practical three-month window.
+  return addDaysUTC(today, 95);
 }
 
 /** Format a Date as YYYY-MM-DD in the Toronto timezone. */

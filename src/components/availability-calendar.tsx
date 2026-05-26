@@ -12,7 +12,7 @@ export async function AvailabilityCalendar() {
   const busy = await fetchBusyDates();
   if (!busy) return null;
 
-  const months = nextThreeMonths();
+  const months = monthsThroughOctober();
 
   return (
     <section className="border-t border-soft-white/10 bg-charcoal px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
@@ -22,7 +22,7 @@ export async function AvailabilityCalendar() {
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-copper">Availability</p>
               <h2 className="mt-4 font-serif text-4xl leading-[0.96] text-soft-white sm:text-5xl">
-                Open dates over the next three months.
+                Open dates through October.
               </h2>
             </div>
             <p className="max-w-xl text-sm leading-6 text-soft-white/60 lg:justify-self-end lg:text-right">
@@ -46,9 +46,13 @@ export async function AvailabilityCalendar() {
 
 type MonthMeta = { year: number; month: number; index: number };
 
-function nextThreeMonths(): MonthMeta[] {
+function monthsThroughOctober(): MonthMeta[] {
   const now = new Date();
-  return [0, 1, 2].map((offset) => {
+  const currentMonth = now.getMonth();
+  const october = 9;
+  const monthCount = currentMonth <= october ? october - currentMonth + 1 : 3;
+
+  return Array.from({ length: monthCount }, (_, offset) => {
     const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
     return { year: d.getFullYear(), month: d.getMonth(), index: offset };
   });

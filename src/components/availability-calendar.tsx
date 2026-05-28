@@ -1,16 +1,22 @@
-import { fetchBusyDates, type BusyDates } from "@/lib/calendar";
+import {
+  fetchAvailability,
+  type Availability,
+  type DayStatus,
+  type SlotStatus,
+} from "@/lib/calendar";
 import { Reveal } from "@/components/reveal";
 
 /**
  * Read-only availability calendar shown on the contact page.
  * Renders nothing when GOOGLE_CALENDAR_ICAL_URL is not configured.
  *
- * Day-level only. Booked days are greyed out with a "Held" pill;
- * event titles and times never leave the server.
+ * Each day cell shows two indicator bars (day slot / night slot).
+ * A slot can be Open (faint outline), Tentative (outlined fill), or
+ * Held (solid fill). Event titles never reach the browser.
  */
 export async function AvailabilityCalendar() {
-  const busy = await fetchBusyDates();
-  if (!busy) return null;
+  const availability = await fetchAvailability();
+  if (!availability) return null;
 
   const { months, headline } = availabilityWindow();
 
@@ -26,8 +32,9 @@ export async function AvailabilityCalendar() {
               </h2>
             </div>
             <p className="max-w-xl text-sm leading-6 text-soft-white/60 lg:justify-self-end lg:text-right">
-              Days look open as of the most recent sync. Confirm the date in
-              your inquiry — I will hold it once we have spoken.
+              Days split into day (before 5 PM) and night. Tentative dates I
+              can usually confirm within two business days — send an inquiry
+              and I will get back to you.
             </p>
           </div>
         </Reveal>
@@ -35,7 +42,7 @@ export async function AvailabilityCalendar() {
         <div className="mt-12 grid gap-8 lg:grid-cols-3">
           {months.map((m) => (
             <Reveal key={`${m.year}-${m.month}`} delay={0.05 * m.index}>
-              <MonthGrid year={m.year} month={m.month} busy={busy} />
+              <MonthGrid year={m.year} month={m.month} availability={availability} />
             </Reveal>
           ))}
         </div>
@@ -85,11 +92,11 @@ const DAY_HEADERS = ["S", "M", "T", "W", "T", "F", "S"];
 function MonthGrid({
   year,
   month,
-  busy,
+  availability,
 }: {
   year: number;
   month: number;
-  busy: BusyDates;
+  availability: Availability;
 }) {
   const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0 = Sun
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -99,7 +106,6 @@ function MonthGrid({
   const cells: (number | null)[] = [];
   for (let i = 0; i < firstDayOfWeek; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  // pad to full weeks for grid consistency
   while (cells.length % 7 !== 0) cells.push(null);
 
   return (
@@ -122,49 +128,118 @@ function MonthGrid({
             return <div key={i} className="aspect-square" aria-hidden="true" />;
           }
           const iso = `${year}-${pad(month + 1)}-${pad(day)}`;
-          const isBusy = busy.has(iso);
+          const status: DayStatus =
+            availability.get(iso) ?? { day: "open", night: "open" };
           const isPast = iso < todayIso;
           const isToday = iso === todayIso;
 
-          const base =
-            "relative flex aspect-square items-center justify-center rounded-[2px] text-sm";
-          let stateClass = "text-soft-white/85"; // available, default
-          if (isPast) stateClass = "text-soft-white/25";
-          else if (isBusy) stateClass = "bg-soft-white/8 text-soft-white/35 line-through";
-          if (isToday && !isBusy && !isPast) {
-            stateClass += " ring-1 ring-copper/70";
-          }
-
           return (
-            <div
+            <DayCell
               key={i}
-              className={`${base} ${stateClass}`}
-              aria-label={
-                isBusy
-                  ? `${MONTH_NAMES[month]} ${day} — held`
-                  : isPast
-                    ? `${MONTH_NAMES[month]} ${day} — past`
-                    : `${MONTH_NAMES[month]} ${day} — available`
-              }
-            >
-              {day}
-            </div>
+              dayNumber={day}
+              monthName={MONTH_NAMES[month]}
+              status={status}
+              isPast={isPast}
+              isToday={isToday}
+            />
           );
         })}
       </div>
 
-      <div className="mt-5 flex items-center gap-4 text-[11px] text-soft-white/55">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="inline-block size-2.5 rounded-[2px] ring-1 ring-soft-white/30" aria-hidden="true" />
-          Open
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="inline-block size-2.5 rounded-[2px] bg-soft-white/20" aria-hidden="true" />
-          Held
-        </span>
-      </div>
+      <Legend />
     </div>
   );
+}
+
+function DayCell({
+  dayNumber,
+  monthName,
+  status,
+  isPast,
+  isToday,
+}: {
+  dayNumber: number;
+  monthName: string;
+  status: DayStatus;
+  isPast: boolean;
+  isToday: boolean;
+}) {
+  const fullyHeld = status.day === "held" && status.night === "held";
+  const fullyTentative =
+    status.day !== "open" &&
+    status.night !== "open" &&
+    !(status.day === "held" && status.night === "held");
+
+  // Number color reacts to overall state so the cell scans at a glance.
+  let numberClass = "text-soft-white/85";
+  if (isPast) numberClass = "text-soft-white/25";
+  else if (fullyHeld) numberClass = "text-soft-white/35 line-through";
+  else if (fullyTentative) numberClass = "text-soft-white/65";
+
+  const cellRing = isToday && !isPast ? " ring-1 ring-copper/70" : "";
+
+  return (
+    <div
+      className={`relative flex aspect-square flex-col items-center justify-center rounded-[2px]${cellRing}`}
+      aria-label={cellAriaLabel(monthName, dayNumber, status, isPast)}
+    >
+      <span className={`text-sm ${numberClass}`}>{dayNumber}</span>
+      {!isPast ? (
+        <div className="mt-1 flex items-center gap-0.5" aria-hidden="true">
+          <SlotIndicator state={status.day} />
+          <SlotIndicator state={status.night} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function SlotIndicator({ state }: { state: SlotStatus }) {
+  const base = "block h-1 w-3 rounded-[1px]";
+  if (state === "held") return <span className={`${base} bg-soft-white/55`} />;
+  if (state === "tentative")
+    return <span className={`${base} bg-soft-white/12 ring-1 ring-soft-white/45`} />;
+  return <span className={`${base} ring-1 ring-soft-white/15`} />;
+}
+
+function Legend() {
+  return (
+    <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-soft-white/55">
+      <span className="text-soft-white/40">Slots: day · night</span>
+      <span className="inline-flex items-center gap-1.5">
+        <span className="block h-1 w-3 rounded-[1px] ring-1 ring-soft-white/30" aria-hidden="true" />
+        Open
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <span
+          className="block h-1 w-3 rounded-[1px] bg-soft-white/12 ring-1 ring-soft-white/45"
+          aria-hidden="true"
+        />
+        Tentative
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <span className="block h-1 w-3 rounded-[1px] bg-soft-white/55" aria-hidden="true" />
+        Held
+      </span>
+    </div>
+  );
+}
+
+function cellAriaLabel(
+  monthName: string,
+  day: number,
+  status: DayStatus,
+  isPast: boolean,
+): string {
+  const dateLabel = `${monthName} ${day}`;
+  if (isPast) return `${dateLabel}, past`;
+  return `${dateLabel}, day ${slotLabel(status.day)}, night ${slotLabel(status.night)}`;
+}
+
+function slotLabel(state: SlotStatus): string {
+  if (state === "held") return "held";
+  if (state === "tentative") return "tentative";
+  return "open";
 }
 
 function pad(n: number): string {

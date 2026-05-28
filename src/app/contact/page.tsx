@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { ContactForm } from "@/components/contact-form";
 import { Reveal } from "@/components/reveal";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
+import { SelectedDateProvider } from "@/components/selected-date-context";
 import { brandConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
@@ -22,7 +23,9 @@ export default function ContactPage() {
   return (
     <div className="min-h-[100dvh] bg-ink text-soft-white">
       <SiteHeader />
-      <main className="px-4 pb-20 pt-40 sm:px-6 lg:px-8">
+      <SelectedDateProvider>
+      <AvailabilityCalendar />
+      <main className="px-4 pb-20 pt-20 sm:px-6 lg:px-8">
         <section className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.72fr_1fr]">
           <Reveal>
             <div className="lg:sticky lg:top-28">
@@ -63,7 +66,7 @@ export default function ContactPage() {
           </Reveal>
         </section>
       </main>
-      <AvailabilityCalendar />
+      </SelectedDateProvider>
       <SiteFooter />
     </div>
   );

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Send } from "lucide-react";
 import { submitInquiry, type InquiryState } from "@/app/contact/actions";
 import { Button } from "@/components/ui/button";
+import { useSelectedDate } from "@/components/selected-date-context";
 
 const initialState: InquiryState = {
   status: "idle",
@@ -23,6 +24,7 @@ const inputClass =
 
 export function ContactForm() {
   const [state, formAction, pending] = useActionState(submitInquiry, initialState);
+  const { selectedDate, setSelectedDate } = useSelectedDate();
 
   return (
     <form action={formAction} className="grid gap-5">
@@ -51,7 +53,13 @@ export function ContactForm() {
       <div className="grid gap-5 md:grid-cols-2">
         <label className="grid gap-2">
           <span className="text-sm font-medium text-ink">Event date</span>
-          <input className={inputClass} name="eventDate" type="date" />
+          <input
+            className={inputClass}
+            name="eventDate"
+            type="date"
+            value={selectedDate ?? ""}
+            onChange={(e) => setSelectedDate(e.target.value || null)}
+          />
         </label>
         <label className="grid gap-2">
           <span className="text-sm font-medium text-ink">Location</span>

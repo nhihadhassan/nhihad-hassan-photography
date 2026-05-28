@@ -24,8 +24,7 @@ export default function ContactPage() {
     <div className="min-h-[100dvh] bg-ink text-soft-white">
       <SiteHeader />
       <SelectedDateProvider>
-      <AvailabilityCalendar />
-      <main className="px-4 pb-20 pt-20 sm:px-6 lg:px-8">
+      <main id="inquiry" className="scroll-mt-24 px-4 pb-20 pt-32 sm:px-6 sm:pt-40 lg:px-8">
         <section className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.72fr_1fr]">
           <Reveal>
             <div className="lg:sticky lg:top-28">
@@ -66,6 +65,7 @@ export default function ContactPage() {
           </Reveal>
         </section>
       </main>
+      <AvailabilityCalendar />
       </SelectedDateProvider>
       <SiteFooter />
     </div>

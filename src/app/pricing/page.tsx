@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { ButtonLink } from "@/components/ui/button";
 import { InquiryCallout } from "@/components/inquiry-callout";
+import { PricingTierCard } from "@/components/pricing-tier-card";
 import { pricingCategories } from "@/data/pricing";
 import { brandConfig } from "@/lib/config";
 
@@ -95,30 +96,10 @@ export default function PricingPage() {
                 </div>
               </Reveal>
 
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-6 grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {category.tiers.map((tier, index) => (
                   <Reveal key={tier.name} delay={index * 0.05}>
-                    <div className="flex h-full flex-col rounded-[2px] border border-ink/12 bg-soft-white/70 p-6 sm:p-7">
-                      <p className="text-xs uppercase tracking-[0.18em] text-ink/62">
-                        {tier.name}
-                      </p>
-                      <p className="mt-3 font-serif text-4xl">{tier.price}</p>
-                      <p className="mt-1 text-sm text-[#8b6444]">{tier.duration}</p>
-                      <ul className="mt-5 space-y-2.5 border-t border-ink/12 pt-5">
-                        {tier.includes.map((item) => (
-                          <li
-                            key={item}
-                            className="flex items-start gap-2.5 text-sm leading-6 text-ink/72"
-                          >
-                            <Check
-                              className="mt-0.5 size-3.5 shrink-0 text-[#8b6444]"
-                              aria-hidden="true"
-                            />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <PricingTierCard tier={tier} />
                   </Reveal>
                 ))}
               </div>

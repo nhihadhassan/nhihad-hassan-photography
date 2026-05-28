@@ -27,8 +27,17 @@ export function AvailabilityCalendarClient({ availability, headline, months }: P
   const availMap = useMemo(() => new Map(availability), [availability]);
   const { selectedDate, setSelectedDate } = useSelectedDate();
 
+  // Selecting a day in the calendar scrolls up to the inquiry form so the
+  // picked date is visible in the form without a manual scroll.
+  const handleSelect = (date: string | null) => {
+    setSelectedDate(date);
+    if (date) {
+      document.getElementById("inquiry")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
-    <section className="bg-charcoal px-4 pb-20 pt-32 sm:px-6 sm:pt-40 lg:px-8 lg:pb-24">
+    <section className="bg-charcoal px-4 pb-20 pt-8 sm:px-6 sm:pt-12 lg:px-8 lg:pb-24">
       <div className="mx-auto max-w-7xl">
         <Reveal>
           <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
@@ -53,7 +62,7 @@ export function AvailabilityCalendarClient({ availability, headline, months }: P
                 month={m.month}
                 availability={availMap}
                 selectedDate={selectedDate}
-                onSelect={setSelectedDate}
+                onSelect={handleSelect}
               />
             </Reveal>
           ))}
@@ -170,6 +179,7 @@ function DayCell({
     !fullyHeld &&
     status.day !== "open" &&
     status.night !== "open";
+  const hasOpenSlot = status.day === "open" || status.night === "open";
 
   // Number color reacts to overall state.
   let numberClass = "text-soft-white/85";
@@ -177,18 +187,20 @@ function DayCell({
   else if (fullyHeld) numberClass = "text-soft-white/35 line-through";
   else if (fullyTentative) numberClass = "text-soft-white/65";
 
-  // Container styling: selected wins, then today-ring, then nothing.
+  // Container styling: selected wins, then available days get a copper
+  // tint so open dates clearly stand out, then today-ring, then nothing.
   let containerClass =
-    "relative flex aspect-square flex-col items-center justify-center rounded-[2px]";
+    "relative flex aspect-square flex-col items-center justify-center rounded-[2px] transition";
   if (isSelected) {
     containerClass += " bg-copper/85 text-ink ring-2 ring-copper";
     numberClass = "text-ink font-medium";
+  } else if (isInteractive && hasOpenSlot) {
+    const ring = isToday ? "ring-copper/70" : "ring-copper/30";
+    containerClass += ` bg-copper/10 ring-1 ${ring} hover:bg-copper/20`;
   } else if (isToday && !isPast) {
     containerClass += " ring-1 ring-copper/70";
-  }
-
-  if (isInteractive && !isSelected) {
-    containerClass += " transition hover:bg-soft-white/8";
+  } else if (isInteractive) {
+    containerClass += " hover:bg-soft-white/8";
   }
 
   const ariaLabel = cellAriaLabel(monthName, dayNumber, status, isPast, isSelected);
@@ -238,7 +250,7 @@ function SlotIndicator({ state, selected }: { state: SlotStatus; selected: boole
   if (state === "held") return <span className={`${base} bg-soft-white/55`} />;
   if (state === "tentative")
     return <span className={`${base} bg-soft-white/12 ring-1 ring-soft-white/45`} />;
-  return <span className={`${base} ring-1 ring-soft-white/15`} />;
+  return <span className={`${base} bg-copper/80`} />;
 }
 
 function Legend() {
@@ -246,10 +258,7 @@ function Legend() {
     <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-soft-white/55">
       <span className="text-soft-white/40">Slots: day · night</span>
       <span className="inline-flex items-center gap-1.5">
-        <span
-          className="block h-1 w-3 rounded-[1px] ring-1 ring-soft-white/30"
-          aria-hidden="true"
-        />
+        <span className="block h-1 w-3 rounded-[1px] bg-copper/80" aria-hidden="true" />
         Open
       </span>
       <span className="inline-flex items-center gap-1.5">

@@ -11,6 +11,8 @@ export type PricingTier = {
   /** Short duration line shown under the price. */
   duration: string;
   includes: string[];
+  /** Extra context revealed on hover (desktop) / tap (mobile). */
+  details?: string;
 };
 
 export type PricingCategory = {
@@ -40,6 +42,8 @@ export const pricingCategories: PricingCategory[] = [
           "Private online gallery",
           "Print release",
         ],
+        details:
+          "Coverage paced to the day itself, from the quiet morning hours to the last song. Longer collections and full-day coverage are quoted on request.",
       },
     ],
   },
@@ -58,6 +62,8 @@ export const pricingCategories: PricingCategory[] = [
           "Private online gallery",
           "Print release",
         ],
+        details:
+          "A relaxed hour to get comfortable on camera, ideal for save-the-dates and first sessions together.",
       },
       {
         name: "Extended",
@@ -69,6 +75,8 @@ export const pricingCategories: PricingCategory[] = [
           "Private online gallery",
           "Print release",
         ],
+        details:
+          "More time and a second location for variety in light, backdrop, and wardrobe.",
       },
     ],
   },
@@ -87,6 +95,8 @@ export const pricingCategories: PricingCategory[] = [
           "60–80 edited images",
           "Private online gallery",
         ],
+        details:
+          "Quiet coverage for shorter gatherings, from arrivals and speeches to the moments in between.",
       },
       {
         name: "Standard",
@@ -97,6 +107,8 @@ export const pricingCategories: PricingCategory[] = [
           "100–150 edited images",
           "Private online gallery",
         ],
+        details:
+          "Coverage across the heart of the event, from the setup energy to the main moments.",
       },
       {
         name: "Extended",
@@ -107,6 +119,8 @@ export const pricingCategories: PricingCategory[] = [
           "200+ edited images",
           "Private online gallery",
         ],
+        details:
+          "Full-evening coverage for larger celebrations that run long.",
       },
     ],
   },
@@ -125,6 +139,8 @@ export const pricingCategories: PricingCategory[] = [
           "15–25 edited images",
           "Private online gallery",
         ],
+        details:
+          "A quick, focused session for headshots, a milestone, or a single look.",
       },
       {
         name: "Standard",
@@ -136,6 +152,8 @@ export const pricingCategories: PricingCategory[] = [
           "Private online gallery",
           "Print release",
         ],
+        details:
+          "Room to relax into it, with a couple of looks and calm direction throughout.",
       },
       {
         name: "Extended",
@@ -147,6 +165,8 @@ export const pricingCategories: PricingCategory[] = [
           "Private online gallery",
           "Print release",
         ],
+        details:
+          "Unrushed time for multiple looks, locations, or a small group.",
       },
     ],
   },
@@ -165,6 +185,8 @@ export const pricingCategories: PricingCategory[] = [
           "60–100 edited images",
           "24–48 hour turnaround",
         ],
+        details:
+          "Fast-turnaround coverage tuned to flash, movement, and crowd energy.",
       },
     ],
   },

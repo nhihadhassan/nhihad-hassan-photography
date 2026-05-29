@@ -33,6 +33,7 @@ import {
   deletePhotos,
   movePhoto,
   setGalleryCover,
+  shufflePhotos,
   togglePhotoHidden,
 } from "@/app/admin/(protected)/galleries/[id]/photos/actions";
 
@@ -608,6 +609,33 @@ export function PhotoManager({
                   </button>
                 )}
               </div>
+
+              {/* Shuffle & save — persists a random order as the gallery's real order */}
+              {sortMode === "random" && (
+                <form
+                  action={(form) => {
+                    if (
+                      !window.confirm(
+                        "Shuffle and save? This writes a new random order to the gallery, overwriting the current manual order. Clients will see this order.",
+                      )
+                    )
+                      return;
+                    runAction(form, shufflePhotos);
+                    setSortMode("manual");
+                  }}
+                >
+                  <input type="hidden" name="gallery_id" value={galleryId} />
+                  <button
+                    type="submit"
+                    disabled={pending}
+                    title="Save this as the gallery's permanent order"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[#9b744f]/40 bg-[#9b744f]/10 px-2.5 py-1.5 text-xs text-[#9b744f] transition hover:bg-[#9b744f] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Shuffle className="size-3.5" aria-hidden="true" />
+                    Shuffle &amp; save
+                  </button>
+                </form>
+              )}
 
               {/* Grid size toggle */}
               <div className="flex items-center rounded-md border border-[#17130f]/12 bg-white/60">

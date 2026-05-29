@@ -173,3 +173,39 @@ export async function movePhoto(formData: FormData) {
   const slug = await getGallerySlug(galleryId);
   revalidateGalleryPhotos(galleryId, slug);
 }
+
+export async function shufflePhotos(formData: FormData) {
+  await requireAdmin();
+  const galleryId = String(formData.get("gallery_id") ?? "");
+  if (!galleryId) {
+    return;
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  const { data: photos } = await supabase
+    .from("photos")
+    .select("id")
+    .eq("gallery_id", galleryId);
+
+  if (!photos?.length) {
+    return;
+  }
+
+  // Fisher-Yates shuffle for an unbiased random order.
+  const ids = photos.map((p) => p.id);
+  for (let i = ids.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+  }
+
+  // Persist the new order by writing each photo's sort_order index.
+  await Promise.all(
+    ids.map((id, index) =>
+      supabase.from("photos").update({ sort_order: index }).eq("id", id),
+    ),
+  );
+
+  const slug = await getGallerySlug(galleryId);
+  revalidateGalleryPhotos(galleryId, slug);
+}

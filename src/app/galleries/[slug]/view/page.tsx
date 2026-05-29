@@ -108,14 +108,10 @@ export default async function GalleryViewPage({ params }: GalleryViewPageProps) 
                 {gallery.location ?? "Private gallery"}
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-3 text-sm text-ink/64 sm:w-80">
+            <div className="grid grid-cols-2 gap-3 text-sm text-ink/64 sm:w-56">
               <div className="border-t border-ink/15 pt-3">
                 <span className="block text-2xl font-semibold text-ink">{gallery.photos.length}</span>
                 Photos
-              </div>
-              <div className="border-t border-ink/15 pt-3">
-                <span className="block text-2xl font-semibold text-ink">{gallery.sections.length}</span>
-                Sections
               </div>
               <div className="border-t border-ink/15 pt-3">
                 <span className="block text-2xl font-semibold text-ink">
@@ -124,20 +120,6 @@ export default async function GalleryViewPage({ params }: GalleryViewPageProps) 
                 Source
               </div>
             </div>
-          </div>
-          <div className="mt-10 flex gap-2 overflow-x-auto pb-2">
-            {gallery.sections.map((section, index) => (
-              <button
-                key={section}
-                className={
-                  index === 0
-                    ? "rounded-full border border-ink bg-ink px-4 py-2 text-sm text-soft-white"
-                    : "rounded-full border border-ink/12 px-4 py-2 text-sm text-ink/62 transition hover:border-ink/25 hover:text-ink"
-                }
-              >
-                {section}
-              </button>
-            ))}
           </div>
           <div className="mt-8 flex flex-wrap gap-3 md:hidden">
             {hasPhotos ? (

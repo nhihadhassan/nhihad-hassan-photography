@@ -1,10 +1,11 @@
-import { ArrowUp, Download, ImageOff, Play } from "lucide-react";
+import { ArrowUp, Download, ImageOff } from "lucide-react";
 import { SiteFooter } from "@/components/site-footer";
 import { ButtonLink } from "@/components/ui/button";
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { DownloadAllButton } from "@/components/download-all-button";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { SelectsToolbarButton } from "@/components/selects-toolbar-button";
+import { SlideshowButton } from "@/components/slideshow-button";
 import { brandConfig } from "@/lib/config";
 import type { PublicGallery } from "@/lib/public-gallery";
 import { formatCoverDate } from "@/lib/utils";
@@ -23,16 +24,7 @@ export function GalleryContent({ gallery }: { gallery: PublicGallery }) {
           <div className="hidden items-center gap-2 md:flex">
             {hasPhotos ? <SelectsToolbarButton /> : null}
             <CopyLinkButton />
-            <button
-              type="button"
-              aria-disabled="true"
-              tabIndex={-1}
-              title="Slideshow: coming in a future update"
-              className="inline-flex min-h-10 cursor-not-allowed items-center gap-2 rounded-full border border-ink/10 px-3 text-sm text-ink/35"
-            >
-              <Play className="size-4" aria-hidden="true" />
-              Slideshow
-            </button>
+            {hasPhotos ? <SlideshowButton /> : null}
             {realDownloads ? (
               <DownloadAllButton slug={gallery.slug} photoCount={gallery.photos.length} />
             ) : (
@@ -75,16 +67,7 @@ export function GalleryContent({ gallery }: { gallery: PublicGallery }) {
               <SelectsToolbarButton className="inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm" />
             ) : null}
             <CopyLinkButton className="inline-flex min-h-11 items-center gap-2 rounded-full border border-ink/12 px-4 text-sm text-ink/68 transition hover:bg-ink hover:text-soft-white" />
-            <button
-              type="button"
-              aria-disabled="true"
-              tabIndex={-1}
-              title="Slideshow: coming in a future update"
-              className="inline-flex min-h-11 cursor-not-allowed items-center gap-2 rounded-full border border-ink/10 px-4 text-sm text-ink/35"
-            >
-              <Play className="size-4" aria-hidden="true" />
-              Slideshow
-            </button>
+            {hasPhotos ? <SlideshowButton className="min-h-11 px-4" /> : null}
             {realDownloads ? (
               <DownloadAllButton
                 slug={gallery.slug}

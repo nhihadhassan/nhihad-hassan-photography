@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Maximize2 } from "lucide-react";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { SelectToggle } from "@/components/select-toggle";
 import { useSelects } from "@/components/selects-provider";
+import { START_SLIDESHOW_EVENT } from "@/components/slideshow-button";
 import type { PublicGalleryPhoto } from "@/lib/public-gallery";
 
 type GalleryGridProps = {
@@ -20,7 +21,18 @@ export function GalleryGrid({
   enableSelects = false,
 }: GalleryGridProps) {
   const [openAt, setOpenAt] = useState<number | null>(null);
+  const [slideshow, setSlideshow] = useState(false);
   const { isSelected } = useSelects();
+
+  useEffect(() => {
+    const start = () => {
+      if (photos.length === 0) return;
+      setSlideshow(true);
+      setOpenAt(0);
+    };
+    window.addEventListener(START_SLIDESHOW_EVENT, start);
+    return () => window.removeEventListener(START_SLIDESHOW_EVENT, start);
+  }, [photos.length]);
 
   return (
     <>
@@ -71,9 +83,13 @@ export function GalleryGrid({
         photos={photos}
         open={openAt !== null}
         initialIndex={openAt ?? 0}
-        onClose={() => setOpenAt(null)}
+        onClose={() => {
+          setOpenAt(null);
+          setSlideshow(false);
+        }}
         unoptimizedImages={unoptimizedImages}
         enableSelects={enableSelects}
+        autoPlay={slideshow}
       />
     </>
   );

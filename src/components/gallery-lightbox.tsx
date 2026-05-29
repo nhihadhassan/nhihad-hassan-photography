@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "framer-motion";
-import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Pause, Play, X } from "lucide-react";
 import type { PublicGalleryPhoto } from "@/lib/public-gallery";
 import { SelectToggle } from "@/components/select-toggle";
 
@@ -14,10 +14,12 @@ type GalleryLightboxProps = {
   onClose: () => void;
   unoptimizedImages?: boolean;
   enableSelects?: boolean;
+  autoPlay?: boolean;
 };
 
 const SWIPE_OFFSET = 60;
 const SWIPE_VELOCITY = 280;
+const SLIDE_INTERVAL = 4000;
 
 export function GalleryLightbox({
   photos,
@@ -26,12 +28,29 @@ export function GalleryLightbox({
   onClose,
   unoptimizedImages = true,
   enableSelects = false,
+  autoPlay = false,
 }: GalleryLightboxProps) {
   const [index, setIndex] = useState(initialIndex);
   const [loading, setLoading] = useState(true);
   const [trackedInitial, setTrackedInitial] = useState(initialIndex);
+  const [playing, setPlaying] = useState(false);
   const lastFocusRef = useRef<HTMLElement | null>(null);
   const reduceMotion = useReducedMotion();
+
+  // Start/stop slideshow playback when the lightbox opens or closes.
+  useEffect(() => {
+    setPlaying(open ? autoPlay : false);
+  }, [open, autoPlay]);
+
+  // Auto-advance while playing, looping back to the first photo at the end.
+  useEffect(() => {
+    if (!open || !playing || photos.length <= 1) return;
+    const timer = setInterval(() => {
+      setLoading(true);
+      setIndex((current) => (current + 1) % photos.length);
+    }, SLIDE_INTERVAL);
+    return () => clearInterval(timer);
+  }, [open, playing, photos.length, index]);
 
   if (trackedInitial !== initialIndex) {
     setTrackedInitial(initialIndex);
@@ -123,9 +142,25 @@ export function GalleryLightbox({
           }}
         >
           <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between p-4 sm:p-6">
-            <span className="pointer-events-auto rounded-full border border-soft-white/12 bg-ink/55 px-3 py-1.5 font-mono text-[11px] tracking-[0.22em] text-soft-white/80 backdrop-blur">
-              {String(index + 1).padStart(2, "0")} <span className="opacity-40">/</span> {String(total).padStart(2, "0")}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="pointer-events-auto rounded-full border border-soft-white/12 bg-ink/55 px-3 py-1.5 font-mono text-[11px] tracking-[0.22em] text-soft-white/80 backdrop-blur">
+                {String(index + 1).padStart(2, "0")} <span className="opacity-40">/</span> {String(total).padStart(2, "0")}
+              </span>
+              {total > 1 ? (
+                <button
+                  type="button"
+                  onClick={() => setPlaying((value) => !value)}
+                  aria-label={playing ? "Pause slideshow" : "Play slideshow"}
+                  className="pointer-events-auto flex size-11 items-center justify-center rounded-full border border-soft-white/12 bg-ink/55 text-soft-white backdrop-blur transition hover:border-soft-white/30 hover:bg-soft-white hover:text-ink"
+                >
+                  {playing ? (
+                    <Pause className="size-5" aria-hidden="true" />
+                  ) : (
+                    <Play className="size-5" aria-hidden="true" />
+                  )}
+                </button>
+              ) : null}
+            </div>
             <button
               type="button"
               onClick={onClose}

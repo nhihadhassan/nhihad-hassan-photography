@@ -174,32 +174,40 @@ export async function movePhoto(formData: FormData) {
   revalidateGalleryPhotos(galleryId, slug);
 }
 
-export async function shufflePhotos(formData: FormData) {
+/**
+ * Persists an explicit photo order. The admin arranges or sorts the photos in
+ * the manager and submits the resulting list of ids; we write each photo's
+ * sort_order to match its position. This becomes the gallery's real
+ * client-facing order.
+ */
+export async function saveOrder(formData: FormData) {
   await requireAdmin();
   const galleryId = String(formData.get("gallery_id") ?? "");
-  if (!galleryId) {
+  const orderedIds = formData
+    .getAll("photo_ids")
+    .map((v) => (typeof v === "string" ? v : ""))
+    .filter(Boolean);
+  if (!galleryId || orderedIds.length === 0) {
     return;
   }
 
   const supabase = await createSupabaseServerClient();
 
+  // Only persist ids that actually belong to this gallery.
   const { data: photos } = await supabase
     .from("photos")
     .select("id")
     .eq("gallery_id", galleryId);
-
   if (!photos?.length) {
     return;
   }
 
-  // Fisher-Yates shuffle for an unbiased random order.
-  const ids = photos.map((p) => p.id);
-  for (let i = ids.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [ids[i], ids[j]] = [ids[j], ids[i]];
+  const valid = new Set(photos.map((p) => p.id));
+  const ids = orderedIds.filter((id) => valid.has(id));
+  if (ids.length === 0) {
+    return;
   }
 
-  // Persist the new order by writing each photo's sort_order index.
   await Promise.all(
     ids.map((id, index) =>
       supabase.from("photos").update({ sort_order: index }).eq("id", id),

@@ -15,6 +15,7 @@ import {
   Grid3X3,
   ImageOff,
   Loader2,
+  Shuffle,
   Sparkles,
   Square,
   Star,
@@ -56,6 +57,20 @@ function formatBytes(bytes: number | null) {
   if (mb >= 1) return `${mb.toFixed(1)} MB`;
   const kb = bytes / 1024;
   return `${kb.toFixed(0)} KB`;
+}
+
+/**
+ * Deterministic hash of a string to a 32-bit unsigned int (FNV-1a). Used to
+ * produce a stable random order: sorting by hash(id + seed) shuffles the list
+ * but stays identical across re-renders for a given seed.
+ */
+function hashStringToInt(str: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
 }
 
 async function readImageDimensions(file: File): Promise<{ width: number; height: number } | null> {
@@ -222,7 +237,8 @@ export function PhotoManager({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [gridSize, setGridSize] = useState<"small" | "large">("large");
-  const [sortMode, setSortMode] = useState<"manual" | "newest" | "oldest" | "name-asc" | "name-desc">("manual");
+  const [sortMode, setSortMode] = useState<"manual" | "newest" | "oldest" | "name-asc" | "name-desc" | "random">("manual");
+  const [randomSeed, setRandomSeed] = useState(0);
 
   const photos = initialPhotos;
   const activeUploads = uploads.filter((u) => u.status === "uploading" || u.status === "pending");
@@ -404,9 +420,14 @@ export function PhotoManager({
       copy.sort((a, b) => a.filename.localeCompare(b.filename));
     } else if (sortMode === "name-desc") {
       copy.sort((a, b) => b.filename.localeCompare(a.filename));
+    } else if (sortMode === "random") {
+      const seed = String(randomSeed);
+      copy.sort(
+        (a, b) => hashStringToInt(a.id + seed) - hashStringToInt(b.id + seed),
+      );
     }
     return copy;
-  }, [photos, sortMode]);
+  }, [photos, sortMode, randomSeed]);
 
   const photoListItems = useMemo(
     () =>
@@ -562,7 +583,11 @@ export function PhotoManager({
                 <ArrowUpDown className="size-3.5 shrink-0 text-[#17130f]/50" aria-hidden="true" />
                 <select
                   value={sortMode}
-                  onChange={(e) => setSortMode(e.target.value as typeof sortMode)}
+                  onChange={(e) => {
+                    const next = e.target.value as typeof sortMode;
+                    if (next === "random") setRandomSeed(Date.now());
+                    setSortMode(next);
+                  }}
                   className="bg-transparent text-xs text-[#17130f] outline-none cursor-pointer"
                 >
                   <option value="manual">Manual order</option>
@@ -570,7 +595,18 @@ export function PhotoManager({
                   <option value="oldest">Uploaded: Oldest first</option>
                   <option value="name-asc">Name: A → Z</option>
                   <option value="name-desc">Name: Z → A</option>
+                  <option value="random">Random</option>
                 </select>
+                {sortMode === "random" && (
+                  <button
+                    type="button"
+                    onClick={() => setRandomSeed(Date.now())}
+                    title="Shuffle again"
+                    className="ml-0.5 rounded p-0.5 text-[#9b744f] transition hover:bg-[#9b744f]/10"
+                  >
+                    <Shuffle className="size-3.5" aria-hidden="true" />
+                  </button>
+                )}
               </div>
 
               {/* Grid size toggle */}

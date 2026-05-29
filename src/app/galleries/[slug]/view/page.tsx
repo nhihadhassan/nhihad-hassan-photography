@@ -102,7 +102,7 @@ export default async function GalleryViewPage({ params }: GalleryViewPageProps) 
               <Link href={`/galleries/${gallery.slug}`} className="text-sm text-ink/55 hover:text-ink">
                 Back to cover
               </Link>
-              <h1 className="mt-6 font-serif text-6xl leading-[0.9] sm:text-8xl">{gallery.title}</h1>
+              <h1 className="mt-6 font-serif uppercase leading-tight tracking-normal text-2xl sm:text-3xl lg:text-4xl xl:text-[2.5rem]">{gallery.title}</h1>
               <p className="mt-4 text-base text-ink/58">
                 {gallery.date ? formatDisplayDate(gallery.date) : "Date to be announced"} ·{" "}
                 {gallery.location ?? "Private gallery"}

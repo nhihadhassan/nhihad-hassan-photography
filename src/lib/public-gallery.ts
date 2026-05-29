@@ -35,6 +35,9 @@ export type PublicGallery = {
   location: string | null;
   imageUrl: string;
   alt: string;
+  coverFocalX: number;
+  coverFocalY: number;
+  coverLayout: "center" | "left" | "bottom" | "split";
   isPublic: boolean;
   downloadEnabled: boolean;
   downloadQuality: "web" | "full";
@@ -156,6 +159,9 @@ export async function getPublishedGalleryBySlug(slug: string): Promise<PublicGal
           location: mock.location,
           imageUrl: mock.imageUrl,
           alt: mock.alt,
+          coverFocalX: 50,
+          coverFocalY: 50,
+          coverLayout: "center",
           isPublic: true,
           downloadEnabled: false,
           downloadQuality: "web",
@@ -189,6 +195,9 @@ export async function getPublishedGalleryBySlug(slug: string): Promise<PublicGal
     cover_image_url: string | null;
     cover_image_alt: string | null;
     cover_photo_id: string | null;
+    cover_focal_x: number | null;
+    cover_focal_y: number | null;
+    cover_layout: string | null;
     is_public: boolean;
     download_enabled: boolean;
     download_quality: "web" | "full";
@@ -252,6 +261,11 @@ export async function getPublishedGalleryBySlug(slug: string): Promise<PublicGal
     location: gallery.location,
     imageUrl: coverUrl,
     alt: coverAlt,
+    coverFocalX: gallery.cover_focal_x ?? 50,
+    coverFocalY: gallery.cover_focal_y ?? 50,
+    coverLayout: (["center", "left", "bottom", "split"].includes(gallery.cover_layout ?? "")
+      ? gallery.cover_layout
+      : "center") as PublicGallery["coverLayout"],
     isPublic: gallery.is_public,
     downloadEnabled: gallery.download_enabled,
     downloadQuality: gallery.download_quality,

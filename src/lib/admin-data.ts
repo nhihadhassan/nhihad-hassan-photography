@@ -1,4 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSignedReadUrl } from "@/lib/r2";
+import { hasR2Config } from "@/lib/env";
 import type { DepositStatus } from "@/lib/payment-constants";
 
 export type { DepositStatus } from "@/lib/payment-constants";
@@ -16,6 +18,11 @@ export type GalleryRecord = {
   cover_image_url: string | null;
   cover_image_alt: string | null;
   cover_photo_id: string | null;
+  /** Cover image object-position percentages (0-100). */
+  cover_focal_x: number;
+  cover_focal_y: number;
+  /** Cover layout template: center | left | bottom | split. */
+  cover_layout: string;
   is_public: boolean;
   is_published: boolean;
   is_archived: boolean;
@@ -78,7 +85,7 @@ export type InquiryRecord = {
 };
 
 const GALLERY_COLUMNS =
-  "id,title,slug,client_name,client_email,event_date,description,location,cover_image_url,cover_image_alt,cover_photo_id,is_public,is_published,is_archived,download_enabled,download_quality,download_pin_hash,download_limit,download_count,watermark_enabled,deposit_status,payment_notes,expires_at,password_hash,password_plain,created_at,updated_at";
+  "id,title,slug,client_name,client_email,event_date,description,location,cover_image_url,cover_image_alt,cover_photo_id,cover_focal_x,cover_focal_y,cover_layout,is_public,is_published,is_archived,download_enabled,download_quality,download_pin_hash,download_limit,download_count,watermark_enabled,deposit_status,payment_notes,expires_at,password_hash,password_plain,created_at,updated_at";
 
 export async function getAdminGalleries() {
   const supabase = await createSupabaseServerClient();
@@ -107,6 +114,42 @@ export async function getAdminGallery(id: string) {
   }
 
   return data ? withHasPassword(data as GalleryRow) : null;
+}
+
+/**
+ * Resolves the cover image to show in the admin focal-point picker, mirroring
+ * the public cover fallback order: explicit URL, then the chosen cover photo,
+ * then the first visible photo.
+ */
+export async function getGalleryCoverPreviewUrl(gallery: GalleryRecord): Promise<string | null> {
+  if (gallery.cover_image_url) return gallery.cover_image_url;
+  if (!hasR2Config()) return null;
+
+  const supabase = await createSupabaseServerClient();
+
+  if (gallery.cover_photo_id) {
+    const { data: photo } = await supabase
+      .from("photos")
+      .select("web_key,thumbnail_key")
+      .eq("id", gallery.cover_photo_id)
+      .maybeSingle();
+    const key = (photo?.web_key as string | null) ?? (photo?.thumbnail_key as string | null) ?? null;
+    if (key) return getSignedReadUrl(key);
+  }
+
+  const { data: first } = await supabase
+    .from("photos")
+    .select("web_key,thumbnail_key")
+    .eq("gallery_id", gallery.id)
+    .eq("is_hidden", false)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  const key = (first?.web_key as string | null) ?? (first?.thumbnail_key as string | null) ?? null;
+  if (key) return getSignedReadUrl(key);
+
+  return null;
 }
 
 export async function getAdminInquiries() {

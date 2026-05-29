@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { GalleryRecord } from "@/lib/admin-data";
 import type { GalleryPresetDefaults } from "@/data/gallery-presets";
+import { CoverDesignFields } from "@/components/cover-design-fields";
 import { DEPOSIT_STATUS_LABELS } from "@/lib/payment-constants";
 import {
   createGallery,
@@ -82,9 +83,11 @@ type GalleryFormDefaults = GalleryPresetDefaults & { expires_at?: string };
 type GalleryFormProps = {
   gallery?: GalleryRecord;
   defaultValues?: GalleryFormDefaults;
+  /** Resolved cover image URL for the focal-point preview (server-side). */
+  coverImageUrl?: string | null;
 };
 
-export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
+export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFormProps) {
   const action = gallery ? updateGallery : createGallery;
   const [state, formAction, pending] = useActionState(action, initialState);
 
@@ -192,6 +195,12 @@ export function GalleryForm({ gallery, defaultValues }: GalleryFormProps) {
               placeholder="Guests celebrating on a Toronto dance floor."
             />
           </label>
+          <CoverDesignFields
+            coverImageUrl={coverImageUrl}
+            initialFocalX={gallery?.cover_focal_x ?? 50}
+            initialFocalY={gallery?.cover_focal_y ?? 50}
+            initialLayout={gallery?.cover_layout ?? "center"}
+          />
         </div>
       </section>
 

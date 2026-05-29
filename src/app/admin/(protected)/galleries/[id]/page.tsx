@@ -5,7 +5,11 @@ import { GalleryForm } from "@/components/gallery-form";
 import { GalleryRowActions } from "@/components/gallery-row-actions";
 import { SendInviteButton } from "@/components/send-invite-button";
 import { requireAdmin } from "@/lib/auth";
-import { getAdminGallery, getGalleryLastInvite } from "@/lib/admin-data";
+import {
+  getAdminGallery,
+  getGalleryLastInvite,
+  getGalleryCoverPreviewUrl,
+} from "@/lib/admin-data";
 
 type EditGalleryPageProps = {
   params: Promise<{ id: string }>;
@@ -23,6 +27,8 @@ export default async function EditGalleryPage({ params }: EditGalleryPageProps) 
   if (!gallery) {
     notFound();
   }
+
+  const coverImageUrl = await getGalleryCoverPreviewUrl(gallery);
 
   const tabs = [
     { label: "Photos", href: `/admin/galleries/${gallery.id}/photos`, icon: Images },
@@ -129,7 +135,7 @@ export default async function EditGalleryPage({ params }: EditGalleryPageProps) 
       </div>
 
       <div className="mt-6">
-        <GalleryForm gallery={gallery} />
+        <GalleryForm gallery={gallery} coverImageUrl={coverImageUrl} />
       </div>
     </div>
   );

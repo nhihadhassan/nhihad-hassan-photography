@@ -1,7 +1,37 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, Cormorant_Garamond, Geist, Geist_Mono, Montserrat } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { brandConfig } from "@/lib/config";
+
+const SITE_URL = "https://nhihadhassan.ca";
+
+// Organisation-level structured data, applied site-wide so search engines can
+// associate the business, its location, and social profiles.
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Photographer",
+  name: brandConfig.name,
+  url: SITE_URL,
+  image: `${SITE_URL}/opengraph-image.png`,
+  email: brandConfig.contactEmail,
+  description: brandConfig.tagline,
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Toronto",
+    addressRegion: "ON",
+    addressCountry: "CA",
+  },
+  areaServed: "Toronto, Ontario",
+  sameAs: brandConfig.instagram.map((account) => account.href),
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: brandConfig.name,
+  url: SITE_URL,
+};
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,7 +86,18 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${bodoni.variable} ${montserrat.variable} h-full scroll-smooth antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

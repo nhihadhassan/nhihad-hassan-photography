@@ -79,8 +79,25 @@ export default async function JournalPostPage({ params }: Props) {
     ? portfolioItems.find((p) => p.id === post.coverImageId)
     : null;
 
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: post.date,
+    ...(post.updatedAt ? { dateModified: post.updatedAt } : {}),
+    author: { "@type": "Organization", name: brandConfig.name },
+    publisher: { "@type": "Organization", name: brandConfig.name },
+    ...(cover ? { image: `https://nhihadhassan.ca${cover.imageUrl}` } : {}),
+    mainEntityOfPage: `https://nhihadhassan.ca/journal/${post.slug}`,
+  };
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-ink text-soft-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       <SiteHeader />
 
       <main className="flex-1 pt-40">

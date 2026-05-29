@@ -29,11 +29,11 @@ export default function PortfolioPage() {
               <div>
                 <p className="text-xs uppercase tracking-[0.22em] text-copper">Portfolio</p>
                 <h1 className="mt-4 font-serif text-6xl leading-[0.9] text-soft-white sm:text-8xl">
-                  Recent frames from real rooms.
+                  Recent frames, real moments.
                 </h1>
               </div>
               <p className="max-w-2xl text-base leading-7 text-soft-white/62 lg:justify-self-end">
-                A working record of recent shoots around Toronto and Ontario. Less a polished gallery, more a sense of what each one felt like to be in.
+                Weddings, couples, and events around Toronto and Ontario.
               </p>
             </div>
           </Reveal>

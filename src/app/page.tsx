@@ -14,7 +14,8 @@ import { formatDisplayDate } from "@/lib/utils";
 
 const heroImage =
   portfolioItems.find((item) => item.id === "rachel-autumn-leaves") ?? portfolioItems[0];
-const sideImage = portfolioItems[5];
+const sideImage =
+  portfolioItems.find((item) => item.id === "nhd-sunset-hike") ?? portfolioItems[0];
 const featuredPortfolio = portfolioItems.filter((item) => item.featured).slice(0, 5);
 
 const navItems: MobileNavItem[] = [

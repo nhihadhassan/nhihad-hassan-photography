@@ -1,16 +1,19 @@
 import Image from "next/image";
-import { LockKeyhole, ArrowRight, Unlock } from "lucide-react";
+import Link from "next/link";
+import { LockKeyhole, Unlock } from "lucide-react";
 import type { PublicGallery } from "@/lib/public-gallery";
 import { brandConfig } from "@/lib/config";
 import { formatDisplayDate } from "@/lib/utils";
-import { ButtonLink } from "@/components/ui/button";
 import { GalleryPasswordGate } from "@/components/gallery-password-gate";
 
 export function GalleryCover({ gallery }: { gallery: PublicGallery }) {
   const showGate = gallery.hasPassword && !gallery.isUnlocked;
 
   return (
-    <main className="relative min-h-[100dvh] overflow-hidden bg-ink text-soft-white">
+    <section
+      id="cover"
+      className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-ink text-soft-white"
+    >
       <Image
         src={gallery.imageUrl}
         alt={gallery.alt}
@@ -20,60 +23,62 @@ export function GalleryCover({ gallery }: { gallery: PublicGallery }) {
         className="object-cover"
         unoptimized={gallery.hasRealPhotos}
       />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,0.78),rgba(8,8,8,0.25)_48%,rgba(8,8,8,0.72)),linear-gradient(180deg,rgba(8,8,8,0.4),rgba(8,8,8,0.88))]" />
-      <div className="relative z-10 flex min-h-[100dvh] flex-col px-4 py-6 sm:px-8 lg:px-12">
-        <header className="flex items-center justify-between">
-          <p className="text-sm font-medium tracking-wide">{brandConfig.name}</p>
-          {gallery.hasPassword ? (
-            <span className="inline-flex items-center gap-2 rounded-full border border-soft-white/20 bg-ink/35 px-3 py-2 text-xs text-soft-white/70 backdrop-blur">
-              {gallery.isUnlocked ? (
-                <>
-                  <Unlock className="size-3.5" aria-hidden="true" />
-                  Unlocked
-                </>
-              ) : (
-                <>
-                  <LockKeyhole className="size-3.5" aria-hidden="true" />
-                  Private
-                </>
-              )}
-            </span>
-          ) : null}
-        </header>
-        <section className="flex flex-1 items-end pb-10 pt-24 lg:pb-16">
-          <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(320px,0.42fr)] lg:items-end">
-            <div>
-              <p className="text-xs uppercase tracking-[0.22em] text-beige/75">
-                {[gallery.location, gallery.clientName].filter(Boolean).join(" · ") || "Private gallery"}
-              </p>
-              <h1 className="mt-5 max-w-4xl font-serif text-7xl font-medium leading-[0.84] tracking-tight text-soft-white sm:text-8xl lg:text-[8.5rem]">
-                {gallery.title}
-              </h1>
-              <p className="mt-6 text-xl text-soft-white/72">
-                {gallery.date ? formatDisplayDate(gallery.date) : ""}
-              </p>
-            </div>
-            <div className="border-t border-soft-white/18 pt-6 lg:border-l lg:border-t-0 lg:pl-8">
-              <p className="text-sm leading-6 text-soft-white/70">
-                {gallery.description ?? "A private gallery prepared for you, ready to share with everyone who was there."}
-              </p>
-              <div className="mt-7 flex flex-col gap-3">
-                {showGate ? (
-                  <GalleryPasswordGate slug={gallery.slug} galleryTitle={gallery.title} />
-                ) : (
-                  <ButtonLink
-                    href={`/galleries/${gallery.slug}/view`}
-                    className="w-full justify-between"
-                  >
-                    View Gallery
-                    <ArrowRight className="size-4" aria-hidden="true" />
-                  </ButtonLink>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
+      {/* Soft top and bottom darkening so the title and brand stay legible. */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,8,8,0.5)_0%,rgba(8,8,8,0.12)_26%,rgba(8,8,8,0.05)_50%,rgba(8,8,8,0.6)_100%)]" />
+
+      {/* Privacy badge */}
+      {gallery.hasPassword ? (
+        <div className="relative z-10 flex justify-end px-4 py-6 sm:px-8">
+          <span className="inline-flex items-center gap-2 rounded-full border border-soft-white/20 bg-ink/35 px-3 py-2 text-xs text-soft-white/70 backdrop-blur">
+            {gallery.isUnlocked ? (
+              <>
+                <Unlock className="size-3.5" aria-hidden="true" />
+                Unlocked
+              </>
+            ) : (
+              <>
+                <LockKeyhole className="size-3.5" aria-hidden="true" />
+                Private
+              </>
+            )}
+          </span>
+        </div>
+      ) : null}
+
+      {/* Centered title block */}
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 text-center">
+        <h1 className="font-serif uppercase leading-[0.95] tracking-[0.06em] text-5xl sm:text-7xl lg:text-8xl">
+          {gallery.title}
+        </h1>
+        {gallery.date ? (
+          <p className="mt-5 text-xs uppercase tracking-[0.3em] text-soft-white/80 sm:text-sm">
+            {formatDisplayDate(gallery.date)}
+          </p>
+        ) : null}
+
+        <div className="mt-9 w-full max-w-xs">
+          {showGate ? (
+            <GalleryPasswordGate slug={gallery.slug} galleryTitle={gallery.title} />
+          ) : (
+            <a
+              href="#gallery"
+              className="inline-flex items-center justify-center border border-soft-white/45 px-9 py-3.5 text-xs uppercase tracking-[0.24em] text-soft-white transition hover:border-soft-white hover:bg-soft-white/10"
+            >
+              View Gallery
+            </a>
+          )}
+        </div>
       </div>
-    </main>
+
+      {/* Brand wordmark */}
+      <div className="relative z-10 pb-8 text-center">
+        <Link
+          href="/"
+          className="text-[0.7rem] uppercase tracking-[0.3em] text-soft-white/70 transition hover:text-soft-white"
+        >
+          {brandConfig.name}
+        </Link>
+      </div>
+    </section>
   );
 }

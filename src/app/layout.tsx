@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bodoni_Moda, Cormorant_Garamond, Geist, Geist_Mono } from "next/font/google";
+import { Bodoni_Moda, Cormorant_Garamond, Geist, Geist_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 import { brandConfig } from "@/lib/config";
 
@@ -25,6 +25,12 @@ const bodoni = Bodoni_Moda({
   weight: ["400", "500", "600", "700"],
 });
 
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://nhihadhassan.ca"),
   title: {
@@ -48,7 +54,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${bodoni.variable} h-full scroll-smooth antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${bodoni.variable} ${montserrat.variable} h-full scroll-smooth antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

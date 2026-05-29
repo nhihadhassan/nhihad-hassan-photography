@@ -13,12 +13,16 @@ type GalleryGridProps = {
   photos: PublicGalleryPhoto[];
   unoptimizedImages?: boolean;
   enableSelects?: boolean;
+  enableDownload?: boolean;
+  slug?: string;
 };
 
 export function GalleryGrid({
   photos,
   unoptimizedImages = false,
   enableSelects = false,
+  enableDownload = false,
+  slug,
 }: GalleryGridProps) {
   const [openAt, setOpenAt] = useState<number | null>(null);
   const [slideshow, setSlideshow] = useState(false);
@@ -33,6 +37,15 @@ export function GalleryGrid({
     window.addEventListener(START_SLIDESHOW_EVENT, start);
     return () => window.removeEventListener(START_SLIDESHOW_EVENT, start);
   }, [photos.length]);
+
+  // Open directly to a shared photo link (?p=<id>) on first load.
+  useEffect(() => {
+    if (photos.length === 0) return;
+    const pid = new URLSearchParams(window.location.search).get("p");
+    if (!pid) return;
+    const idx = photos.findIndex((photo) => photo.id === pid);
+    if (idx >= 0) setOpenAt(idx);
+  }, [photos]);
 
   return (
     <>
@@ -89,6 +102,8 @@ export function GalleryGrid({
         }}
         unoptimizedImages={unoptimizedImages}
         enableSelects={enableSelects}
+        enableDownload={enableDownload}
+        slug={slug}
         autoPlay={slideshow}
       />
     </>

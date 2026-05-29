@@ -6,6 +6,8 @@ import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "framer-
 import { ChevronLeft, ChevronRight, Loader2, Pause, Play, X } from "lucide-react";
 import type { PublicGalleryPhoto } from "@/lib/public-gallery";
 import { SelectToggle } from "@/components/select-toggle";
+import { PhotoDownloadButton } from "@/components/photo-download-button";
+import { PhotoShareButton } from "@/components/photo-share-button";
 
 type GalleryLightboxProps = {
   photos: PublicGalleryPhoto[];
@@ -14,6 +16,8 @@ type GalleryLightboxProps = {
   onClose: () => void;
   unoptimizedImages?: boolean;
   enableSelects?: boolean;
+  enableDownload?: boolean;
+  slug?: string;
   autoPlay?: boolean;
 };
 
@@ -28,6 +32,8 @@ export function GalleryLightbox({
   onClose,
   unoptimizedImages = true,
   enableSelects = false,
+  enableDownload = false,
+  slug,
   autoPlay = false,
 }: GalleryLightboxProps) {
   const [index, setIndex] = useState(initialIndex);
@@ -227,14 +233,12 @@ export function GalleryLightbox({
           </div>
 
           <div className="pointer-events-none flex items-end justify-between gap-4 p-4 sm:p-6">
-            <div className="pointer-events-auto flex flex-col gap-3">
+            <div className="pointer-events-auto flex items-center gap-2">
               {enableSelects ? <SelectToggle photoId={photo.id} variant="lightbox" /> : null}
-              <span
-                className="hidden truncate text-xs text-soft-white/60 sm:block"
-                title={photo.alt}
-              >
-                {photo.alt}
-              </span>
+              {enableDownload && slug ? (
+                <PhotoDownloadButton slug={slug} photoId={photo.id} />
+              ) : null}
+              <PhotoShareButton photoId={photo.id} />
             </div>
             <div className="pointer-events-auto ml-auto flex gap-2 sm:hidden">
               <button

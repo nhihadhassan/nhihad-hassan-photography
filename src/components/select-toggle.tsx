@@ -23,20 +23,20 @@ export function SelectToggle({ photoId, variant = "grid", className }: SelectTog
           toggle(photoId);
         }}
         aria-pressed={selected}
-        aria-label={selected ? "Remove from selects" : "Add to selects"}
+        aria-label={selected ? "Remove from favourites" : "Add to favourites"}
+        title={selected ? "Remove from favourites" : "Add to favourites"}
         className={cn(
-          "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-medium backdrop-blur transition",
+          "flex size-11 items-center justify-center rounded-full border backdrop-blur transition",
           selected
             ? "border-copper/80 bg-copper text-ink"
-            : "border-soft-white/14 bg-ink/55 text-soft-white hover:border-soft-white/30 hover:bg-soft-white hover:text-ink",
+            : "border-soft-white/12 bg-ink/55 text-soft-white hover:border-soft-white/30 hover:bg-soft-white hover:text-ink",
           className,
         )}
       >
         <Heart
-          className={cn("size-4", selected ? "fill-current" : "")}
+          className={cn("size-5", selected ? "fill-current" : "")}
           aria-hidden="true"
         />
-        {selected ? "Selected" : "Select"}
       </button>
     );
   }

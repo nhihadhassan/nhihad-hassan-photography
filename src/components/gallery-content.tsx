@@ -93,6 +93,8 @@ export function GalleryContent({ gallery }: { gallery: PublicGallery }) {
               photos={gallery.photos}
               unoptimizedImages={gallery.hasRealPhotos}
               enableSelects={gallery.hasRealPhotos}
+              enableDownload={realDownloads}
+              slug={gallery.slug}
             />
           ) : (
             <div className="mt-12 rounded-[2px] border border-ink/12 bg-ink/4 px-6 py-16 text-center">

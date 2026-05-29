@@ -8,6 +8,7 @@ import {
   streamGalleryZip,
   type DownloadablePhoto,
 } from "@/lib/download";
+import { downloadFromR2 } from "@/lib/r2";
 import { getRequestIpHash, getRequestUserAgent } from "@/lib/access-log";
 import {
   DOWNLOAD_RATE_LIMIT,
@@ -48,8 +49,15 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const scopeRaw = String(formData.get("scope") ?? "").trim();
+  // A single-photo download behaves like a "selects" download (filtered by id,
+  // same gating + logging) but streams one image file instead of a ZIP.
+  const isSingle = scopeRaw === "single";
   const scope: DownloadScope =
-    scopeRaw === "all" ? "all" : scopeRaw === "selects" ? "selects" : (null as never);
+    scopeRaw === "all"
+      ? "all"
+      : scopeRaw === "selects" || isSingle
+        ? "selects"
+        : (null as never);
   if (scope === null) return jsonError(400, "Unknown download scope.");
 
   const submittedIds = formData
@@ -57,6 +65,9 @@ export async function POST(request: Request, { params }: Params) {
     .map((v) => (typeof v === "string" ? v.trim() : ""))
     .filter((v) => v.length > 0);
 
+  if (isSingle && submittedIds.length !== 1) {
+    return jsonError(400, "Select exactly one photo.");
+  }
   if (scope === "selects" && submittedIds.length === 0) {
     return jsonError(400, "No photos selected.");
   }
@@ -196,7 +207,7 @@ export async function POST(request: Request, { params }: Params) {
   // Resolve photos
   let query = admin
     .from("photos")
-    .select("id,filename,original_key,web_key,sort_order")
+    .select("id,filename,original_key,web_key,sort_order,mime_type")
     .eq("gallery_id", gallery.id)
     .eq("is_hidden", false);
 
@@ -240,6 +251,47 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const quality = (gallery.download_quality as "web" | "full") ?? "web";
+
+  // Single-photo download: stream the one image file directly (no ZIP).
+  if (isSingle) {
+    const row = photoRows![0];
+    const key =
+      quality === "web"
+        ? ((row.web_key as string | null) ?? (row.original_key as string))
+        : (row.original_key as string);
+    const buffer = await downloadFromR2(key);
+    const ext = key.includes(".") ? key.slice(key.lastIndexOf(".")).toLowerCase() : "";
+    const contentType =
+      ext === ".webp"
+        ? "image/webp"
+        : ext === ".png"
+          ? "image/png"
+          : ((row.mime_type as string | null) ?? "image/jpeg");
+    const rawName = (row.filename as string) ?? "photo";
+    const stem = rawName.includes(".") ? rawName.slice(0, rawName.lastIndexOf(".")) : rawName;
+    const safeStem = stem.replace(/[\\/:*?"<>|\x00-\x1f]/g, "_").trim() || "photo";
+    const downloadName = `${safeStem}${ext || ".jpg"}`;
+
+    await recordDownloadAttempt({
+      galleryId: gallery.id,
+      ipHash,
+      userAgent,
+      scope,
+      photoCount: 1,
+      success: true,
+      reason: "success",
+    });
+
+    return new Response(new Uint8Array(buffer), {
+      status: 200,
+      headers: {
+        "Content-Type": contentType,
+        "Content-Disposition": `attachment; filename="${downloadName.replace(/"/g, "")}"`,
+        "Cache-Control": "no-store",
+      },
+    });
+  }
+
   const entries = buildArchivePaths(photos);
   const zipFilename = buildZipFilename(slug, scope);
   const stream = streamGalleryZip({ entries, quality });

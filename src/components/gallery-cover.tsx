@@ -47,11 +47,11 @@ export function GalleryCover({ gallery }: { gallery: PublicGallery }) {
 
       {/* Centered title block */}
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 text-center">
-        <h1 className="font-display font-extrabold uppercase leading-[0.95] tracking-[-0.01em] text-4xl text-soft-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.55)] sm:text-6xl lg:text-7xl">
+        <h1 className="font-display font-extrabold uppercase leading-[0.95] tracking-[-0.01em] text-3xl text-soft-white [text-shadow:0_2px_18px_rgba(0,0,0,0.85),0_1px_3px_rgba(0,0,0,0.7)] sm:text-5xl lg:text-6xl">
           {gallery.title}
         </h1>
         {gallery.date ? (
-          <p className="mt-5 font-display text-xs font-semibold uppercase tracking-[0.28em] text-soft-white drop-shadow-[0_1px_12px_rgba(0,0,0,0.6)] sm:text-sm">
+          <p className="mt-5 font-display text-xs font-semibold uppercase tracking-[0.28em] text-soft-white [text-shadow:0_2px_12px_rgba(0,0,0,0.85),0_1px_2px_rgba(0,0,0,0.7)] sm:text-sm">
             {formatCoverDate(gallery.date)}
           </p>
         ) : null}
@@ -62,7 +62,7 @@ export function GalleryCover({ gallery }: { gallery: PublicGallery }) {
           ) : (
             <a
               href="#gallery"
-              className="inline-flex items-center justify-center border border-soft-white/80 px-9 py-3.5 font-display text-xs font-semibold uppercase tracking-[0.24em] text-soft-white drop-shadow-[0_1px_12px_rgba(0,0,0,0.6)] transition hover:border-soft-white hover:bg-soft-white/10"
+              className="inline-flex items-center justify-center border border-soft-white/80 px-9 py-3.5 font-display text-xs font-semibold uppercase tracking-[0.24em] text-soft-white [text-shadow:0_2px_12px_rgba(0,0,0,0.85),0_1px_2px_rgba(0,0,0,0.7)] transition hover:border-soft-white hover:bg-soft-white/10"
             >
               View Gallery
             </a>
@@ -74,7 +74,7 @@ export function GalleryCover({ gallery }: { gallery: PublicGallery }) {
       <div className="relative z-10 pb-8 text-center">
         <Link
           href="/"
-          className="font-display text-[0.7rem] font-medium uppercase tracking-[0.3em] text-soft-white/85 drop-shadow-[0_1px_10px_rgba(0,0,0,0.6)] transition hover:text-soft-white"
+          className="font-display text-[0.7rem] font-medium uppercase tracking-[0.3em] text-soft-white/85 [text-shadow:0_2px_12px_rgba(0,0,0,0.85),0_1px_2px_rgba(0,0,0,0.7)] transition hover:text-soft-white"
         >
           {brandConfig.name}
         </Link>

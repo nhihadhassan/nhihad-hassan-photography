@@ -7,7 +7,7 @@ import { GalleryGrid } from "@/components/gallery-grid";
 import { SelectsToolbarButton } from "@/components/selects-toolbar-button";
 import { brandConfig } from "@/lib/config";
 import type { PublicGallery } from "@/lib/public-gallery";
-import { formatDisplayDate } from "@/lib/utils";
+import { formatCoverDate } from "@/lib/utils";
 
 export function GalleryContent({ gallery }: { gallery: PublicGallery }) {
   const hasPhotos = gallery.photos.length > 0;
@@ -57,22 +57,16 @@ export function GalleryContent({ gallery }: { gallery: PublicGallery }) {
               <a href="#cover" className="text-sm text-ink/55 hover:text-ink">
                 Back to cover
               </a>
-              <h1 className="mt-6 font-serif uppercase leading-tight tracking-normal text-2xl sm:text-3xl lg:text-4xl xl:text-[2.5rem]">{gallery.title}</h1>
+              <h1 className="mt-6 font-display font-extrabold uppercase leading-tight tracking-[-0.01em] text-2xl sm:text-3xl lg:text-4xl xl:text-[2.5rem]">{gallery.title}</h1>
               <p className="mt-4 text-base text-ink/58">
-                {gallery.date ? formatDisplayDate(gallery.date) : "Date to be announced"} ·{" "}
+                {gallery.date ? formatCoverDate(gallery.date) : "Date to be announced"} ·{" "}
                 {gallery.location ?? "Private gallery"}
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3 text-sm text-ink/64 sm:w-56">
+            <div className="text-sm text-ink/64 sm:w-40">
               <div className="border-t border-ink/15 pt-3">
                 <span className="block text-2xl font-semibold text-ink">{gallery.photos.length}</span>
                 Photos
-              </div>
-              <div className="border-t border-ink/15 pt-3">
-                <span className="block text-2xl font-semibold text-ink">
-                  {gallery.hasRealPhotos ? "Live" : "Preview"}
-                </span>
-                Source
               </div>
             </div>
           </div>

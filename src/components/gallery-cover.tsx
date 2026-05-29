@@ -62,7 +62,7 @@ export function GalleryCover({ gallery }: { gallery: PublicGallery }) {
           ) : (
             <a
               href="#gallery"
-              className="inline-flex items-center justify-center border border-soft-white/80 px-9 py-3.5 font-display text-xs font-semibold uppercase tracking-[0.24em] text-soft-white [text-shadow:0_2px_12px_rgba(0,0,0,0.85),0_1px_2px_rgba(0,0,0,0.7)] transition hover:border-soft-white hover:bg-soft-white/10"
+              className="inline-flex items-center justify-center border border-soft-white/80 bg-ink/25 px-9 py-3.5 font-display text-xs font-semibold uppercase tracking-[0.24em] text-soft-white backdrop-blur-sm [text-shadow:0_2px_12px_rgba(0,0,0,0.85),0_1px_2px_rgba(0,0,0,0.7)] transition hover:border-soft-white hover:bg-soft-white/15"
             >
               View Gallery
             </a>

@@ -21,7 +21,7 @@ const featuredPortfolio = portfolioItems.filter((item) => item.featured).slice(0
 const navItems: MobileNavItem[] = [
   { href: "/portfolio", label: "Portfolio" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/galleries/moove-ah", label: "Galleries" },
+  { href: "/galleries", label: "Galleries" },
   { href: "/contact", label: "Contact" },
 ];
 

@@ -264,6 +264,115 @@ export async function getPublishedGalleryBySlug(slug: string): Promise<PublicGal
   };
 }
 
+export type PublicGalleryCard = {
+  slug: string;
+  title: string;
+  date: string | null;
+  location: string | null;
+  imageUrl: string;
+  alt: string;
+  hasPassword: boolean;
+};
+
+/**
+ * Lists galleries that are flagged for the public index (is_public + published,
+ * not archived, not expired). Private "link-only" galleries are intentionally
+ * excluded. Cover images are resolved to signed R2 thumbnails when available.
+ */
+export async function getPublicGalleryIndex(): Promise<PublicGalleryCard[]> {
+  // Without Supabase configured, fall back to the mock featured gallery so the
+  // page still renders something in local/preview environments.
+  if (!hasSupabaseBrowserConfig() || !hasServiceRoleKey()) {
+    const mock = getMockGallery("moove-ah");
+    return mock
+      ? [
+          {
+            slug: mock.slug,
+            title: mock.title,
+            date: mock.date,
+            location: mock.location,
+            imageUrl: mock.imageUrl,
+            alt: mock.alt,
+            hasPassword: false,
+          },
+        ]
+      : [];
+  }
+
+  const supabase = getServiceRoleSupabaseClient();
+  const { data, error } = await supabase
+    .from("galleries")
+    .select(
+      "id,title,slug,event_date,location,cover_image_url,cover_image_alt,cover_photo_id,expires_at,password_hash",
+    )
+    .eq("is_public", true)
+    .eq("is_published", true)
+    .eq("is_archived", false)
+    .order("event_date", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false });
+
+  if (error || !data?.length) return [];
+
+  const now = Date.now();
+  const live = data.filter(
+    (g) => !g.expires_at || new Date(g.expires_at as string).getTime() > now,
+  );
+
+  return Promise.all(
+    live.map(async (g) => {
+      let imageUrl = (g.cover_image_url as string | null) || fallbackCover.imageUrl;
+      let alt = (g.cover_image_alt as string | null) || (g.title as string);
+
+      if (hasR2Config()) {
+        let key: string | null = null;
+        if (g.cover_photo_id) {
+          const { data: photo } = await supabase
+            .from("photos")
+            .select("thumbnail_key,web_key,filename")
+            .eq("id", g.cover_photo_id as string)
+            .maybeSingle();
+          key =
+            (photo?.thumbnail_key as string | null) ??
+            (photo?.web_key as string | null) ??
+            null;
+          if (photo?.filename) alt = photo.filename as string;
+        }
+        // No explicit cover set: use the first visible photo as the cover.
+        if (!key && !g.cover_image_url) {
+          const { data: first } = await supabase
+            .from("photos")
+            .select("thumbnail_key,web_key,filename")
+            .eq("gallery_id", g.id as string)
+            .eq("is_hidden", false)
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          key =
+            (first?.thumbnail_key as string | null) ??
+            (first?.web_key as string | null) ??
+            null;
+          if (first?.filename) alt = first.filename as string;
+        }
+        if (key) {
+          const signed = await getSignedReadUrl(key);
+          if (signed) imageUrl = signed;
+        }
+      }
+
+      return {
+        slug: g.slug as string,
+        title: g.title as string,
+        date: (g.event_date as string | null) ?? null,
+        location: (g.location as string | null) ?? null,
+        imageUrl,
+        alt,
+        hasPassword: Boolean(g.password_hash),
+      };
+    }),
+  );
+}
+
 export async function getSignedCoverUrlForKey(key: string) {
   if (!hasR2Config()) return null;
   return getSignedReadUrl(key);

@@ -44,6 +44,19 @@ export const pricingCategories: PricingCategory[] = [
         details:
           "Coverage paced to the day itself, from the quiet morning hours to the last song. Longer collections and full-day coverage are quoted on request.",
       },
+      {
+        name: "Full-Day Coverage",
+        price: "$700–$1,000",
+        duration: "8–10 hours",
+        includes: [
+          "8–10 hours of continuous coverage",
+          "400+ edited images",
+          "Private online gallery",
+          "Print release",
+        ],
+        details:
+          "Full-day coverage from the morning preparations through to the final celebration, with room for every part of the day.",
+      },
     ],
   },
   {

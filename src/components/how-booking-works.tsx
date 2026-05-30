@@ -36,7 +36,12 @@ export function HowBookingWorks({
               </li>
             ))}
           </ol>
-          <p className="mt-8 text-sm leading-6 text-ink/62">
+          <p className="mt-8 text-sm leading-6 text-ink/68">
+            <span className="font-medium text-ink">The deposit is a 30% non-refundable retainer</span>,
+            sent by Interac e-Transfer to hold your date. The balance is due on or before the shoot
+            day, and a date can be rescheduled once with 7 or more days notice.
+          </p>
+          <p className="mt-4 text-sm leading-6 text-ink/62">
             Prices are in Canadian dollars and cover the shoot, editing, and gallery delivery.
             Travel beyond the Greater Toronto Area may add a small fee, confirmed before you book.
           </p>

@@ -33,7 +33,7 @@ export const pricingCategories: PricingCategory[] = [
     tiers: [
       {
         name: "Wedding Coverage",
-        price: "$400–$600",
+        price: "$500–$700",
         duration: "4–5 hours",
         includes: [
           "4–5 hours of continuous coverage",
@@ -46,7 +46,7 @@ export const pricingCategories: PricingCategory[] = [
       },
       {
         name: "Full-Day Coverage",
-        price: "$700–$1,000",
+        price: "$1,200–$1,500",
         duration: "8–10 hours",
         includes: [
           "8–10 hours of continuous coverage",

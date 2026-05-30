@@ -37,9 +37,9 @@ export function HowBookingWorks({
             ))}
           </ol>
           <p className="mt-8 text-sm leading-6 text-ink/68">
-            <span className="font-medium text-ink">The deposit is a 30% non-refundable retainer</span>,
-            sent by Interac e-Transfer to hold your date. The balance is due on or before the shoot
-            day, and a date can be rescheduled once with 7 or more days notice.
+            <span className="font-medium text-ink">A 25% deposit holds your date</span>, sent by
+            Interac e-Transfer. It is non-refundable since it reserves your time, with the balance
+            due on or before the shoot day. A date can be rescheduled once with 7 or more days notice.
           </p>
           <p className="mt-4 text-sm leading-6 text-ink/62">
             Prices are in Canadian dollars and cover the shoot, editing, and gallery delivery.

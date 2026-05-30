@@ -30,7 +30,6 @@ export const pricingCategories: PricingCategory[] = [
     label: "Weddings",
     blurb:
       "Coverage that keeps the pace of the day, from the quiet morning hours through the last song.",
-    note: "Wedding coverage is offered at introductory rates while I build this part of my portfolio. Longer collections and full-day coverage are quoted on request.",
     tiers: [
       {
         name: "Wedding Coverage",

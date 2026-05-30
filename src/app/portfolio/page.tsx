@@ -46,11 +46,13 @@ export default function PortfolioPage() {
             ))}
           </div>
           <div className="mt-12 columns-1 gap-6 sm:columns-2 lg:columns-3">
-            {portfolioItems.map((item, index) => (
-              <Reveal key={item.id} delay={(index % 3) * 0.04} className="mb-12 break-inside-avoid">
-                <PhotoCard item={item} priority={index < 2} />
-              </Reveal>
-            ))}
+            {portfolioItems
+              .filter((item) => item.category !== "nightlife")
+              .map((item, index) => (
+                <Reveal key={item.id} delay={(index % 3) * 0.04} className="mb-12 break-inside-avoid">
+                  <PhotoCard item={item} priority={index < 2} />
+                </Reveal>
+              ))}
           </div>
         </section>
         <InquiryCallout tone="dark" />

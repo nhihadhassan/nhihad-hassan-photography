@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
@@ -11,6 +14,13 @@ const aspectClasses: Record<PortfolioItem["orientation"], string> = {
   square: "aspect-square",
 };
 
+const TEXT_SHADOW = "[text-shadow:0_1px_10px_rgba(0,0,0,0.7)]";
+
+/**
+ * Portfolio card. The image stands on its own; the meta (category, title,
+ * date, location) is hidden until the visitor hovers (desktop) or taps
+ * (mobile) — the same reveal interaction used by the pricing cards.
+ */
 export function PhotoCard({
   item,
   priority = false,
@@ -20,8 +30,15 @@ export function PhotoCard({
   priority?: boolean;
   className?: string;
 }) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <article className={cn("group", className)}>
+    <article
+      className={cn("group", className)}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onClick={() => setOpen((v) => !v)}
+    >
       <div
         className={cn(
           "relative overflow-hidden rounded-[2px] bg-soft-white/8",
@@ -36,33 +53,49 @@ export function PhotoCard({
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
           className="object-cover transition duration-700 ease-out group-hover:scale-[1.035]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-transparent to-transparent opacity-70" />
+
+        {/* Darkening that fades in with the meta so the text stays legible. */}
+        <div
+          className={cn(
+            "absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/20 to-transparent transition-opacity duration-300",
+            open ? "opacity-100" : "opacity-0",
+          )}
+        />
+
         {item.featured ? (
           <span className="absolute left-3 top-3 rounded-full border border-soft-white/20 bg-ink/50 px-3 py-1 text-xs text-soft-white/80 backdrop-blur">
             Featured
           </span>
         ) : null}
-      </div>
-      <div className="mt-4 flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-copper">
-            {categoryLabels[item.category]}
-          </p>
-          <h3 className="mt-2 font-serif text-2xl leading-none text-soft-white">{item.title}</h3>
-          <p className="mt-2 text-sm text-soft-white/55">
-            {formatDisplayDate(item.date)} · {item.location}
-          </p>
-        </div>
-        <Link
-          href={`/portfolio/${item.category}`}
-          aria-label={`View ${categoryLabels[item.category]} portfolio`}
-          className="mt-1 flex size-10 shrink-0 items-center justify-center rounded-full border border-soft-white/14 text-soft-white/70 transition group-hover:border-copper group-hover:text-copper"
+
+        {/* Meta overlay — hidden until hover/tap. */}
+        <div
+          className={cn(
+            "absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-4 transition-all duration-300 ease-out sm:p-5",
+            open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
+          )}
         >
-          <ArrowUpRight className="size-4" aria-hidden="true" />
-        </Link>
+          <div className="min-w-0">
+            <p className={cn("text-xs uppercase tracking-[0.18em] text-copper", TEXT_SHADOW)}>
+              {categoryLabels[item.category]}
+            </p>
+            <h3 className={cn("mt-2 font-serif text-2xl leading-tight text-soft-white", TEXT_SHADOW)}>
+              {item.title}
+            </h3>
+            <p className={cn("mt-1.5 text-sm text-soft-white/80", TEXT_SHADOW)}>
+              {formatDisplayDate(item.date)} · {item.location}
+            </p>
+          </div>
+          <Link
+            href={`/portfolio/${item.category}`}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={`View ${categoryLabels[item.category]} portfolio`}
+            className="flex size-10 shrink-0 items-center justify-center rounded-full border border-soft-white/30 text-soft-white/85 transition hover:border-copper hover:text-copper"
+          >
+            <ArrowUpRight className="size-4" aria-hidden="true" />
+          </Link>
+        </div>
       </div>
-      <p className="mt-3 text-sm leading-6 text-soft-white/58">{item.description}</p>
     </article>
   );
 }
-

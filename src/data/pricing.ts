@@ -29,7 +29,7 @@ export const pricingCategories: PricingCategory[] = [
     id: "weddings",
     label: "Weddings",
     blurb:
-      "Coverage that keeps the pace of the day, from the quiet morning hours through the last song.",
+      "From the slow morning hours to the very last dance, I am there for all of it.",
     tiers: [
       {
         name: "Wedding Coverage",
@@ -62,7 +62,7 @@ export const pricingCategories: PricingCategory[] = [
   {
     id: "engagements",
     label: "Couples & Engagements",
-    blurb: "Relaxed sessions built around how you actually are together.",
+    blurb: "An easy hour or two to just be yourselves, no stiff poses required.",
     tiers: [
       {
         name: "Starter",
@@ -96,7 +96,7 @@ export const pricingCategories: PricingCategory[] = [
     id: "events",
     label: "Events",
     blurb:
-      "Cultural celebrations, milestone parties, and corporate moments, covered quietly.",
+      "Birthdays, milestones, and big celebrations, captured without getting in the way.",
     tiers: [
       {
         name: "Mini",
@@ -140,7 +140,7 @@ export const pricingCategories: PricingCategory[] = [
     id: "portraits",
     label: "Portraits",
     blurb:
-      "Family portraits, milestones, and personal projects with calm, unrushed direction.",
+      "Family, a milestone, or simply you, taken at a calm and easy pace.",
     tiers: [
       {
         name: "Mini",
@@ -186,7 +186,7 @@ export const pricingCategories: PricingCategory[] = [
     id: "nightlife",
     label: "Nightlife",
     blurb:
-      "Club, concert, and party coverage tuned for movement, flash, and crowd energy.",
+      "The flash, the crowd, and the energy of the night, back to you fast.",
     tiers: [
       {
         name: "Per Event",

@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ContactForm } from "@/components/contact-form";
 import { Reveal } from "@/components/reveal";
+import { HowBookingWorks } from "@/components/how-booking-works";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { SelectedDateProvider } from "@/components/selected-date-context";
 import { brandConfig } from "@/lib/config";
@@ -64,6 +65,9 @@ export default function ContactPage() {
             </div>
           </Reveal>
         </section>
+
+        {/* How booking works (shared with the pricing page) */}
+        <HowBookingWorks className="mt-16 lg:mt-20" cardClassName="border-ink/10 bg-[#f3eee5]" />
       </main>
       <AvailabilityCalendar />
       </SelectedDateProvider>

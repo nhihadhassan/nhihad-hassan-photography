@@ -6,6 +6,7 @@ import { Reveal } from "@/components/reveal";
 import { ButtonLink } from "@/components/ui/button";
 import { InquiryCallout } from "@/components/inquiry-callout";
 import { PricingTierCard } from "@/components/pricing-tier-card";
+import { HowBookingWorks } from "@/components/how-booking-works";
 import { pricingCategories } from "@/data/pricing";
 import { brandConfig } from "@/lib/config";
 
@@ -19,13 +20,6 @@ export const metadata: Metadata = {
       "Wedding, couples, event, portrait, and nightlife photography rates for Toronto and Ontario.",
   },
 };
-
-const bookingSteps = [
-  "Send your date, location, and the kind of shoot.",
-  "I reply with availability and the deposit amount.",
-  "An Interac e-Transfer holds the date. No checkout here.",
-  "We shoot, and your gallery arrives online to share.",
-];
 
 export default function PricingPage() {
   return (
@@ -108,33 +102,7 @@ export default function PricingPage() {
         </div>
 
         {/* How booking works */}
-        <section className="mx-auto mt-16 max-w-7xl lg:mt-20">
-          <Reveal>
-            <div className="rounded-[2px] border border-ink/12 bg-soft-white/60 p-8 sm:p-10">
-              <p className="text-xs uppercase tracking-[0.2em] text-[#8b6444]">
-                How booking works
-              </p>
-              <h2 className="mt-3 max-w-xl font-serif text-3xl sm:text-4xl">
-                Booked by inquiry, confirmed by deposit.
-              </h2>
-              <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {bookingSteps.map((step, index) => (
-                  <li key={step} className="flex flex-col gap-2.5">
-                    <span className="font-serif text-2xl text-[#8b6444]">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="text-sm leading-6 text-ink/68">{step}</span>
-                  </li>
-                ))}
-              </ol>
-              <p className="mt-8 text-sm leading-6 text-ink/62">
-                Prices are in Canadian dollars and cover the shoot, editing, and
-                gallery delivery. Travel beyond the Greater Toronto Area may add
-                a small fee, confirmed before you book.
-              </p>
-            </div>
-          </Reveal>
-        </section>
+        <HowBookingWorks className="mt-16 lg:mt-20" />
       </main>
 
       <InquiryCallout tone="light" />

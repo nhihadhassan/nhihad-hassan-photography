@@ -30,9 +30,8 @@ export default function PricingPage() {
         {/* Hero */}
         <section className="mx-auto max-w-7xl">
           <Reveal>
-            <p className="text-xs uppercase tracking-[0.2em] text-[#8b6444]">Pricing</p>
-            <h1 className="mt-4 max-w-3xl font-serif text-6xl leading-[0.92] sm:text-7xl">
-              Clear rates, honestly set.
+            <h1 className="max-w-3xl font-serif text-6xl leading-[0.92] sm:text-7xl">
+              Pricing
             </h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-ink/64">
               Introductory rates while I build the portfolio. Every shoot is

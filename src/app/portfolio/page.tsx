@@ -25,16 +25,10 @@ export default function PortfolioPage() {
       <main className="px-4 pb-20 pt-40 sm:px-6 lg:px-8">
         <section className="mx-auto max-w-7xl">
           <Reveal>
-            <div className="grid gap-8 border-b border-soft-white/12 pb-10 lg:grid-cols-[0.9fr_1fr] lg:items-end">
-              <div>
-                <p className="text-xs uppercase tracking-[0.22em] text-copper">Portfolio</p>
-                <h1 className="mt-4 font-serif text-6xl leading-[0.9] text-soft-white sm:text-8xl">
-                  Recent frames, real moments.
-                </h1>
-              </div>
-              <p className="max-w-2xl text-base leading-7 text-soft-white/62 lg:justify-self-end">
-                Weddings, couples, and events around Toronto and Ontario.
-              </p>
+            <div className="border-b border-soft-white/12 pb-10">
+              <h1 className="font-serif text-6xl leading-[0.9] text-soft-white sm:text-8xl">
+                Portfolio
+              </h1>
             </div>
           </Reveal>
           <div className="mt-8 flex gap-2 overflow-x-auto pb-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Send } from "lucide-react";
+import { ArrowDown, Send } from "lucide-react";
 import { submitInquiry, type InquiryState } from "@/app/contact/actions";
 import { Button } from "@/components/ui/button";
 import { useSelectedDate } from "@/components/selected-date-context";
@@ -96,10 +96,16 @@ export function ContactForm() {
           {state.message}
         </p>
       ) : null}
-      <Button type="submit" variant="light" disabled={pending} className="justify-self-start">
-        <Send className="size-4" aria-hidden="true" />
-        {pending ? "Sending" : "Send inquiry"}
-      </Button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Button type="submit" variant="light" disabled={pending}>
+          <Send className="size-4" aria-hidden="true" />
+          {pending ? "Sending" : "Send inquiry"}
+        </Button>
+        <p className="inline-flex items-center gap-1.5 text-xs text-ink/45">
+          <ArrowDown className="size-3.5" aria-hidden="true" />
+          Check availability below
+        </p>
+      </div>
     </form>
   );
 }

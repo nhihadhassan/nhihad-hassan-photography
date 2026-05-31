@@ -36,6 +36,16 @@ function FieldError({ errors }: { errors?: string[] }) {
   return <p className="text-sm text-[#8a2f24]">{errors[0]}</p>;
 }
 
+/** Red asterisk marking a required field. */
+function Required() {
+  return (
+    <span className="text-[#8a2f24]" aria-hidden="true">
+      {" "}
+      *
+    </span>
+  );
+}
+
 function SectionHeader({
   icon: Icon,
   title,
@@ -104,7 +114,10 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
         />
         <div className="mt-5 grid gap-5 md:grid-cols-2">
           <label className="grid gap-2">
-            <span className="text-sm font-medium">Title</span>
+            <span className="text-sm font-medium">
+              Title
+              <Required />
+            </span>
             <input
               className={inputClass}
               name="title"
@@ -113,16 +126,25 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
             />
             <FieldError errors={state.fieldErrors?.title} />
           </label>
-          <label className="grid gap-2">
-            <span className="text-sm font-medium">Slug</span>
-            <input
-              className={inputClass}
-              name="slug"
-              defaultValue={gallery?.slug}
-              placeholder="moove-ah"
-            />
-            <FieldError errors={state.fieldErrors?.slug} />
-          </label>
+          {gallery ? (
+            <label className="grid gap-2">
+              <span className="text-sm font-medium">Web address (slug)</span>
+              <input
+                className={inputClass}
+                name="slug"
+                defaultValue={gallery.slug}
+                placeholder="moove-ah"
+              />
+              <span className="text-xs text-[#17130f]/45">
+                Changing this changes the gallery&apos;s link. Leave it as is to keep the current URL.
+              </span>
+              <FieldError errors={state.fieldErrors?.slug} />
+            </label>
+          ) : (
+            <p className="self-end text-xs text-[#17130f]/45">
+              The web address is created automatically from the title.
+            </p>
+          )}
           <label className="grid gap-2">
             <span className="text-sm font-medium">Client name</span>
             <input

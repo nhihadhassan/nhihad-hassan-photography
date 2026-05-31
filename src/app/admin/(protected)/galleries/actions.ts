@@ -10,7 +10,8 @@ import { slugify } from "@/lib/utils";
 
 const gallerySchema = z.object({
   title: z.string().min(2, "Title is required."),
-  slug: z.string().min(2, "Slug is required."),
+  // Optional: when omitted (new gallery form), it is derived from the title.
+  slug: z.string().optional(),
   client_name: z.string().optional(),
   client_email: z.string().email("Enter a valid client email.").optional().or(z.literal("")),
   event_date: z.string().optional(),

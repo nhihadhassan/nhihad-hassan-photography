@@ -223,7 +223,9 @@ export async function getPublishedGalleryBySlug(slug: string): Promise<PublicGal
   }
 
   let coverUrl: string = gallery.cover_image_url || mock?.imageUrl || fallbackCover.imageUrl;
-  let coverAlt: string = gallery.cover_image_alt || mock?.alt || fallbackCover.alt;
+  // Human-friendly alt only — never the raw uploaded filename.
+  const coverAlt: string =
+    gallery.cover_image_alt || mock?.alt || `${gallery.title} gallery cover`;
 
   if (hasR2Config()) {
     // cover_photo_id is returned by the safe public RPC so the browser-facing
@@ -234,18 +236,15 @@ export async function getPublishedGalleryBySlug(slug: string): Promise<PublicGal
         const cover = await getProtectedCoverPhoto(coverPhotoId);
         if (cover) {
           coverUrl = cover.url;
-          coverAlt = cover.alt;
         }
       } else {
         const coverPhoto = realPhotos.find((p) => p.id === coverPhotoId);
         if (coverPhoto?.display_url) {
           coverUrl = coverPhoto.display_url;
-          coverAlt = coverPhoto.filename;
         }
       }
     } else if (!hasPassword && realPhotos.length && !gallery.cover_image_url) {
       coverUrl = realPhotos[0].display_url || coverUrl;
-      coverAlt = realPhotos[0].filename || coverAlt;
     }
   }
 
@@ -335,27 +334,28 @@ export async function getPublicGalleryIndex(): Promise<PublicGalleryCard[]> {
   return Promise.all(
     live.map(async (g) => {
       let imageUrl = (g.cover_image_url as string | null) || fallbackCover.imageUrl;
-      let alt = (g.cover_image_alt as string | null) || (g.title as string);
+      // Human-friendly alt: the admin-set cover alt, else the gallery title.
+      // Never the raw filename (e.g. "Oishi and Lucky # (9).jpeg").
+      const alt = (g.cover_image_alt as string | null) || `${g.title as string} gallery cover`;
 
       if (hasR2Config()) {
         let key: string | null = null;
         if (g.cover_photo_id) {
           const { data: photo } = await supabase
             .from("photos")
-            .select("thumbnail_key,web_key,filename")
+            .select("thumbnail_key,web_key")
             .eq("id", g.cover_photo_id as string)
             .maybeSingle();
           key =
             (photo?.thumbnail_key as string | null) ??
             (photo?.web_key as string | null) ??
             null;
-          if (photo?.filename) alt = photo.filename as string;
         }
         // No explicit cover set: use the first visible photo as the cover.
         if (!key && !g.cover_image_url) {
           const { data: first } = await supabase
             .from("photos")
-            .select("thumbnail_key,web_key,filename")
+            .select("thumbnail_key,web_key")
             .eq("gallery_id", g.id as string)
             .eq("is_hidden", false)
             .order("sort_order", { ascending: true })
@@ -366,7 +366,6 @@ export async function getPublicGalleryIndex(): Promise<PublicGalleryCard[]> {
             (first?.thumbnail_key as string | null) ??
             (first?.web_key as string | null) ??
             null;
-          if (first?.filename) alt = first.filename as string;
         }
         if (key) {
           const signed = await getSignedReadUrl(key);

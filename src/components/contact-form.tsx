@@ -19,6 +19,15 @@ function FieldError({ errors }: { errors?: string[] }) {
   return <p className="text-sm text-[#9b3d2f]">{errors[0]}</p>;
 }
 
+function Required() {
+  return (
+    <span className="text-[#9b3d2f]" aria-hidden="true">
+      {" "}
+      *
+    </span>
+  );
+}
+
 const inputClass =
   "min-h-12 rounded-[2px] border border-ink/12 bg-[#fbf8f1] px-3 text-base text-ink outline-none transition placeholder:text-ink/34 focus:border-copper";
 
@@ -28,26 +37,23 @@ export function ContactForm() {
 
   return (
     <form action={formAction} className="grid gap-5">
+      {/* The essentials, asked conversationally. */}
       <div className="grid gap-5 md:grid-cols-2">
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Name</span>
+          <span className="text-sm font-medium text-ink">
+            Name
+            <Required />
+          </span>
           <input className={inputClass} name="name" autoComplete="name" />
           <FieldError errors={state.fieldErrors?.name} />
         </label>
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Email</span>
+          <span className="text-sm font-medium text-ink">
+            Email
+            <Required />
+          </span>
           <input className={inputClass} name="email" type="email" autoComplete="email" />
           <FieldError errors={state.fieldErrors?.email} />
-        </label>
-      </div>
-      <div className="grid gap-5 md:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Phone</span>
-          <input className={inputClass} name="phone" type="tel" autoComplete="tel" />
-        </label>
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Event type</span>
-          <input className={inputClass} name="eventType" placeholder="Wedding, engagement, event, portrait, nightlife…" />
         </label>
       </div>
       <div className="grid gap-5 md:grid-cols-2">
@@ -62,29 +68,45 @@ export function ContactForm() {
           />
         </label>
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Location</span>
-          <input className={inputClass} name="location" placeholder="Toronto, venue, or neighbourhood" />
-        </label>
-      </div>
-      <div className="grid gap-5 md:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">Budget</span>
-          <input className={inputClass} name="budget" placeholder="Optional" />
-        </label>
-        <label className="grid gap-2">
-          <span className="text-sm font-medium text-ink">How did you hear about us?</span>
-          <input className={inputClass} name="referralSource" placeholder="Instagram, referral, search" />
+          <span className="text-sm font-medium text-ink">Shoot type</span>
+          <input className={inputClass} name="eventType" placeholder="Wedding, engagement, event, portrait, nightlife…" />
         </label>
       </div>
       <label className="grid gap-2">
-        <span className="text-sm font-medium text-ink">Message</span>
+        <span className="text-sm font-medium text-ink">
+          Message
+          <Required />
+        </span>
         <textarea
           className="min-h-36 rounded-[2px] border border-ink/12 bg-[#fbf8f1] px-3 py-3 text-base text-ink outline-none transition placeholder:text-ink/34 focus:border-copper"
           name="message"
-          placeholder="Tell me about the event, timing, guest count, mood, and what you want the photos to feel like."
+          placeholder="Tell me about your shoot — the date, the vibe, and what you want the photos to feel like."
         />
         <FieldError errors={state.fieldErrors?.message} />
       </label>
+
+      {/* Secondary, optional details kept visually lighter. */}
+      <div className="mt-1 border-t border-ink/10 pt-5">
+        <p className="text-xs uppercase tracking-[0.18em] text-ink/45">Optional details</p>
+        <div className="mt-4 grid gap-5 md:grid-cols-2">
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-ink/75">Phone</span>
+            <input className={inputClass} name="phone" type="tel" autoComplete="tel" />
+          </label>
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-ink/75">Location</span>
+            <input className={inputClass} name="location" placeholder="Toronto, venue, or neighbourhood" />
+          </label>
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-ink/75">Budget</span>
+            <input className={inputClass} name="budget" placeholder="Optional" />
+          </label>
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-ink/75">How did you hear about me?</span>
+            <input className={inputClass} name="referralSource" placeholder="Instagram, referral, search" />
+          </label>
+        </div>
+      </div>
       {state.message ? (
         <p
           className={

@@ -68,7 +68,7 @@ export default async function Home() {
                 ))}
               </nav>
 
-              <h1 className="col-start-2 justify-self-center whitespace-nowrap text-center font-serif uppercase text-soft-white text-2xl tracking-normal sm:text-3xl lg:text-4xl xl:text-[2.8rem]">
+              <h1 className="col-start-2 min-w-0 justify-self-center whitespace-nowrap text-center font-serif uppercase tracking-normal text-soft-white text-[clamp(1.05rem,5.5vw,2.8rem)]">
                 {brandConfig.name}
               </h1>
 

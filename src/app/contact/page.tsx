@@ -7,7 +7,8 @@ import { Reveal } from "@/components/reveal";
 import { HowBookingWorks } from "@/components/how-booking-works";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { SelectedDateProvider } from "@/components/selected-date-context";
-import { brandConfig } from "@/lib/config";
+import { getSiteSettings } from "@/lib/site-settings";
+import { getContent } from "@/lib/site-content";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -20,7 +21,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
+  const heading = await getContent("contact.hero.heading");
+  const subtext = await getContent("contact.hero.subtext");
   return (
     <div className="min-h-[100dvh] bg-ink text-soft-white">
       <SiteHeader />
@@ -31,20 +35,20 @@ export default function ContactPage() {
             <div className="lg:sticky lg:top-28">
               <p className="text-xs uppercase tracking-[0.22em] text-copper">Book / inquire</p>
               <h1 className="mt-4 font-serif text-6xl leading-[0.9] text-soft-white sm:text-8xl">
-                Tell me about the day you want remembered.
+                {heading}
               </h1>
               <p className="mt-6 max-w-xl text-base leading-7 text-soft-white/62">
-                Tell me the date, the location, and what you want the photos to feel like. If email is easier, that works too.
+                {subtext}
               </p>
               <div className="mt-8 grid gap-3 text-sm text-soft-white/70">
                 <a
-                  href={`mailto:${brandConfig.contactEmail}`}
+                  href={`mailto:${settings.contactEmail}`}
                   className="inline-flex min-h-11 items-center gap-3 rounded-full border border-soft-white/14 px-4 transition hover:border-soft-white/28 hover:text-soft-white"
                 >
                   <Mail className="size-4" aria-hidden="true" />
-                  {brandConfig.contactEmail}
+                  {settings.contactEmail}
                 </a>
-                {brandConfig.instagram.map((item) => (
+                {settings.instagram.map((item) => (
                   <a
                     key={item.href}
                     href={item.href}

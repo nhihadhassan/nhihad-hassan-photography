@@ -11,6 +11,7 @@ import { InquiryCallout } from "@/components/inquiry-callout";
 import { brandConfig } from "@/lib/config";
 import { featuredGalleries, portfolioItems } from "@/data/photography";
 import { getFeaturedPortfolio } from "@/lib/portfolio";
+import { getContent } from "@/lib/site-content";
 import { formatDisplayDate } from "@/lib/utils";
 
 const heroImage =
@@ -30,6 +31,10 @@ export const revalidate = 1800;
 
 export default async function Home() {
   const featuredPortfolio = await getFeaturedPortfolio(5);
+  const heroTagline = await getContent("home.hero.tagline");
+  const selectedHeading = await getContent("home.selected.heading");
+  const aboutHeading = await getContent("home.about.heading");
+  const aboutBody = await getContent("home.about.body");
   return (
     <div className="min-h-[100dvh] bg-ink text-soft-white">
       <main>
@@ -105,7 +110,7 @@ export default async function Home() {
         <section className="bg-[#f3eee5] px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
           <Reveal>
             <p className="mx-auto max-w-4xl text-center font-serif text-4xl leading-[1.1] text-ink sm:text-5xl lg:text-6xl">
-              Toronto wedding, engagement and event photographer.
+              {heroTagline}
             </p>
           </Reveal>
         </section>
@@ -125,7 +130,7 @@ export default async function Home() {
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-copper">Selected work</p>
                   <h2 className="mt-4 max-w-xl font-serif text-5xl leading-[0.95] text-soft-white sm:text-6xl">
-                    Built around the photograph first.
+                    {selectedHeading}
                   </h2>
                 </div>
                 <p className="max-w-2xl text-base leading-7 text-soft-white/62 lg:justify-self-end">
@@ -230,10 +235,10 @@ export default async function Home() {
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-copper">About</p>
                 <h2 className="mt-4 max-w-2xl font-serif text-5xl leading-[0.96] text-soft-white sm:text-6xl">
-                  Photographs that keep the atmosphere intact.
+                  {aboutHeading}
                 </h2>
-                <p className="mt-6 max-w-2xl text-base leading-7 text-soft-white/62">
-                  I&rsquo;m a Toronto photographer working across weddings, cultural events, couples sessions, portraits, and nightlife. The approach holds wherever I point the camera: work with whatever the moment gives, then make pictures that hold.
+                <p className="mt-6 max-w-2xl whitespace-pre-line text-base leading-7 text-soft-white/62">
+                  {aboutBody}
                 </p>
                 <div className="mt-8">
                   <ButtonLink href="/contact">

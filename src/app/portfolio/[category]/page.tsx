@@ -6,15 +6,14 @@ import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { PhotoCard } from "@/components/photo-card";
 import { InquiryCallout } from "@/components/inquiry-callout";
-import {
-  categoryLabels,
-  getPortfolioByCategory,
-  type PortfolioCategory,
-} from "@/data/photography";
+import { categoryLabels, type PortfolioCategory } from "@/data/photography";
+import { getPublicPortfolioByCategory } from "@/lib/portfolio";
 
 type CategoryPageProps = {
   params: Promise<{ category: string }>;
 };
+
+export const revalidate = 1800;
 
 export async function generateStaticParams() {
   return Object.keys(categoryLabels).map((category) => ({ category }));
@@ -103,11 +102,12 @@ const categoryCallouts: Record<
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category } = await params;
   const label = categoryLabels[category as PortfolioCategory];
-  const items = getPortfolioByCategory(category);
 
   if (!label) {
     notFound();
   }
+
+  const items = await getPublicPortfolioByCategory(category);
 
   const intro = categoryIntros[category as PortfolioCategory];
   const callout = categoryCallouts[category as PortfolioCategory];

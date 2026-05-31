@@ -58,6 +58,21 @@ export function buildObjectKey({
   return `galleries/${galleryId}/${variant}/${randomUUID()}-${safeFilename}`;
 }
 
+/**
+ * Object key for portfolio images, which are not tied to a gallery. Keys live
+ * under `portfolio/{variant}/...` and reuse the same variant folders.
+ */
+export function buildPortfolioKey({
+  variant,
+  filename,
+}: {
+  variant: PhotoVariant;
+  filename: string;
+}) {
+  const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-120);
+  return `portfolio/${variant}/${randomUUID()}-${safeFilename}`;
+}
+
 export async function uploadToR2({
   key,
   body,

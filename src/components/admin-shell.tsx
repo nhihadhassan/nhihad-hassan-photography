@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Camera, Download, FolderOpen, Inbox, LayoutDashboard, LogOut, Settings, Shield } from "lucide-react";
+import { Camera, Download, FolderOpen, Images, Inbox, LayoutDashboard, LogOut, Settings, Shield } from "lucide-react";
 import { logoutAdmin } from "@/app/admin/login/actions";
 import { brandConfig } from "@/lib/config";
 
 const adminNav = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/galleries", label: "Galleries", icon: FolderOpen },
+  { href: "/admin/portfolio", label: "Portfolio", icon: Images },
   { href: "/admin/inquiries", label: "Inquiries", icon: Inbox },
   { href: "/admin/access-logs", label: "Access logs", icon: Shield },
   { href: "/admin/download-logs", label: "Download logs", icon: Download },

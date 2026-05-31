@@ -4,11 +4,11 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import type { PortfolioItem } from "@/data/photography";
+import type { PortfolioCard } from "@/lib/portfolio";
 import { categoryLabels } from "@/data/photography";
 import { cn, formatDisplayDate } from "@/lib/utils";
 
-const aspectClasses: Record<PortfolioItem["orientation"], string> = {
+const aspectClasses: Record<PortfolioCard["orientation"], string> = {
   portrait: "aspect-[4/5]",
   landscape: "aspect-[16/11]",
   square: "aspect-square",
@@ -26,11 +26,14 @@ export function PhotoCard({
   priority = false,
   className,
 }: {
-  item: PortfolioItem;
+  item: PortfolioCard;
   priority?: boolean;
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const meta = [item.date ? formatDisplayDate(item.date) : null, item.location]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <article
@@ -52,6 +55,7 @@ export function PhotoCard({
           priority={priority}
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
           className="object-cover transition duration-700 ease-out group-hover:scale-[1.035]"
+          unoptimized
         />
 
         {/* Darkening that fades in with the meta so the text stays legible. */}
@@ -82,9 +86,9 @@ export function PhotoCard({
             <h3 className={cn("mt-2 font-serif text-2xl leading-tight text-soft-white", TEXT_SHADOW)}>
               {item.title}
             </h3>
-            <p className={cn("mt-1.5 text-sm text-soft-white/80", TEXT_SHADOW)}>
-              {formatDisplayDate(item.date)} · {item.location}
-            </p>
+            {meta ? (
+              <p className={cn("mt-1.5 text-sm text-soft-white/80", TEXT_SHADOW)}>{meta}</p>
+            ) : null}
           </div>
           <Link
             href={`/portfolio/${item.category}`}

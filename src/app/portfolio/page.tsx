@@ -5,7 +5,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { PhotoCard } from "@/components/photo-card";
 import { InquiryCallout } from "@/components/inquiry-callout";
-import { categoryLabels, portfolioItems } from "@/data/photography";
+import { categoryLabels } from "@/data/photography";
+import { getPublicPortfolio } from "@/lib/portfolio";
 
 export const metadata: Metadata = {
   title: "Portfolio",
@@ -18,7 +19,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PortfolioPage() {
+// Cover URLs are signed and time-limited; re-render comfortably within the TTL.
+export const revalidate = 1800;
+
+export default async function PortfolioPage() {
+  // Keep the focus on weddings: nightlife stays in its own tab only.
+  const items = (await getPublicPortfolio()).filter((item) => item.category !== "nightlife");
   return (
     <div className="min-h-[100dvh] bg-ink text-soft-white">
       <SiteHeader />
@@ -46,13 +52,11 @@ export default function PortfolioPage() {
             ))}
           </div>
           <div className="mt-12 columns-1 gap-6 sm:columns-2 lg:columns-3">
-            {portfolioItems
-              .filter((item) => item.category !== "nightlife")
-              .map((item, index) => (
-                <Reveal key={item.id} delay={(index % 3) * 0.04} className="mb-12 break-inside-avoid">
-                  <PhotoCard item={item} priority={index < 2} />
-                </Reveal>
-              ))}
+            {items.map((item, index) => (
+              <Reveal key={item.id} delay={(index % 3) * 0.04} className="mb-12 break-inside-avoid">
+                <PhotoCard item={item} priority={index < 2} />
+              </Reveal>
+            ))}
           </div>
         </section>
         <InquiryCallout tone="dark" />

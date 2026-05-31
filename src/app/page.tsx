@@ -10,13 +10,13 @@ import { Testimonials } from "@/components/testimonials";
 import { InquiryCallout } from "@/components/inquiry-callout";
 import { brandConfig } from "@/lib/config";
 import { featuredGalleries, portfolioItems } from "@/data/photography";
+import { getFeaturedPortfolio } from "@/lib/portfolio";
 import { formatDisplayDate } from "@/lib/utils";
 
 const heroImage =
   portfolioItems.find((item) => item.id === "rachel-autumn-leaves") ?? portfolioItems[0];
 const sideImage =
   portfolioItems.find((item) => item.id === "nhd-sunset-hike") ?? portfolioItems[0];
-const featuredPortfolio = portfolioItems.filter((item) => item.featured).slice(0, 5);
 
 const navItems: MobileNavItem[] = [
   { href: "/portfolio", label: "Portfolio" },
@@ -25,7 +25,11 @@ const navItems: MobileNavItem[] = [
   { href: "/contact", label: "Contact" },
 ];
 
-export default function Home() {
+// Featured grid pulls from the DB-managed portfolio; signed URLs need a window.
+export const revalidate = 1800;
+
+export default async function Home() {
+  const featuredPortfolio = await getFeaturedPortfolio(5);
   return (
     <div className="min-h-[100dvh] bg-ink text-soft-white">
       <main>
@@ -146,6 +150,7 @@ export default function Home() {
                       fill
                       sizes={index === 0 ? "(min-width: 768px) 66vw, 100vw" : "(min-width: 768px) 33vw, 100vw"}
                       className="object-cover transition duration-700 ease-out group-hover:scale-[1.035]"
+                      unoptimized
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-ink/78 via-ink/10 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 p-5">

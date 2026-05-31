@@ -13,6 +13,7 @@ import { featuredGalleries, portfolioItems } from "@/data/photography";
 import { getFeaturedPortfolio } from "@/lib/portfolio";
 import { getContent } from "@/lib/site-content";
 import { EditPencil } from "@/components/edit-mode";
+import { PageBlocks } from "@/components/page-blocks";
 import { formatDisplayDate } from "@/lib/utils";
 
 const heroImage =
@@ -252,6 +253,8 @@ export default async function Home() {
             </Reveal>
           </div>
         </section>
+
+        <PageBlocks pageSlug="home" />
 
         <InquiryCallout tone="dark" />
       </main>

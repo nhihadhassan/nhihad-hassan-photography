@@ -42,6 +42,40 @@ export async function updateSiteSettings(formData: FormData) {
   revalidatePath("/", "layout");
 }
 
+export async function updateTheme(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+
+  const serif = formData.get("theme_serif_font") === "bodoni" ? "bodoni" : "cormorant";
+  let accent: string | null = null;
+  if (formData.get("use_default_accent") !== "on") {
+    const raw = String(formData.get("theme_accent_hex") ?? "").trim();
+    accent = /^#[0-9a-fA-F]{6}$/.test(raw) ? raw : null;
+  }
+
+  const payload = {
+    theme_serif_font: serif,
+    theme_accent_hex: accent,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data: existing } = await supabase
+    .from("site_settings")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+
+  if (existing?.id) {
+    await supabase.from("site_settings").update(payload).eq("id", existing.id);
+  } else {
+    await supabase
+      .from("site_settings")
+      .insert({ ...payload, brand_name: "Nhihad Hassan Photography" });
+  }
+
+  revalidatePath("/", "layout");
+}
+
 export async function updateSiteContent(formData: FormData) {
   await requireAdmin();
   const supabase = await createSupabaseServerClient();

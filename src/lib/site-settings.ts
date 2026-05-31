@@ -14,6 +14,8 @@ export type SiteSettings = {
   aboutText: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
+  themeSerifFont: "cormorant" | "bodoni";
+  themeAccentHex: string | null;
 };
 
 /** Derive a display handle ("@name") from an Instagram profile URL. */
@@ -38,7 +40,7 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
     const { data } = await supabase
       .from("site_settings")
       .select(
-        "brand_name,tagline,contact_email,contact_phone,instagram_primary,instagram_secondary,about_text,seo_title,seo_description",
+        "brand_name,tagline,contact_email,contact_phone,instagram_primary,instagram_secondary,about_text,seo_title,seo_description,theme_serif_font,theme_accent_hex",
       )
       .limit(1)
       .maybeSingle();
@@ -67,5 +69,10 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
     aboutText: str(row?.about_text),
     seoTitle: str(row?.seo_title),
     seoDescription: str(row?.seo_description),
+    themeSerifFont: row?.theme_serif_font === "bodoni" ? "bodoni" : "cormorant",
+    themeAccentHex: (() => {
+      const hex = str(row?.theme_accent_hex);
+      return hex && /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : null;
+    })(),
   };
 });

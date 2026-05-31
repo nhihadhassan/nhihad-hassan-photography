@@ -84,9 +84,15 @@ export default async function RootLayout({
     url: SITE_URL,
   };
 
+  // Curated theme overrides: re-point the serif font and accent token site-wide.
+  const themeStyle: Record<string, string> = {};
+  if (settings.themeSerifFont === "bodoni") themeStyle["--font-serif"] = "var(--font-bodoni)";
+  if (settings.themeAccentHex) themeStyle["--copper"] = settings.themeAccentHex;
+
   return (
     <html
       lang="en"
+      style={themeStyle as React.CSSProperties}
       className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${bodoni.variable} ${montserrat.variable} h-full scroll-smooth antialiased`}
     >
       <body className="min-h-full flex flex-col">

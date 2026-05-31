@@ -2,7 +2,7 @@ import { requireAdmin } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { brandConfig } from "@/lib/config";
 import { CONTENT_FIELDS, getAllContent } from "@/lib/site-content";
-import { updateSiteContent, updateSiteSettings } from "./actions";
+import { updateSiteContent, updateSiteSettings, updateTheme } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +21,13 @@ export default async function AdminSettingsPage() {
   const { data: settings } = await supabase
     .from("site_settings")
     .select(
-      "brand_name,tagline,contact_email,contact_phone,instagram_primary,instagram_secondary,about_text,seo_title,seo_description",
+      "brand_name,tagline,contact_email,contact_phone,instagram_primary,instagram_secondary,about_text,seo_title,seo_description,theme_serif_font,theme_accent_hex",
     )
     .limit(1)
     .maybeSingle();
+
+  const serifFont = (settings?.theme_serif_font as string) ?? "cormorant";
+  const accentHex = (settings?.theme_accent_hex as string | null) ?? "";
 
   const content = await getAllContent();
   const v = (key: string) =>
@@ -82,6 +85,47 @@ export default async function AdminSettingsPage() {
         <div className="mt-5">
           <button type="submit" className={saveButton}>
             Save brand &amp; contact
+          </button>
+        </div>
+      </form>
+
+      {/* Theme */}
+      <form
+        action={updateTheme}
+        className="mt-6 rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6"
+      >
+        <h2 className="text-base font-semibold tracking-tight text-[#17130f]">Theme</h2>
+        <p className="mt-1 text-sm text-[#17130f]/55">
+          A couple of curated controls that re-skin the whole site. Kept intentionally small so the
+          design stays coherent.
+        </p>
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <label className={labelClass}>
+            Heading font
+            <select className={inputClass} name="theme_serif_font" defaultValue={serifFont}>
+              <option value="cormorant">Cormorant (classic serif)</option>
+              <option value="bodoni">Bodoni (high-contrast serif)</option>
+            </select>
+          </label>
+          <div className={labelClass}>
+            Accent colour
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                name="theme_accent_hex"
+                defaultValue={accentHex || "#b98257"}
+                className="h-10 w-14 cursor-pointer rounded-md border border-[#17130f]/12 bg-white/70 p-1"
+              />
+              <label className="inline-flex items-center gap-2 text-xs font-normal text-[#17130f]/70">
+                <input type="checkbox" name="use_default_accent" defaultChecked={!accentHex} className="size-4 accent-[#9b744f]" />
+                Use default copper
+              </label>
+            </div>
+          </div>
+        </div>
+        <div className="mt-5">
+          <button type="submit" className={saveButton}>
+            Save theme
           </button>
         </div>
       </form>

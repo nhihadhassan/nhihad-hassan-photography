@@ -52,7 +52,7 @@ const dateTimeToNull = (value?: string) => {
 function parseGalleryForm(formData: FormData) {
   const parsed = gallerySchema.safeParse({
     title: formData.get("title"),
-    slug: formData.get("slug"),
+    slug: formData.get("slug") || undefined,
     client_name: formData.get("client_name") || undefined,
     client_email: formData.get("client_email") || undefined,
     event_date: formData.get("event_date") || undefined,

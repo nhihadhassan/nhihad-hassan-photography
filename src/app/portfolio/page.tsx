@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { PhotoCard } from "@/components/photo-card";
 import { InquiryCallout } from "@/components/inquiry-callout";
+import { EditPencil } from "@/components/edit-mode";
 import { categoryLabels } from "@/data/photography";
 import { getPublicPortfolio } from "@/lib/portfolio";
 
@@ -31,10 +32,11 @@ export default async function PortfolioPage() {
       <main className="px-4 pb-20 pt-40 sm:px-6 lg:px-8">
         <section className="mx-auto max-w-7xl">
           <Reveal>
-            <div className="border-b border-soft-white/12 pb-10">
+            <div className="relative border-b border-soft-white/12 pb-10">
               <h1 className="font-serif text-6xl leading-[0.9] text-soft-white sm:text-8xl">
                 Portfolio
               </h1>
+              <EditPencil href="/admin/portfolio" label="Manage photos" className="absolute right-0 top-0" />
             </div>
           </Reveal>
           <div className="mt-8 flex gap-2 overflow-x-auto pb-2">

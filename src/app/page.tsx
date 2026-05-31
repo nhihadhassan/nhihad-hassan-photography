@@ -12,6 +12,7 @@ import { brandConfig } from "@/lib/config";
 import { featuredGalleries, portfolioItems } from "@/data/photography";
 import { getFeaturedPortfolio } from "@/lib/portfolio";
 import { getContent } from "@/lib/site-content";
+import { EditPencil } from "@/components/edit-mode";
 import { formatDisplayDate } from "@/lib/utils";
 
 const heroImage =
@@ -232,7 +233,8 @@ export default async function Home() {
               </div>
             </Reveal>
             <Reveal delay={0.1}>
-              <div>
+              <div className="relative">
+                <EditPencil href="/admin/settings" label="Edit text" className="absolute right-0 top-0" />
                 <p className="text-xs uppercase tracking-[0.2em] text-copper">About</p>
                 <h2 className="mt-4 max-w-2xl font-serif text-5xl leading-[0.96] text-soft-white sm:text-6xl">
                   {aboutHeading}

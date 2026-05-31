@@ -3,6 +3,7 @@ import { Bodoni_Moda, Cormorant_Garamond, Geist, Geist_Mono, Montserrat } from "
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { getSiteSettings } from "@/lib/site-settings";
+import { EditModeProvider } from "@/components/edit-mode";
 
 const SITE_URL = "https://nhihadhassan.ca";
 
@@ -104,7 +105,7 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
-        {children}
+        <EditModeProvider>{children}</EditModeProvider>
         <Analytics />
       </body>
     </html>

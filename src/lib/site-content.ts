@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getPublicSupabaseClient } from "@/lib/supabase/public";
 
 export type ContentField = {
   key: string;
@@ -59,7 +59,8 @@ const FALLBACKS: Record<string, string> = Object.fromEntries(
 /** All site_content rows as a key→value map. Cached per request. */
 export const getAllContent = cache(async (): Promise<Record<string, string>> => {
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = getPublicSupabaseClient();
+    if (!supabase) return {};
     const { data } = await supabase.from("site_content").select("key,value");
     const map: Record<string, string> = {};
     for (const r of data ?? []) {

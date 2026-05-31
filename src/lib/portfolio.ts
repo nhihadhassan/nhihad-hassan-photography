@@ -1,6 +1,7 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
+import { getPublicSupabaseClient } from "@/lib/supabase/public";
 import { hasR2Config, hasServiceRoleKey } from "@/lib/env";
 import { getSignedReadUrl } from "@/lib/r2";
 import { portfolioItems, type PortfolioCategory } from "@/data/photography";
@@ -114,7 +115,8 @@ function staticCards(): PortfolioCard[] {
 
 /** All visible portfolio items, ordered. */
 export async function getPublicPortfolio(): Promise<PortfolioCard[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = getPublicSupabaseClient();
+  if (!supabase) return staticCards();
   const { data, error } = await supabase
     .from("portfolio_items")
     .select(PORTFOLIO_COLUMNS)
@@ -129,7 +131,8 @@ export async function getPublicPortfolio(): Promise<PortfolioCard[]> {
 export async function getPublicPortfolioByCategory(
   category: string,
 ): Promise<PortfolioCard[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = getPublicSupabaseClient();
+  if (!supabase) return staticCards().filter((c) => c.category === category);
   const { data, error } = await supabase
     .from("portfolio_items")
     .select(PORTFOLIO_COLUMNS)
@@ -146,7 +149,8 @@ export async function getPublicPortfolioByCategory(
 }
 
 export async function getFeaturedPortfolio(limit = 6): Promise<PortfolioCard[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = getPublicSupabaseClient();
+  if (!supabase) return staticCards().filter((c) => c.featured).slice(0, limit);
   const { data, error } = await supabase
     .from("portfolio_items")
     .select(PORTFOLIO_COLUMNS)

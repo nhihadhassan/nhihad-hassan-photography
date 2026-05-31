@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getPublicSupabaseClient } from "@/lib/supabase/public";
 import { brandConfig } from "@/lib/config";
 
 export type InstagramLink = { label: string; href: string };
@@ -36,7 +36,8 @@ function instagramLabel(url: string): string {
 export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
   let row: Record<string, unknown> | null = null;
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = getPublicSupabaseClient();
+    if (!supabase) throw new Error("no client");
     const { data } = await supabase
       .from("site_settings")
       .select(

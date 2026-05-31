@@ -7,6 +7,7 @@ import { Reveal } from "@/components/reveal";
 import { HowBookingWorks } from "@/components/how-booking-works";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { SelectedDateProvider } from "@/components/selected-date-context";
+import { EditPencil } from "@/components/edit-mode";
 import { getSiteSettings } from "@/lib/site-settings";
 import { getContent } from "@/lib/site-content";
 
@@ -32,7 +33,8 @@ export default async function ContactPage() {
       <main id="inquiry" className="scroll-mt-24 px-4 pb-20 pt-32 sm:px-6 sm:pt-40 lg:px-8">
         <section className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.72fr_1fr]">
           <Reveal>
-            <div className="lg:sticky lg:top-28">
+            <div className="relative lg:sticky lg:top-28">
+              <EditPencil href="/admin/settings" label="Edit text" className="absolute right-0 top-0" />
               <p className="text-xs uppercase tracking-[0.22em] text-copper">Book / inquire</p>
               <h1 className="mt-4 font-serif text-6xl leading-[0.9] text-soft-white sm:text-8xl">
                 {heading}

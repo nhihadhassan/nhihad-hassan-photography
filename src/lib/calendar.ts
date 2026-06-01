@@ -113,7 +113,12 @@ function isAllDay(vevent: VEvent): boolean {
   return startMins === 0 && durationMs > 0 && durationMs % 86_400_000 === 0;
 }
 
-/** For each day this event touches, compute slot impact and merge into the map. */
+/**
+ * For each day this event touches, compute slot impact and merge into the map.
+ *
+ * Days are reckoned in Toronto time so an evening or all-day event lands on the
+ * correct local date (UTC-based day iteration shifted everything back a day).
+ */
 function applyEvent(
   map: Map<string, DayStatus>,
   startDate: Date,
@@ -121,54 +126,81 @@ function applyEvent(
   allDay: boolean,
   status: SlotStatus,
 ) {
-  let cursor = startOfDayUTC(startDate);
-  const stop = endDate.getTime();
-  const safetyCap = 365;
-  let i = 0;
-
-  while (cursor.getTime() < stop && i < safetyCap) {
-    const dayKey = toTZDate(cursor);
-    const slots = slotsTouched(startDate, endDate, cursor, allDay);
-    mergeInto(map, dayKey, slots, status);
-    cursor = addDaysUTC(cursor, 1);
-    i++;
+  if (allDay) {
+    // All-day events carry no real time: take their calendar dates at face
+    // value (node-ical gives UTC-midnight starts; DTEND is exclusive).
+    let cursor = startOfDayUTC(startDate);
+    const stop = endDate.getTime();
+    if (stop <= cursor.getTime()) {
+      mergeInto(map, utcDateKey(cursor), { day: true, night: true }, status);
+      return;
+    }
+    let i = 0;
+    while (cursor.getTime() < stop && i < 366) {
+      mergeInto(map, utcDateKey(cursor), { day: true, night: true }, status);
+      cursor = addDaysUTC(cursor, 1);
+      i++;
+    }
+    return;
   }
 
-  if (i === 0) {
-    // Single-instant event (end <= start). Treat as the start day.
-    const dayKey = toTZDate(startDate);
-    const slots = slotsTouched(startDate, endDate, startOfDayUTC(startDate), allDay);
-    mergeInto(map, dayKey, slots, status);
+  // Timed event: walk each Toronto calendar day from start to end (inclusive).
+  const startKey = toTZDate(startDate);
+  const lastInstant = new Date(Math.max(endDate.getTime() - 1, startDate.getTime()));
+  const endKey = toTZDate(lastInstant);
+
+  let key = startKey;
+  let guard = 0;
+  while (guard < 366) {
+    mergeInto(map, key, slotsTouchedTZ(startDate, endDate, key), status);
+    if (key === endKey) break;
+    key = nextDateKey(key);
+    guard++;
   }
 }
 
 /**
- * Determine which slots (day / night / both) an event covers on a given
- * calendar day. `dayStart` is the UTC midnight of the day in question; we
- * compute the day's 5pm-Toronto boundary relative to the event window.
+ * Which slots (day / night) a timed event covers on a given Toronto calendar
+ * day, using that day's real Toronto midnight and 5pm boundaries.
  */
-function slotsTouched(
+function slotsTouchedTZ(
   eventStart: Date,
   eventEnd: Date,
-  dayStart: Date,
-  allDay: boolean,
+  dateKey: string,
 ): { day: boolean; night: boolean } {
-  if (allDay) return { day: true, night: true };
+  const dayStart = tzMidnightMs(dateKey);
+  const cutoff = dayStart + DAY_NIGHT_CUTOFF_HOUR * 3_600_000;
+  const dayEnd = tzMidnightMs(nextDateKey(dateKey));
 
-  // The portion of the event that falls within this calendar day.
-  const dayEnd = addDaysUTC(dayStart, 1);
-  const segStart = Math.max(eventStart.getTime(), dayStart.getTime());
-  const segEnd = Math.min(eventEnd.getTime(), dayEnd.getTime());
+  const segStart = Math.max(eventStart.getTime(), dayStart);
+  const segEnd = Math.min(eventEnd.getTime(), dayEnd);
   if (segEnd <= segStart) return { day: false, night: false };
 
-  // Hour-of-day in Toronto for the segment's start and end.
-  const startHour = hourInTZ(new Date(segStart));
-  const endHourExclusive = hourInTZ(new Date(segEnd - 1)) + 1; // -1ms to keep "ends at 17:00" classified as day-only
-
   return {
-    day: startHour < DAY_NIGHT_CUTOFF_HOUR,
-    night: endHourExclusive > DAY_NIGHT_CUTOFF_HOUR,
+    day: segStart < cutoff,
+    night: segEnd > cutoff,
   };
+}
+
+/** YYYY-MM-DD from a Date's UTC parts (used for face-value all-day dates). */
+function utcDateKey(d: Date): string {
+  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
+}
+
+/** The day after a YYYY-MM-DD key. */
+function nextDateKey(key: string): string {
+  const [y, m, d] = key.split("-").map(Number);
+  return utcDateKey(new Date(Date.UTC(y, m - 1, d + 1)));
+}
+
+/** UTC milliseconds of Toronto-local midnight for a YYYY-MM-DD date. */
+function tzMidnightMs(key: string): number {
+  const [y, m, d] = key.split("-").map(Number);
+  const utcGuess = Date.UTC(y, m - 1, d);
+  const p = toTZParts(new Date(utcGuess));
+  const wall = Date.UTC(Number(p.year), p.month - 1, p.day, p.hour, p.minute);
+  const offset = wall - utcGuess; // how far Toronto wall time is from UTC
+  return utcGuess - offset;
 }
 
 function mergeInto(
@@ -226,10 +258,6 @@ function availabilityHorizonUTC(today: Date): Date {
 function toTZDate(d: Date): string {
   const { year, month, day } = toTZParts(d);
   return `${year}-${pad2(month)}-${pad2(day)}`;
-}
-
-function hourInTZ(d: Date): number {
-  return toTZParts(d).hour;
 }
 
 function toTZParts(d: Date): {

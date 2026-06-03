@@ -130,8 +130,7 @@ export default async function Home() {
             <Reveal>
               <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-copper">Selected work</p>
-                  <h2 className="mt-4 max-w-xl font-serif text-5xl leading-[0.95] text-soft-white sm:text-6xl">
+                  <h2 className="max-w-xl font-serif text-5xl leading-[0.95] text-soft-white sm:text-6xl">
                     {selectedHeading}
                   </h2>
                 </div>
@@ -236,8 +235,7 @@ export default async function Home() {
             <Reveal delay={0.1}>
               <div className="relative">
                 <EditPencil href="/admin/settings" label="Edit text" className="absolute right-0 top-0" />
-                <p className="text-xs uppercase tracking-[0.2em] text-copper">About</p>
-                <h2 className="mt-4 max-w-2xl font-serif text-5xl leading-[0.96] text-soft-white sm:text-6xl">
+                <h2 className="max-w-2xl font-serif text-5xl leading-[0.96] text-soft-white sm:text-6xl">
                   {aboutHeading}
                 </h2>
                 <p className="mt-6 max-w-2xl whitespace-pre-line text-base leading-7 text-soft-white/62">

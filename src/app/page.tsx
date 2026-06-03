@@ -14,6 +14,7 @@ import { getFeaturedPortfolio } from "@/lib/portfolio";
 import { getPublicGalleryIndex } from "@/lib/public-gallery";
 import { getContent } from "@/lib/site-content";
 import { EditPencil } from "@/components/edit-mode";
+import { FeaturedGrid } from "@/components/featured-grid";
 import { PageBlocks } from "@/components/page-blocks";
 import { formatDisplayDate } from "@/lib/utils";
 
@@ -156,34 +157,7 @@ export default async function Home() {
                 </p>
               </div>
             </Reveal>
-            <div className="mt-12 grid gap-4 md:grid-cols-3 md:auto-rows-[260px] lg:auto-rows-[330px]">
-              {featuredPortfolio.map((item, index) => (
-                <Reveal
-                  key={item.id}
-                  delay={index * 0.04}
-                  className={index === 0 ? "md:col-span-2 md:row-span-2" : ""}
-                >
-                  <Link
-                    href={`/portfolio/${item.category}`}
-                    className="group relative block h-full min-h-72 overflow-hidden rounded-[2px] bg-soft-white/8"
-                  >
-                    <Image
-                      src={item.imageUrl}
-                      alt={item.alt}
-                      fill
-                      sizes={index === 0 ? "(min-width: 768px) 66vw, 100vw" : "(min-width: 768px) 33vw, 100vw"}
-                      className="object-cover transition duration-700 ease-out group-hover:scale-[1.035]"
-                      unoptimized
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-ink/78 via-ink/10 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-5">
-                      <p className="text-xs uppercase tracking-[0.18em] text-beige/75">{item.location}</p>
-                      <h3 className="mt-2 font-serif text-3xl leading-none text-soft-white">{item.title}</h3>
-                    </div>
-                  </Link>
-                </Reveal>
-              ))}
-            </div>
+            <FeaturedGrid items={featuredPortfolio} />
           </div>
         </section>
 

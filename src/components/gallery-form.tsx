@@ -185,13 +185,16 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
           </label>
         </div>
         <label className="mt-5 grid gap-2">
-          <span className="text-sm font-medium">Description</span>
+          <span className="text-sm font-medium">Description / shoot blurb</span>
           <textarea
             className={textareaClass}
             name="description"
             defaultValue={gallery?.description ?? defaultValues?.description ?? ""}
-            placeholder="A short note for the cover page."
+            placeholder="A few lines about the shoot, shown above the photos."
           />
+          <span className="text-xs text-admin-ink/45">
+            Shown under the cover and above the gallery, and on the homepage gallery card.
+          </span>
         </label>
         <div className="mt-5 grid gap-5 md:grid-cols-2">
           <label className="grid gap-2 md:col-span-2">

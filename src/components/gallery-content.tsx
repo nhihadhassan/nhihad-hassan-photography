@@ -62,6 +62,11 @@ export function GalleryContent({ gallery }: { gallery: PublicGallery }) {
               </div>
             </div>
           </div>
+          {gallery.description ? (
+            <p className="mt-7 max-w-2xl whitespace-pre-line font-serif text-xl leading-relaxed text-ink/75 sm:text-2xl">
+              {gallery.description}
+            </p>
+          ) : null}
           <div className="mt-8 flex flex-wrap gap-3 md:hidden">
             {hasPhotos ? (
               <SelectsToolbarButton className="inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm" />

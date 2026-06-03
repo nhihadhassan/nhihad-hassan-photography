@@ -11,6 +11,17 @@
   --taupe: #9c8f80;
   --copper: #b98257;
   --line: rgba(247, 243, 237, 0.14);
+
+  /* Admin chrome tokens — fixed values, independent of the public theme. */
+  --admin-ink: #17130f;
+  --admin-bg: #f3f0ea;
+  --admin-surface: #fbf8f1;
+  --admin-accent: #9b744f;
+  --admin-copper: #b98257;
+  --admin-danger: #8a2f24;
+  --admin-danger-ink: #7a2e25;
+  --admin-success: #3f6e4a;
+  --admin-info: #2e5fa3;
 }
 
 @theme inline {
@@ -23,6 +34,15 @@
   --color-beige: var(--beige);
   --color-taupe: var(--taupe);
   --color-copper: var(--copper);
+  --color-admin-ink: var(--admin-ink);
+  --color-admin-bg: var(--admin-bg);
+  --color-admin-surface: var(--admin-surface);
+  --color-admin-accent: var(--admin-accent);
+  --color-admin-copper: var(--admin-copper);
+  --color-admin-danger: var(--admin-danger);
+  --color-admin-danger-ink: var(--admin-danger-ink);
+  --color-admin-success: var(--admin-success);
+  --color-admin-info: var(--admin-info);
   --font-serif: var(--font-cormorant);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

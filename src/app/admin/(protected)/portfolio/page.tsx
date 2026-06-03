@@ -14,9 +14,9 @@ export default async function AdminPortfolioPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <p className="text-sm font-medium text-[#9b744f]">Portfolio</p>
+      <p className="text-sm font-medium text-admin-accent">Portfolio</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Portfolio photos</h1>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-[#17130f]/60">
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
         Upload, organize, and edit the photos shown on your public portfolio. Mark photos as
         featured to surface them on the homepage. Changes appear on the site within a few minutes.
       </p>

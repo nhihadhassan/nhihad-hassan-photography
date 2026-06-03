@@ -33,7 +33,7 @@ const ORIENTATIONS = ["portrait", "landscape", "square"] as const;
 const CATEGORY_ENTRIES = Object.entries(categoryLabels) as [string, string][];
 
 const inputClass =
-  "min-h-10 rounded-md border border-[#17130f]/12 bg-white/70 px-3 text-sm text-[#17130f] outline-none transition focus:border-[#b98257]";
+  "min-h-10 rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition focus:border-admin-copper";
 
 type UploadItem = {
   id: string;
@@ -196,9 +196,9 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
   return (
     <div className="space-y-8">
       {/* Upload */}
-      <div className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5">
+      <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-5">
         <div className="flex flex-wrap items-center gap-3">
-          <label className="text-sm font-medium text-[#17130f]">Upload to category</label>
+          <label className="text-sm font-medium text-admin-ink">Upload to category</label>
           <select
             className={inputClass}
             value={uploadCategory}
@@ -210,7 +210,7 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
               </option>
             ))}
           </select>
-          <span className="text-xs text-[#17130f]/50">You can change a photo&apos;s category after upload.</span>
+          <span className="text-xs text-admin-ink/50">You can change a photo&apos;s category after upload.</span>
         </div>
         <div
           onDragEnter={(e) => {
@@ -231,7 +231,7 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
           }}
           className={
             "mt-4 rounded-md border-2 border-dashed p-8 text-center transition " +
-            (isDragging ? "border-[#9b744f] bg-[#b98257]/10" : "border-[#17130f]/15 hover:border-[#17130f]/30")
+            (isDragging ? "border-admin-accent bg-admin-copper/10" : "border-admin-ink/15 hover:border-admin-ink/30")
           }
         >
           <input
@@ -245,20 +245,20 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
               e.target.value = "";
             }}
           />
-          <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-[#17130f]/8 text-[#17130f]">
+          <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-admin-ink/8 text-admin-ink">
             <Upload className="size-5" aria-hidden="true" />
           </span>
-          <p className="mt-3 text-sm font-medium text-[#17130f]">
+          <p className="mt-3 text-sm font-medium text-admin-ink">
             Drop photos here or{" "}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="text-[#9b744f] underline decoration-[#9b744f]/40 underline-offset-4 hover:decoration-[#9b744f]"
+              className="text-admin-accent underline decoration-admin-accent/40 underline-offset-4 hover:decoration-admin-accent"
             >
               browse
             </button>
           </p>
-          <p className="mt-1 text-xs text-[#17130f]/55">JPG, PNG, or WebP · up to 50 MB each</p>
+          <p className="mt-1 text-xs text-admin-ink/55">JPG, PNG, or WebP · up to 50 MB each</p>
         </div>
 
         {uploads.length > 0 && (
@@ -266,22 +266,22 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
             {uploads.map((u) => (
               <li
                 key={u.id}
-                className="flex items-center gap-3 rounded-sm border border-[#17130f]/8 bg-white/60 px-3 py-2 text-xs"
+                className="flex items-center gap-3 rounded-sm border border-admin-ink/8 bg-white/60 px-3 py-2 text-xs"
               >
                 {u.status === "uploading" || u.status === "pending" ? (
-                  <Loader2 className="size-4 shrink-0 animate-spin text-[#9b744f]" aria-hidden="true" />
+                  <Loader2 className="size-4 shrink-0 animate-spin text-admin-accent" aria-hidden="true" />
                 ) : u.status === "success" ? (
-                  <CheckCircle2 className="size-4 shrink-0 text-[#3f6e4a]" aria-hidden="true" />
+                  <CheckCircle2 className="size-4 shrink-0 text-admin-success" aria-hidden="true" />
                 ) : (
-                  <XCircle className="size-4 shrink-0 text-[#8a2f24]" aria-hidden="true" />
+                  <XCircle className="size-4 shrink-0 text-admin-danger" aria-hidden="true" />
                 )}
-                <span className="min-w-0 flex-1 truncate text-[#17130f]">{u.file.name}</span>
+                <span className="min-w-0 flex-1 truncate text-admin-ink">{u.file.name}</span>
                 {u.status === "error" ? (
-                  <span className="text-[#8a2f24]">{u.error}</span>
+                  <span className="text-admin-danger">{u.error}</span>
                 ) : u.status === "uploading" ? (
-                  <span className="text-[#17130f]/55">{u.progress}%</span>
+                  <span className="text-admin-ink/55">{u.progress}%</span>
                 ) : u.status === "success" ? (
-                  <span className="text-[#17130f]/55">Done</span>
+                  <span className="text-admin-ink/55">Done</span>
                 ) : null}
               </li>
             ))}
@@ -293,23 +293,23 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
       <div>
         <h2 className="text-lg font-semibold tracking-tight">
           Photos
-          <span className="ml-2 text-sm font-normal text-[#17130f]/45">{items.length}</span>
+          <span className="ml-2 text-sm font-normal text-admin-ink/45">{items.length}</span>
         </h2>
 
         {items.length === 0 ? (
-          <div className="mt-5 rounded-md border border-dashed border-[#17130f]/15 bg-[#fbf8f1] p-12 text-center">
-            <ImageOff className="mx-auto size-6 text-[#17130f]/40" aria-hidden="true" />
-            <p className="mt-3 text-sm text-[#17130f]/55">No portfolio photos yet. Upload above to begin.</p>
+          <div className="mt-5 rounded-md border border-dashed border-admin-ink/15 bg-admin-surface p-12 text-center">
+            <ImageOff className="mx-auto size-6 text-admin-ink/40" aria-hidden="true" />
+            <p className="mt-3 text-sm text-admin-ink/55">No portfolio photos yet. Upload above to begin.</p>
           </div>
         ) : (
           <ul className="mt-5 space-y-3">
             {items.map((item, index) => (
               <li
                 key={item.id}
-                className="overflow-hidden rounded-md border border-[#17130f]/10 bg-[#fbf8f1]"
+                className="overflow-hidden rounded-md border border-admin-ink/10 bg-admin-surface"
               >
                 <div className="flex gap-4 p-3">
-                  <div className="relative size-24 shrink-0 overflow-hidden rounded-sm bg-[#17130f]/8">
+                  <div className="relative size-24 shrink-0 overflow-hidden rounded-sm bg-admin-ink/8">
                     {item.thumbnail_url || item.display_url ? (
                       <Image
                         src={item.thumbnail_url || item.display_url}
@@ -321,28 +321,28 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center">
-                        <ImageOff className="size-5 text-[#17130f]/35" aria-hidden="true" />
+                        <ImageOff className="size-5 text-admin-ink/35" aria-hidden="true" />
                       </div>
                     )}
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate font-medium text-[#17130f]">{item.title}</p>
+                      <p className="truncate font-medium text-admin-ink">{item.title}</p>
                       {item.featured && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#b98257] px-2 py-0.5 text-[10px] font-medium text-white">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-admin-copper px-2 py-0.5 text-[10px] font-medium text-white">
                           <Star className="size-3" aria-hidden="true" />
                           Featured
                         </span>
                       )}
                       {item.is_hidden && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#17130f]/80 px-2 py-0.5 text-[10px] font-medium text-white">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-admin-ink/80 px-2 py-0.5 text-[10px] font-medium text-white">
                           <EyeOff className="size-3" aria-hidden="true" />
                           Hidden
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 text-xs text-[#17130f]/55">
+                    <p className="mt-1 text-xs text-admin-ink/55">
                       {categoryLabels[item.category]}
                       {item.event_date ? ` · ${item.event_date}` : ""}
                       {item.location ? ` · ${item.location}` : ""}
@@ -352,7 +352,7 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                       <button
                         type="button"
                         onClick={() => setEditingId(editingId === item.id ? null : item.id)}
-                        className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[11px] text-[#17130f]/70 hover:bg-[#17130f] hover:text-[#fbf8f1]"
+                        className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[11px] text-admin-ink/70 hover:bg-admin-ink hover:text-admin-surface"
                       >
                         <Pencil className="size-3" aria-hidden="true" />
                         {editingId === item.id ? "Close" : "Edit"}
@@ -364,7 +364,7 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                         <button
                           type="submit"
                           disabled={pending}
-                          className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[11px] text-[#17130f]/70 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:opacity-40"
+                          className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[11px] text-admin-ink/70 hover:bg-admin-ink hover:text-admin-surface disabled:opacity-40"
                         >
                           <Star className="size-3" aria-hidden="true" />
                           {item.featured ? "Unfeature" : "Feature"}
@@ -377,7 +377,7 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                         <button
                           type="submit"
                           disabled={pending}
-                          className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[11px] text-[#17130f]/70 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:opacity-40"
+                          className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[11px] text-admin-ink/70 hover:bg-admin-ink hover:text-admin-surface disabled:opacity-40"
                         >
                           <EyeOff className="size-3" aria-hidden="true" />
                           {item.is_hidden ? "Show" : "Hide"}
@@ -391,7 +391,7 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                           type="submit"
                           disabled={pending || index === 0}
                           title="Move up"
-                          className="inline-flex items-center rounded-md border border-[#17130f]/10 px-2 py-1 text-[11px] text-[#17130f]/70 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:opacity-40"
+                          className="inline-flex items-center rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[11px] text-admin-ink/70 hover:bg-admin-ink hover:text-admin-surface disabled:opacity-40"
                         >
                           <ArrowUp className="size-3" aria-hidden="true" />
                         </button>
@@ -403,7 +403,7 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                           type="submit"
                           disabled={pending || index === items.length - 1}
                           title="Move down"
-                          className="inline-flex items-center rounded-md border border-[#17130f]/10 px-2 py-1 text-[11px] text-[#17130f]/70 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:opacity-40"
+                          className="inline-flex items-center rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[11px] text-admin-ink/70 hover:bg-admin-ink hover:text-admin-surface disabled:opacity-40"
                         >
                           <ArrowDown className="size-3" aria-hidden="true" />
                         </button>
@@ -419,7 +419,7 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                         <button
                           type="submit"
                           disabled={pending}
-                          className="inline-flex items-center gap-1 rounded-md border border-[#8a2f24]/20 px-2 py-1 text-[11px] text-[#8a2f24] hover:bg-[#8a2f24] hover:text-white disabled:opacity-40"
+                          className="inline-flex items-center gap-1 rounded-md border border-admin-danger/20 min-h-9 px-2 py-1 text-[11px] text-admin-danger hover:bg-admin-danger hover:text-white disabled:opacity-40"
                         >
                           <Trash2 className="size-3" aria-hidden="true" />
                         </button>
@@ -434,14 +434,14 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                       runAction(fd, updatePortfolioItem);
                       setEditingId(null);
                     }}
-                    className="grid gap-3 border-t border-[#17130f]/10 bg-white/40 p-4 sm:grid-cols-2"
+                    className="grid gap-3 border-t border-admin-ink/10 bg-white/40 p-4 sm:grid-cols-2"
                   >
                     <input type="hidden" name="id" value={item.id} />
-                    <label className="grid gap-1 text-xs font-medium text-[#17130f]">
+                    <label className="grid gap-1 text-xs font-medium text-admin-ink">
                       Title
                       <input className={inputClass} name="title" defaultValue={item.title} />
                     </label>
-                    <label className="grid gap-1 text-xs font-medium text-[#17130f]">
+                    <label className="grid gap-1 text-xs font-medium text-admin-ink">
                       Category
                       <select className={inputClass} name="category" defaultValue={item.category}>
                         {CATEGORY_ENTRIES.map(([value, label]) => (
@@ -451,15 +451,15 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                         ))}
                       </select>
                     </label>
-                    <label className="grid gap-1 text-xs font-medium text-[#17130f]">
+                    <label className="grid gap-1 text-xs font-medium text-admin-ink">
                       Event date
                       <input className={inputClass} type="date" name="event_date" defaultValue={item.event_date ?? ""} />
                     </label>
-                    <label className="grid gap-1 text-xs font-medium text-[#17130f]">
+                    <label className="grid gap-1 text-xs font-medium text-admin-ink">
                       Location
                       <input className={inputClass} name="location" defaultValue={item.location ?? ""} />
                     </label>
-                    <label className="grid gap-1 text-xs font-medium text-[#17130f]">
+                    <label className="grid gap-1 text-xs font-medium text-admin-ink">
                       Orientation
                       <select className={inputClass} name="orientation" defaultValue={item.orientation}>
                         {ORIENTATIONS.map((o) => (
@@ -469,19 +469,19 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                         ))}
                       </select>
                     </label>
-                    <label className="flex items-center gap-2 self-end text-xs font-medium text-[#17130f]">
-                      <input type="checkbox" name="featured" defaultChecked={item.featured} className="size-4 accent-[#9b744f]" />
+                    <label className="flex items-center gap-2 self-end text-xs font-medium text-admin-ink">
+                      <input type="checkbox" name="featured" defaultChecked={item.featured} className="size-4 accent-admin-accent" />
                       Featured (shown on homepage)
                     </label>
-                    <label className="grid gap-1 text-xs font-medium text-[#17130f] sm:col-span-2">
+                    <label className="grid gap-1 text-xs font-medium text-admin-ink sm:col-span-2">
                       Caption (shown on hover)
                       <textarea
-                        className="min-h-16 rounded-md border border-[#17130f]/12 bg-white/70 px-3 py-2 text-sm text-[#17130f] outline-none focus:border-[#b98257]"
+                        className="min-h-16 rounded-md border border-admin-ink/12 bg-white/70 px-3 py-2 text-sm text-admin-ink outline-none focus:border-admin-copper"
                         name="caption"
                         defaultValue={item.caption ?? ""}
                       />
                     </label>
-                    <label className="grid gap-1 text-xs font-medium text-[#17130f] sm:col-span-2">
+                    <label className="grid gap-1 text-xs font-medium text-admin-ink sm:col-span-2">
                       Alt text (accessibility)
                       <input className={inputClass} name="alt" defaultValue={item.alt ?? ""} />
                     </label>
@@ -489,7 +489,7 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                       <button
                         type="submit"
                         disabled={pending}
-                        className="inline-flex items-center gap-2 rounded-md bg-[#17130f] px-4 py-2 text-sm font-medium text-[#fbf8f1] disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-md bg-admin-ink px-4 py-2 text-sm font-medium text-admin-surface disabled:opacity-50"
                       >
                         Save changes
                       </button>

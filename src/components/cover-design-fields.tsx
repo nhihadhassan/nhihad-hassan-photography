@@ -18,12 +18,12 @@ const LAYOUTS = [
 
 /** Tiny visual of where the title sits for each layout. */
 function LayoutThumb({ variant, active }: { variant: string; active: boolean }) {
-  const bar = active ? "bg-[#9b744f]" : "bg-[#17130f]/30";
+  const bar = active ? "bg-admin-accent" : "bg-admin-ink/30";
   return (
     <span
       className={
         "relative block h-10 w-full overflow-hidden rounded-sm " +
-        (active ? "bg-[#b98257]/20" : "bg-[#17130f]/8")
+        (active ? "bg-admin-copper/20" : "bg-admin-ink/8")
       }
       aria-hidden="true"
     >
@@ -35,13 +35,13 @@ function LayoutThumb({ variant, active }: { variant: string; active: boolean }) 
       )}
       {variant === "bottom" && (
         <>
-          <span className="absolute inset-x-0 bottom-0 h-3 bg-[#17130f]/15" />
+          <span className="absolute inset-x-0 bottom-0 h-3 bg-admin-ink/15" />
           <span className={`absolute bottom-1 left-1/2 h-1 w-6 -translate-x-1/2 rounded-full ${bar}`} />
         </>
       )}
       {variant === "split" && (
         <>
-          <span className="absolute inset-y-0 right-0 w-1/2 bg-[#17130f]/12" />
+          <span className="absolute inset-y-0 right-0 w-1/2 bg-admin-ink/12" />
           <span className={`absolute right-[12%] top-1/2 h-1 w-5 -translate-y-1/2 rounded-full ${bar}`} />
         </>
       )}
@@ -88,8 +88,8 @@ export function CoverDesignFields({
                 className={
                   "flex flex-col items-center gap-2 rounded-md border p-2 text-xs transition " +
                   (active
-                    ? "border-[#9b744f] bg-[#b98257]/10 text-[#9b744f]"
-                    : "border-[#17130f]/12 text-[#17130f]/65 hover:border-[#17130f]/30")
+                    ? "border-admin-accent bg-admin-copper/10 text-admin-accent"
+                    : "border-admin-ink/12 text-admin-ink/65 hover:border-admin-ink/30")
                 }
               >
                 <LayoutThumb variant={opt.value} active={active} />
@@ -105,7 +105,7 @@ export function CoverDesignFields({
         <span className="text-sm font-medium">Cover focal point</span>
         {coverImageUrl ? (
           <>
-            <div className="flex justify-center rounded-md border border-[#17130f]/10 bg-[#17130f]/5 p-2">
+            <div className="flex justify-center rounded-md border border-admin-ink/10 bg-admin-ink/5 p-2">
               <div className="relative inline-block">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -125,13 +125,13 @@ export function CoverDesignFields({
                 />
               </div>
             </div>
-            <span className="text-xs text-[#17130f]/45">
+            <span className="text-xs text-admin-ink/45">
               Click the spot to keep in view (e.g. a face). The cover image shifts to favour it.
               Current: {focalX}% / {focalY}%.
             </span>
           </>
         ) : (
-          <p className="rounded-md border border-dashed border-[#17130f]/15 bg-white/40 px-4 py-6 text-center text-xs text-[#17130f]/50">
+          <p className="rounded-md border border-dashed border-admin-ink/15 bg-white/40 px-4 py-6 text-center text-xs text-admin-ink/50">
             Set a cover photo first (use Cover in the Photos tab, or a cover image URL above), then
             you can position the focal point here.
           </p>

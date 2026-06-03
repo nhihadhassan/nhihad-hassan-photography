@@ -39,11 +39,11 @@ export function ImportLegacyPortfolioButton() {
   };
 
   return (
-    <div className="rounded-md border border-[#9b744f]/30 bg-[#b98257]/10 p-4">
+    <div className="rounded-md border border-admin-accent/30 bg-admin-copper/10 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-[#17130f]">Import existing portfolio photos</p>
-          <p className="mt-0.5 text-xs text-[#17130f]/60">
+          <p className="text-sm font-medium text-admin-ink">Import existing portfolio photos</p>
+          <p className="mt-0.5 text-xs text-admin-ink/60">
             One-time setup: copies your current portfolio into editable storage. Safe to run again.
           </p>
         </div>
@@ -51,7 +51,7 @@ export function ImportLegacyPortfolioButton() {
           type="button"
           onClick={run}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-md bg-[#17130f] px-4 py-2 text-sm font-medium text-[#fbf8f1] disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-md bg-admin-ink px-4 py-2 text-sm font-medium text-admin-surface disabled:opacity-50"
         >
           {loading ? (
             <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -61,7 +61,7 @@ export function ImportLegacyPortfolioButton() {
           {loading ? "Importing…" : "Import"}
         </button>
       </div>
-      {result ? <p className="mt-3 text-xs text-[#17130f]/70">{result}</p> : null}
+      {result ? <p className="mt-3 text-xs text-admin-ink/70">{result}</p> : null}
     </div>
   );
 }

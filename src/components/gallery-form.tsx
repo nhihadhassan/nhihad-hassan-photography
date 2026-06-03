@@ -26,20 +26,20 @@ const initialState: GalleryFormState = {
 };
 
 const inputClass =
-  "min-h-11 rounded-md border border-[#17130f]/10 bg-white/70 px-3 text-sm text-[#17130f] outline-none transition placeholder:text-[#17130f]/35 focus:border-[#b98257]";
+  "min-h-11 rounded-md border border-admin-ink/10 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/35 focus:border-admin-copper";
 
 const textareaClass =
-  "min-h-28 rounded-md border border-[#17130f]/10 bg-white/70 px-3 py-3 text-sm text-[#17130f] outline-none transition placeholder:text-[#17130f]/35 focus:border-[#b98257]";
+  "min-h-28 rounded-md border border-admin-ink/10 bg-white/70 px-3 py-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/35 focus:border-admin-copper";
 
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
-  return <p className="text-sm text-[#8a2f24]">{errors[0]}</p>;
+  return <p className="text-sm text-admin-danger">{errors[0]}</p>;
 }
 
 /** Red asterisk marking a required field. */
 function Required() {
   return (
-    <span className="text-[#8a2f24]" aria-hidden="true">
+    <span className="text-admin-danger" aria-hidden="true">
       {" "}
       *
     </span>
@@ -58,15 +58,15 @@ function SectionHeader({
   badge?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-[#17130f]/8">
+    <div className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-admin-ink/8">
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-[#17130f]/6 text-[#17130f]/60">
+        <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-admin-ink/6 text-admin-ink/60">
           <Icon className="size-4" aria-hidden="true" />
         </span>
         <div>
-          <h2 className="text-base font-semibold tracking-tight text-[#17130f]">{title}</h2>
+          <h2 className="text-base font-semibold tracking-tight text-admin-ink">{title}</h2>
           {description && (
-            <p className="mt-0.5 text-sm leading-5 text-[#17130f]/55">{description}</p>
+            <p className="mt-0.5 text-sm leading-5 text-admin-ink/55">{description}</p>
           )}
         </div>
       </div>
@@ -106,7 +106,7 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
       {gallery ? <input type="hidden" name="id" value={gallery.id} /> : null}
 
       {/* ── General ───────────────────────────────────────────────────────── */}
-      <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
+      <section className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
         <SectionHeader
           icon={FileText}
           title="General"
@@ -135,13 +135,13 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
                 defaultValue={gallery.slug}
                 placeholder="moove-ah"
               />
-              <span className="text-xs text-[#17130f]/45">
+              <span className="text-xs text-admin-ink/45">
                 Changing this changes the gallery&apos;s link. Leave it as is to keep the current URL.
               </span>
               <FieldError errors={state.fieldErrors?.slug} />
             </label>
           ) : (
-            <p className="self-end text-xs text-[#17130f]/45">
+            <p className="self-end text-xs text-admin-ink/45">
               The web address is created automatically from the title.
             </p>
           )}
@@ -203,7 +203,7 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
               defaultValue={gallery?.cover_image_url ?? ""}
               placeholder="https://…"
             />
-            <span className="text-xs text-[#17130f]/45">
+            <span className="text-xs text-admin-ink/45">
               Optional external cover image. Uploaded photos are used automatically when available.
             </span>
             <FieldError errors={state.fieldErrors?.cover_image_url} />
@@ -227,35 +227,35 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
       </section>
 
       {/* ── Privacy & Access ──────────────────────────────────────────────── */}
-      <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
+      <section className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
         <SectionHeader
           icon={Shield}
           title="Privacy & Access"
           description="Control who can find and view this gallery."
         />
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-[#17130f]/10 bg-white/50 px-4 py-3.5">
+          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-admin-ink/10 bg-white/50 px-4 py-3.5">
             <div>
-              <p className="text-sm font-medium text-[#17130f]">Published</p>
-              <p className="mt-0.5 text-xs text-[#17130f]/50">Visible to clients with the link</p>
+              <p className="text-sm font-medium text-admin-ink">Published</p>
+              <p className="mt-0.5 text-xs text-admin-ink/50">Visible to clients with the link</p>
             </div>
             <input
               type="checkbox"
               name="is_published"
               defaultChecked={gallery?.is_published ?? false}
-              className="size-4 accent-[#9b744f]"
+              className="size-4 accent-admin-accent"
             />
           </label>
-          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-[#17130f]/10 bg-white/50 px-4 py-3.5">
+          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-admin-ink/10 bg-white/50 px-4 py-3.5">
             <div>
-              <p className="text-sm font-medium text-[#17130f]">Public index eligible</p>
-              <p className="mt-0.5 text-xs text-[#17130f]/50">May appear in the gallery listing</p>
+              <p className="text-sm font-medium text-admin-ink">Public index eligible</p>
+              <p className="mt-0.5 text-xs text-admin-ink/50">May appear in the gallery listing</p>
             </div>
             <input
               type="checkbox"
               name="is_public"
               defaultChecked={gallery?.is_public ?? defaultValues?.is_public ?? false}
-              className="size-4 accent-[#9b744f]"
+              className="size-4 accent-admin-accent"
             />
           </label>
         </div>
@@ -272,24 +272,24 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
                   : (defaultValues?.expires_at ?? "")
               }
             />
-            <span className="text-xs text-[#17130f]/45">Leave blank for no expiry.</span>
+            <span className="text-xs text-admin-ink/45">Leave blank for no expiry.</span>
           </label>
         </div>
 
         {/* Password sub-section */}
-        <div className="mt-6 border-t border-[#17130f]/8 pt-5">
+        <div className="mt-6 border-t border-admin-ink/8 pt-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Lock className="size-4 text-[#17130f]/45" aria-hidden="true" />
-              <p className="text-sm font-semibold text-[#17130f]">Password protection</p>
+              <Lock className="size-4 text-admin-ink/45" aria-hidden="true" />
+              <p className="text-sm font-semibold text-admin-ink">Password protection</p>
               {gallery?.has_password && (
-                <span className="inline-flex items-center rounded-full border border-[#9b744f]/40 bg-[#b98257]/15 px-2.5 py-0.5 text-xs font-medium text-[#9b744f]">
+                <span className="inline-flex items-center rounded-full border border-admin-accent/40 bg-admin-copper/15 px-2.5 py-0.5 text-xs font-medium text-admin-accent">
                   Protected
                 </span>
               )}
             </div>
           </div>
-          <p className="mt-1 text-xs text-[#17130f]/50">
+          <p className="mt-1 text-xs text-admin-ink/50">
             {gallery?.has_password
               ? "Enter a new password to change it, or check Remove to clear it."
               : "Optional. Visitors must enter this before viewing photos."}
@@ -309,13 +309,13 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
                 }
                 minLength={4}
               />
-              <span className="text-xs text-[#17130f]/45">
+              <span className="text-xs text-admin-ink/45">
                 Stored and included in client invite emails. Never logged or transmitted otherwise.
               </span>
             </label>
             {gallery?.has_password ? (
-              <label className="flex cursor-pointer items-center gap-3 self-end rounded-md border border-[#8a2f24]/20 bg-[#8a2f24]/8 px-4 py-3.5 text-sm">
-                <input type="checkbox" name="remove_password" className="size-4 accent-[#8a2f24]" />
+              <label className="flex cursor-pointer items-center gap-3 self-end rounded-md border border-admin-danger/20 bg-admin-danger/8 px-4 py-3.5 text-sm">
+                <input type="checkbox" name="remove_password" className="size-4 accent-admin-danger" />
                 Remove password
               </label>
             ) : null}
@@ -324,40 +324,40 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
       </section>
 
       {/* ── Download ──────────────────────────────────────────────────────── */}
-      <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
+      <section className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
         <SectionHeader
           icon={Download}
           title="Download"
           description="Control how clients can download photos from this gallery."
         />
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-[#17130f]/10 bg-white/50 px-4 py-3.5">
+          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-admin-ink/10 bg-white/50 px-4 py-3.5">
             <div>
-              <p className="text-sm font-medium text-[#17130f]">Downloads enabled</p>
-              <p className="mt-0.5 text-xs text-[#17130f]/50">Clients can download the gallery ZIP</p>
+              <p className="text-sm font-medium text-admin-ink">Downloads enabled</p>
+              <p className="mt-0.5 text-xs text-admin-ink/50">Clients can download the gallery ZIP</p>
             </div>
             <input
               type="checkbox"
               name="download_enabled"
               defaultChecked={gallery?.download_enabled ?? defaultValues?.download_enabled ?? false}
-              className="size-4 accent-[#9b744f]"
+              className="size-4 accent-admin-accent"
             />
           </label>
-          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-[#17130f]/10 bg-white/50 px-4 py-3.5">
+          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-admin-ink/10 bg-white/50 px-4 py-3.5">
             <div>
-              <p className="text-sm font-medium text-[#17130f]">Watermark previews</p>
-              <p className="mt-0.5 text-xs text-[#17130f]/50">Web previews only — originals stay clean</p>
+              <p className="text-sm font-medium text-admin-ink">Watermark previews</p>
+              <p className="mt-0.5 text-xs text-admin-ink/50">Web previews only — originals stay clean</p>
             </div>
             <input
               type="checkbox"
               name="watermark_enabled"
               defaultChecked={gallery?.watermark_enabled ?? false}
-              className="size-4 accent-[#9b744f]"
+              className="size-4 accent-admin-accent"
             />
           </label>
         </div>
         {gallery?.watermark_enabled ? (
-          <p className="mt-3 text-xs text-[#17130f]/45">
+          <p className="mt-3 text-xs text-admin-ink/45">
             Use the Variants button in Photos to regenerate existing web previews with the watermark.
           </p>
         ) : null}
@@ -375,7 +375,7 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
           </label>
           <label className="grid gap-2">
             <span className="text-sm font-medium">
-              Download limit <span className="font-normal text-[#17130f]/40">(optional)</span>
+              Download limit <span className="font-normal text-admin-ink/40">(optional)</span>
             </span>
             <input
               className={inputClass}
@@ -385,7 +385,7 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
               defaultValue={gallery?.download_limit ?? ""}
               placeholder="Unlimited"
             />
-            <span className="text-xs text-[#17130f]/45">
+            <span className="text-xs text-admin-ink/45">
               Max full-gallery downloads.{" "}
               {gallery?.download_count ? `${gallery.download_count} used so far.` : ""}
             </span>
@@ -393,17 +393,17 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
         </div>
 
         {/* Download PIN sub-section */}
-        <div className="mt-6 border-t border-[#17130f]/8 pt-5">
+        <div className="mt-6 border-t border-admin-ink/8 pt-5">
           <div className="flex items-center gap-2">
-            <Key className="size-4 text-[#17130f]/45" aria-hidden="true" />
-            <p className="text-sm font-semibold text-[#17130f]">Download PIN</p>
+            <Key className="size-4 text-admin-ink/45" aria-hidden="true" />
+            <p className="text-sm font-semibold text-admin-ink">Download PIN</p>
             {gallery?.has_download_pin && (
-              <span className="inline-flex items-center rounded-full border border-[#9b744f]/40 bg-[#b98257]/15 px-2.5 py-0.5 text-xs font-medium text-[#9b744f]">
+              <span className="inline-flex items-center rounded-full border border-admin-accent/40 bg-admin-copper/15 px-2.5 py-0.5 text-xs font-medium text-admin-accent">
                 Active
               </span>
             )}
           </div>
-          <p className="mt-1 text-xs text-[#17130f]/50">
+          <p className="mt-1 text-xs text-admin-ink/50">
             {gallery?.has_download_pin
               ? "Enter a new PIN to change it, or check Remove to clear it."
               : "Optional extra gate before downloads start. Separate from the gallery password."}
@@ -423,14 +423,14 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
                 }
                 minLength={4}
               />
-              <span className="text-xs text-[#17130f]/45">Stored hashed. Never logged or emailed.</span>
+              <span className="text-xs text-admin-ink/45">Stored hashed. Never logged or emailed.</span>
             </label>
             {gallery?.has_download_pin ? (
-              <label className="flex cursor-pointer items-center gap-3 self-end rounded-md border border-[#8a2f24]/20 bg-[#8a2f24]/8 px-4 py-3.5 text-sm">
+              <label className="flex cursor-pointer items-center gap-3 self-end rounded-md border border-admin-danger/20 bg-admin-danger/8 px-4 py-3.5 text-sm">
                 <input
                   type="checkbox"
                   name="remove_download_pin"
-                  className="size-4 accent-[#8a2f24]"
+                  className="size-4 accent-admin-danger"
                 />
                 Remove download PIN
               </label>
@@ -440,7 +440,7 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
       </section>
 
       {/* ── Payment ───────────────────────────────────────────────────────── */}
-      <section className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-5 sm:p-6">
+      <section className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
         <SectionHeader
           icon={Receipt}
           title="Payment"
@@ -471,7 +471,7 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
               defaultValue={gallery?.payment_notes ?? ""}
               placeholder="e.g. Deposit request sent May 20 · $300"
             />
-            <span className="text-xs text-[#17130f]/45">Admin-only. Never shown publicly.</span>
+            <span className="text-xs text-admin-ink/45">Admin-only. Never shown publicly.</span>
           </label>
         </div>
       </section>
@@ -480,8 +480,8 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
         <p
           className={
             state.status === "success"
-              ? "rounded-md bg-[#d8c8b2]/45 px-4 py-3 text-sm text-[#17130f]"
-              : "rounded-md bg-[#8a2f24]/10 px-4 py-3 text-sm text-[#7a2e25]"
+              ? "rounded-md bg-beige/45 px-4 py-3 text-sm text-admin-ink"
+              : "rounded-md bg-admin-danger/10 px-4 py-3 text-sm text-admin-danger-ink"
           }
         >
           {state.message}

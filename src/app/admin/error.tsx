@@ -14,12 +14,12 @@ export default function AdminError({ error, reset }: ErrorProps) {
 
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
-      <p className="text-sm font-medium text-[#8a2f24]">Something went wrong</p>
-      <p className="mt-2 max-w-sm text-sm text-[#17130f]/58">{error.message}</p>
+      <p className="text-sm font-medium text-admin-danger">Something went wrong</p>
+      <p className="mt-2 max-w-sm text-sm text-admin-ink/58">{error.message}</p>
       <button
         type="button"
         onClick={reset}
-        className="mt-6 rounded-md border border-[#17130f]/15 px-4 py-2 text-sm text-[#17130f]/70 transition hover:border-[#17130f]/30 hover:text-[#17130f]"
+        className="mt-6 rounded-md border border-admin-ink/15 px-4 py-2 text-sm text-admin-ink/70 transition hover:border-admin-ink/30 hover:text-admin-ink"
       >
         Try again
       </button>

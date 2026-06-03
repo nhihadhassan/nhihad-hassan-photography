@@ -11,15 +11,15 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-8">
+    <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-8">
       <div className="max-w-xl">
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#9b744f]">Next step</p>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[#17130f]">{title}</h2>
-        <p className="mt-3 text-sm leading-6 text-[#17130f]/62">{description}</p>
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-admin-accent">Next step</p>
+        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-admin-ink">{title}</h2>
+        <p className="mt-3 text-sm leading-6 text-admin-ink/62">{description}</p>
         {action ? (
           <div className="mt-6">{action}</div>
         ) : (
-          <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-[#9b744f]">
+          <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-admin-accent">
             Ready for Phase 3
             <ArrowRight className="size-4" aria-hidden="true" />
           </div>

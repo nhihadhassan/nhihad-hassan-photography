@@ -9,7 +9,7 @@ import { formatCompactDate } from "@/lib/utils";
 
 function StatusPill({ children }: { children: string }) {
   return (
-    <span className="inline-flex rounded-full border border-[#17130f]/10 px-2.5 py-1 text-xs text-[#17130f]/60">
+    <span className="inline-flex rounded-full border border-admin-ink/10 px-2.5 py-1 text-xs text-admin-ink/60">
       {children}
     </span>
   );
@@ -19,12 +19,12 @@ function DepositPill({ status }: { status: DepositStatus }) {
   const label = DEPOSIT_STATUS_LABELS[status];
   const colorClass =
     status === "paid"
-      ? "border-[#3f6e4a]/30 bg-[#3f6e4a]/10 text-[#3f6e4a]"
+      ? "border-admin-success/30 bg-admin-success/10 text-admin-success"
       : status === "received"
-        ? "border-[#2e5fa3]/30 bg-[#2e5fa3]/10 text-[#2e5fa3]"
+        ? "border-admin-info/30 bg-admin-info/10 text-admin-info"
         : status === "requested" || status === "balance_due"
-          ? "border-[#9b744f]/40 bg-[#b98257]/12 text-[#9b744f]"
-          : "border-[#17130f]/10 bg-transparent text-[#17130f]/45";
+          ? "border-admin-accent/40 bg-admin-copper/12 text-admin-accent"
+          : "border-admin-ink/10 bg-transparent text-admin-ink/45";
   return (
     <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${colorClass}`}>
       {label}
@@ -41,25 +41,25 @@ export default async function AdminGalleriesPage() {
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-[#9b744f]">Gallery management</p>
+          <p className="text-sm font-medium text-admin-accent">Gallery management</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">Galleries</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#17130f]/60">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
             Create and manage client galleries. Track deposit status for each booking.
           </p>
         </div>
         <Link
           href="/admin/galleries/new"
-          className="inline-flex min-h-11 items-center justify-center rounded-md bg-[#17130f] px-4 text-sm font-medium text-[#fbf8f1]"
+          className="inline-flex min-h-11 items-center justify-center rounded-md bg-admin-ink px-4 text-sm font-medium text-admin-surface"
         >
           Create gallery
         </Link>
       </div>
       {galleries.length ? (
-        <div className="mt-8 overflow-hidden rounded-md border border-[#17130f]/10 bg-[#fbf8f1]">
-          <div className="divide-y divide-[#17130f]/10">
+        <div className="mt-8 overflow-hidden rounded-md border border-admin-ink/10 bg-admin-surface">
+          <div className="divide-y divide-admin-ink/10">
             {galleries.map((gallery) => (
               <article key={gallery.id} className="grid gap-5 p-5 lg:grid-cols-[96px_1fr_auto] lg:items-center">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-[#17130f]/8">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-admin-ink/8">
                   {gallery.cover_image_url ? (
                     <Image
                       src={gallery.cover_image_url}
@@ -74,7 +74,7 @@ export default async function AdminGalleriesPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
                       href={`/admin/galleries/${gallery.id}`}
-                      className="text-lg font-semibold tracking-tight hover:text-[#9b744f]"
+                      className="text-lg font-semibold tracking-tight hover:text-admin-accent"
                     >
                       {gallery.title}
                     </Link>
@@ -83,16 +83,16 @@ export default async function AdminGalleriesPage() {
                     <StatusPill>{gallery.is_public ? "Public index" : "Private link"}</StatusPill>
                     <DepositPill status={gallery.deposit_status} />
                   </div>
-                  <p className="mt-2 text-sm text-[#17130f]/58">
+                  <p className="mt-2 text-sm text-admin-ink/58">
                     /galleries/{gallery.slug} · {gallery.client_name ?? "No client"} ·{" "}
                     {formatCompactDate(gallery.event_date)}
                   </p>
-                  <p className="mt-1 text-sm text-[#17130f]/48">
+                  <p className="mt-1 text-sm text-admin-ink/48">
                     Expires: {formatCompactDate(gallery.expires_at)}
                   </p>
                   <Link
                     href={`/admin/galleries/${gallery.id}/photos`}
-                    className="mt-2 inline-flex items-center gap-1 text-xs text-[#9b744f] hover:text-[#17130f]"
+                    className="mt-2 inline-flex items-center gap-1 text-xs text-admin-accent hover:text-admin-ink"
                   >
                     Manage photos →
                   </Link>
@@ -116,7 +116,7 @@ export default async function AdminGalleriesPage() {
             action={
               <Link
                 href="/admin/galleries/new"
-                className="inline-flex min-h-11 items-center rounded-md bg-[#17130f] px-4 text-sm font-medium text-[#fbf8f1]"
+                className="inline-flex min-h-11 items-center rounded-md bg-admin-ink px-4 text-sm font-medium text-admin-surface"
               >
                 Create gallery
               </Link>

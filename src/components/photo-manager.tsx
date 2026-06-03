@@ -459,10 +459,10 @@ export function PhotoManager({
         }}
         onDrop={onDrop}
         className={
-          "relative rounded-md border-2 border-dashed bg-[#fbf8f1] p-8 text-center transition " +
+          "relative rounded-md border-2 border-dashed bg-admin-surface p-8 text-center transition " +
           (isDragging
-            ? "border-[#9b744f] bg-[#b98257]/10"
-            : "border-[#17130f]/15 hover:border-[#17130f]/30")
+            ? "border-admin-accent bg-admin-copper/10"
+            : "border-admin-ink/15 hover:border-admin-ink/30")
         }
       >
         <input
@@ -477,29 +477,29 @@ export function PhotoManager({
           }}
         />
         <div className="mx-auto flex max-w-md flex-col items-center gap-3">
-          <span className="flex size-12 items-center justify-center rounded-full bg-[#17130f]/8 text-[#17130f]">
+          <span className="flex size-12 items-center justify-center rounded-full bg-admin-ink/8 text-admin-ink">
             <Upload className="size-5" aria-hidden="true" />
           </span>
-          <p className="text-base font-medium text-[#17130f]">
+          <p className="text-base font-medium text-admin-ink">
             Drop photos here or{" "}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="text-[#9b744f] underline decoration-[#9b744f]/40 underline-offset-4 hover:decoration-[#9b744f]"
+              className="text-admin-accent underline decoration-admin-accent/40 underline-offset-4 hover:decoration-admin-accent"
             >
               browse
             </button>
           </p>
-          <p className="text-xs text-[#17130f]/55">
+          <p className="text-xs text-admin-ink/55">
             JPG, PNG, or WebP · up to 50 MB each · multi-select supported
           </p>
         </div>
       </div>
 
       {(activeUploads.length > 0 || completedUploads.length > 0 || erroredUploads.length > 0) && (
-        <div className="rounded-md border border-[#17130f]/10 bg-white/60 p-4">
+        <div className="rounded-md border border-admin-ink/10 bg-white/60 p-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-[#17130f]">
+            <p className="text-sm font-medium text-admin-ink">
               Uploads — {completedUploads.length} done, {activeUploads.length} active,{" "}
               {erroredUploads.length} failed
             </p>
@@ -508,7 +508,7 @@ export function PhotoManager({
                 <button
                   type="button"
                   onClick={clearFinished}
-                  className="text-xs text-[#17130f]/55 hover:text-[#17130f]"
+                  className="text-xs text-admin-ink/55 hover:text-admin-ink"
                 >
                   Clear finished
                 </button>
@@ -517,7 +517,7 @@ export function PhotoManager({
                 <button
                   type="button"
                   onClick={dismissErrors}
-                  className="text-xs text-[#8a2f24]/70 hover:text-[#8a2f24]"
+                  className="text-xs text-admin-danger/70 hover:text-admin-danger"
                 >
                   Dismiss errors
                 </button>
@@ -528,30 +528,30 @@ export function PhotoManager({
             {uploads.map((u) => (
               <li
                 key={u.id}
-                className="flex items-center gap-3 rounded-sm border border-[#17130f]/8 bg-[#fbf8f1] px-3 py-2 text-xs"
+                className="flex items-center gap-3 rounded-sm border border-admin-ink/8 bg-admin-surface px-3 py-2 text-xs"
               >
                 {u.status === "uploading" || u.status === "pending" ? (
-                  <Loader2 className="size-4 shrink-0 animate-spin text-[#9b744f]" aria-hidden="true" />
+                  <Loader2 className="size-4 shrink-0 animate-spin text-admin-accent" aria-hidden="true" />
                 ) : u.status === "success" ? (
-                  <CheckCircle2 className="size-4 shrink-0 text-[#3f6e4a]" aria-hidden="true" />
+                  <CheckCircle2 className="size-4 shrink-0 text-admin-success" aria-hidden="true" />
                 ) : (
-                  <XCircle className="size-4 shrink-0 text-[#8a2f24]" aria-hidden="true" />
+                  <XCircle className="size-4 shrink-0 text-admin-danger" aria-hidden="true" />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[#17130f]">{u.file.name}</p>
+                  <p className="truncate text-admin-ink">{u.file.name}</p>
                   {u.status === "error" ? (
-                    <p className="text-[#8a2f24]">{u.error}</p>
+                    <p className="text-admin-danger">{u.error}</p>
                   ) : u.status === "uploading" ? (
-                    <div className="mt-1 h-1 overflow-hidden rounded-full bg-[#17130f]/10">
+                    <div className="mt-1 h-1 overflow-hidden rounded-full bg-admin-ink/10">
                       <div
-                        className="h-full bg-[#9b744f] transition-all"
+                        className="h-full bg-admin-accent transition-all"
                         style={{ width: `${u.progress}%` }}
                       />
                     </div>
                   ) : u.status === "success" ? (
-                    <p className="text-[#17130f]/55">Uploaded · {formatBytes(u.file.size)}</p>
+                    <p className="text-admin-ink/55">Uploaded · {formatBytes(u.file.size)}</p>
                   ) : (
-                    <p className="text-[#17130f]/55">Queued</p>
+                    <p className="text-admin-ink/55">Queued</p>
                   )}
                 </div>
               </li>
@@ -561,12 +561,12 @@ export function PhotoManager({
       )}
 
       {photos.length === 0 ? (
-        <div className="rounded-md border border-dashed border-[#17130f]/15 bg-[#fbf8f1] p-12 text-center">
-          <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-[#17130f]/8">
-            <ImageOff className="size-5 text-[#17130f]/60" aria-hidden="true" />
+        <div className="rounded-md border border-dashed border-admin-ink/15 bg-admin-surface p-12 text-center">
+          <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-admin-ink/8">
+            <ImageOff className="size-5 text-admin-ink/60" aria-hidden="true" />
           </span>
-          <p className="mt-4 text-base font-medium text-[#17130f]">No photos yet.</p>
-          <p className="mt-1 text-sm text-[#17130f]/55">
+          <p className="mt-4 text-base font-medium text-admin-ink">No photos yet.</p>
+          <p className="mt-1 text-sm text-admin-ink/55">
             Drop files above to upload your first photos.
           </p>
         </div>
@@ -575,14 +575,14 @@ export function PhotoManager({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold tracking-tight">
               Photos
-              <span className="ml-2 text-sm font-normal text-[#17130f]/45">
+              <span className="ml-2 text-sm font-normal text-admin-ink/45">
                 {photos.length}
               </span>
             </h2>
             <div className="flex flex-wrap items-center gap-2">
               {/* Sort dropdown */}
-              <div className="flex items-center gap-1.5 rounded-md border border-[#17130f]/12 bg-white/60 px-2 py-1">
-                <ArrowUpDown className="size-3.5 shrink-0 text-[#17130f]/50" aria-hidden="true" />
+              <div className="flex items-center gap-1.5 rounded-md border border-admin-ink/12 bg-white/60 px-2 py-1">
+                <ArrowUpDown className="size-3.5 shrink-0 text-admin-ink/50" aria-hidden="true" />
                 <select
                   value={sortMode}
                   onChange={(e) => {
@@ -590,7 +590,7 @@ export function PhotoManager({
                     if (next === "random") setRandomSeed(Date.now());
                     setSortMode(next);
                   }}
-                  className="bg-transparent text-xs text-[#17130f] outline-none cursor-pointer"
+                  className="bg-transparent text-xs text-admin-ink outline-none cursor-pointer"
                 >
                   <option value="manual">Manual order</option>
                   <option value="newest">Uploaded: Newest first</option>
@@ -604,7 +604,7 @@ export function PhotoManager({
                     type="button"
                     onClick={() => setRandomSeed(Date.now())}
                     title="Shuffle again"
-                    className="ml-0.5 rounded p-0.5 text-[#9b744f] transition hover:bg-[#9b744f]/10"
+                    className="ml-0.5 rounded p-0.5 text-admin-accent transition hover:bg-admin-accent/10"
                   >
                     <Shuffle className="size-3.5" aria-hidden="true" />
                   </button>
@@ -632,7 +632,7 @@ export function PhotoManager({
                   type="submit"
                   disabled={pending}
                   title="Save the current order as the gallery's order. Clients will see this order."
-                  className="inline-flex items-center gap-1.5 rounded-md border border-[#9b744f]/40 bg-[#9b744f]/10 px-2.5 py-1.5 text-xs text-[#9b744f] transition hover:bg-[#9b744f] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-admin-accent/40 bg-admin-accent/10 px-2.5 py-1.5 text-xs text-admin-accent transition hover:bg-admin-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Save className="size-3.5" aria-hidden="true" />
                   Save order
@@ -640,7 +640,7 @@ export function PhotoManager({
               </form>
 
               {/* Grid size toggle */}
-              <div className="flex items-center rounded-md border border-[#17130f]/12 bg-white/60">
+              <div className="flex items-center rounded-md border border-admin-ink/12 bg-white/60">
                 <button
                   type="button"
                   onClick={() => setGridSize("large")}
@@ -648,8 +648,8 @@ export function PhotoManager({
                   className={
                     "flex items-center gap-1 rounded-l-md px-2.5 py-1.5 text-xs transition " +
                     (gridSize === "large"
-                      ? "bg-[#17130f] text-white"
-                      : "text-[#17130f]/60 hover:bg-[#17130f]/6")
+                      ? "bg-admin-ink text-white"
+                      : "text-admin-ink/60 hover:bg-admin-ink/6")
                   }
                 >
                   <Grid2X2 className="size-3.5" aria-hidden="true" />
@@ -661,8 +661,8 @@ export function PhotoManager({
                   className={
                     "flex items-center gap-1 rounded-r-md px-2.5 py-1.5 text-xs transition " +
                     (gridSize === "small"
-                      ? "bg-[#17130f] text-white"
-                      : "text-[#17130f]/60 hover:bg-[#17130f]/6")
+                      ? "bg-admin-ink text-white"
+                      : "text-admin-ink/60 hover:bg-admin-ink/6")
                   }
                 >
                   <Grid3X3 className="size-3.5" aria-hidden="true" />
@@ -674,7 +674,7 @@ export function PhotoManager({
                 <button
                   type="button"
                   onClick={selectAll}
-                  className="inline-flex items-center gap-2 rounded-md border border-[#17130f]/12 px-3 py-1.5 text-xs text-[#17130f]/68 hover:bg-[#17130f]/6"
+                  className="inline-flex items-center gap-2 rounded-md border border-admin-ink/12 px-3 py-1.5 text-xs text-admin-ink/68 hover:bg-admin-ink/6"
                 >
                   <CheckSquare className="size-3.5" aria-hidden="true" />
                   Select all
@@ -683,7 +683,7 @@ export function PhotoManager({
                 <button
                   type="button"
                   onClick={deselectAll}
-                  className="inline-flex items-center gap-2 rounded-md border border-[#17130f]/12 px-3 py-1.5 text-xs text-[#17130f]/68 hover:bg-[#17130f]/6"
+                  className="inline-flex items-center gap-2 rounded-md border border-admin-ink/12 px-3 py-1.5 text-xs text-admin-ink/68 hover:bg-admin-ink/6"
                 >
                   <Square className="size-3.5" aria-hidden="true" />
                   Deselect all
@@ -693,7 +693,7 @@ export function PhotoManager({
                 type="button"
                 onClick={runBackfill}
                 disabled={backfillRunning || missingVariantPhotos.length === 0}
-                className="inline-flex items-center gap-2 rounded-md border border-[#9b744f]/40 bg-[#b98257]/15 px-3 py-1.5 text-xs font-medium text-[#9b744f] transition hover:bg-[#9b744f] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex items-center gap-2 rounded-md border border-admin-accent/40 bg-admin-copper/15 px-3 py-1.5 text-xs font-medium text-admin-accent transition hover:bg-admin-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 title={
                   missingVariantPhotos.length === 0
                     ? "All photos are optimized"
@@ -715,7 +715,7 @@ export function PhotoManager({
                   <button
                     type="submit"
                     disabled={pending}
-                    className="inline-flex items-center gap-2 rounded-md border border-[#17130f]/12 px-3 py-1.5 text-xs text-[#17130f]/68 hover:bg-[#17130f]/6"
+                    className="inline-flex items-center gap-2 rounded-md border border-admin-ink/12 px-3 py-1.5 text-xs text-admin-ink/68 hover:bg-admin-ink/6"
                   >
                     <StarOff className="size-3.5" aria-hidden="true" />
                     Clear cover
@@ -727,15 +727,15 @@ export function PhotoManager({
 
           {/* Bulk action bar — shown when photos are selected */}
           {selectedIds.size > 0 && (
-            <div className="flex items-center justify-between gap-3 rounded-md border border-[#8a2f24]/20 bg-[#8a2f24]/8 px-4 py-3">
-              <p className="text-sm font-medium text-[#8a2f24]">
+            <div className="flex items-center justify-between gap-3 rounded-md border border-admin-danger/20 bg-admin-danger/8 px-4 py-3">
+              <p className="text-sm font-medium text-admin-danger">
                 {selectedIds.size} photo{selectedIds.size === 1 ? "" : "s"} selected
               </p>
               <button
                 type="button"
                 onClick={handleBulkDelete}
                 disabled={bulkDeleting}
-                className="inline-flex items-center gap-2 rounded-md bg-[#8a2f24] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#6e2419] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-md bg-admin-danger px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#6e2419] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {bulkDeleting ? (
                   <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
@@ -763,15 +763,15 @@ export function PhotoManager({
                 <li
                   key={photo.id}
                   className={
-                    "group overflow-hidden rounded-md border bg-[#fbf8f1] transition " +
+                    "group overflow-hidden rounded-md border bg-admin-surface transition " +
                     (selectedIds.has(photo.id)
-                      ? "border-[#8a2f24] shadow-[0_0_0_2px_#8a2f24]"
+                      ? "border-admin-danger shadow-[0_0_0_2px_#8a2f24]"
                       : isCover
-                        ? "border-[#9b744f] shadow-[0_0_0_1px_#9b744f]"
-                        : "border-[#17130f]/10")
+                        ? "border-admin-accent shadow-[0_0_0_1px_#9b744f]"
+                        : "border-admin-ink/10")
                   }
                 >
-                  <div className="relative bg-[#17130f]/8" style={{ aspectRatio: aspect || 1 }}>
+                  <div className="relative bg-admin-ink/8" style={{ aspectRatio: aspect || 1 }}>
                     {/* Selection checkbox */}
                     <button
                       type="button"
@@ -780,7 +780,7 @@ export function PhotoManager({
                       className={
                         "absolute left-2 top-2 z-10 flex size-6 items-center justify-center rounded-full border-2 transition " +
                         (selectedIds.has(photo.id)
-                          ? "border-[#8a2f24] bg-[#8a2f24] text-white"
+                          ? "border-admin-danger bg-admin-danger text-white"
                           : "border-white/70 bg-black/30 text-white opacity-0 group-hover:opacity-100 " +
                             (selectedIds.size > 0 ? "opacity-100" : ""))
                       }
@@ -803,18 +803,18 @@ export function PhotoManager({
                         unoptimized
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-[#17130f]/35">
+                      <div className="flex h-full items-center justify-center text-admin-ink/35">
                         <ImageOff className="size-6" aria-hidden="true" />
                       </div>
                     )}
                     {isCover && (
-                      <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-[#9b744f] px-2 py-0.5 text-[10px] font-medium text-white">
+                      <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-admin-accent px-2 py-0.5 text-[10px] font-medium text-white">
                         <Star className="size-3" aria-hidden="true" />
                         Cover
                       </span>
                     )}
                     {photo.is_hidden && (
-                      <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-[#17130f]/80 px-2 py-0.5 text-[10px] font-medium text-white">
+                      <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-admin-ink/80 px-2 py-0.5 text-[10px] font-medium text-white">
                         <EyeOff className="size-3" aria-hidden="true" />
                         Hidden
                       </span>
@@ -824,7 +824,7 @@ export function PhotoManager({
                       const hasVariants = Boolean(photo.web_key && photo.thumbnail_key);
                       if (state?.status === "running") {
                         return (
-                          <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-[#17130f]/85 px-2 py-0.5 text-[10px] font-medium text-white">
+                          <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-admin-ink/85 px-2 py-0.5 text-[10px] font-medium text-white">
                             <Loader2 className="size-3 animate-spin" aria-hidden="true" />
                             Optimizing
                           </span>
@@ -833,7 +833,7 @@ export function PhotoManager({
                       if (state?.status === "error") {
                         return (
                           <span
-                            className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-[#8a2f24] px-2 py-0.5 text-[10px] font-medium text-white"
+                            className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-admin-danger px-2 py-0.5 text-[10px] font-medium text-white"
                             title={state.error}
                           >
                             <XCircle className="size-3" aria-hidden="true" />
@@ -843,7 +843,7 @@ export function PhotoManager({
                       }
                       if (hasVariants) {
                         return (
-                          <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-[#3f6e4a]/90 px-2 py-0.5 text-[10px] font-medium text-white">
+                          <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-admin-success/90 px-2 py-0.5 text-[10px] font-medium text-white">
                             <Sparkles className="size-3" aria-hidden="true" />
                             Optimized
                           </span>
@@ -851,7 +851,7 @@ export function PhotoManager({
                       }
                       return (
                         <span
-                          className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-[#b98257] px-2 py-0.5 text-[10px] font-medium text-white"
+                          className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-admin-copper px-2 py-0.5 text-[10px] font-medium text-white"
                           title="Web/thumbnail variants missing — click Generate missing variants"
                         >
                           <TriangleAlert className="size-3" aria-hidden="true" />
@@ -862,10 +862,10 @@ export function PhotoManager({
                   </div>
 
                   <div className="p-3">
-                    <p className="truncate text-xs text-[#17130f]/65" title={photo.filename}>
+                    <p className="truncate text-xs text-admin-ink/65" title={photo.filename}>
                       {photo.filename}
                     </p>
-                    <p className="mt-0.5 text-[10px] text-[#17130f]/45">
+                    <p className="mt-0.5 text-[10px] text-admin-ink/45">
                       {photo.width && photo.height ? `${photo.width}×${photo.height} · ` : ""}
                       {formatBytes(photo.size_bytes)}
                     </p>
@@ -878,7 +878,7 @@ export function PhotoManager({
                           type="submit"
                           disabled={pending || isCover}
                           title={isCover ? "Current cover" : "Set as cover"}
-                          className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[10px] text-[#17130f]/65 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:cursor-not-allowed disabled:opacity-40"
+                          className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[10px] text-admin-ink/65 hover:bg-admin-ink hover:text-admin-surface disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           <Star className="size-3" aria-hidden="true" />
                           Cover
@@ -893,7 +893,7 @@ export function PhotoManager({
                           type="submit"
                           disabled={pending}
                           title={photo.is_hidden ? "Unhide" : "Hide"}
-                          className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[10px] text-[#17130f]/65 hover:bg-[#17130f] hover:text-[#fbf8f1]"
+                          className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[10px] text-admin-ink/65 hover:bg-admin-ink hover:text-admin-surface"
                         >
                           {photo.is_hidden ? (
                             <Eye className="size-3" aria-hidden="true" />
@@ -914,7 +914,7 @@ export function PhotoManager({
                               type="submit"
                               disabled={pending || isFirst}
                               title="Move up"
-                              className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[10px] text-[#17130f]/65 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:cursor-not-allowed disabled:opacity-40"
+                              className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[10px] text-admin-ink/65 hover:bg-admin-ink hover:text-admin-surface disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               <ArrowUp className="size-3" aria-hidden="true" />
                             </button>
@@ -928,7 +928,7 @@ export function PhotoManager({
                               type="submit"
                               disabled={pending || isLast}
                               title="Move down"
-                              className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[10px] text-[#17130f]/65 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:cursor-not-allowed disabled:opacity-40"
+                              className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[10px] text-admin-ink/65 hover:bg-admin-ink hover:text-admin-surface disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               <ArrowDown className="size-3" aria-hidden="true" />
                             </button>
@@ -948,7 +948,7 @@ export function PhotoManager({
                           type="submit"
                           disabled={pending}
                           title="Delete"
-                          className="inline-flex items-center gap-1 rounded-md border border-[#8a2f24]/20 px-2 py-1 text-[10px] text-[#8a2f24] hover:bg-[#8a2f24] hover:text-[#fbf8f1] disabled:opacity-40"
+                          className="inline-flex items-center gap-1 rounded-md border border-admin-danger/20 min-h-9 px-2 py-1 text-[10px] text-admin-danger hover:bg-admin-danger hover:text-admin-surface disabled:opacity-40"
                         >
                           <Trash2 className="size-3" aria-hidden="true" />
                         </button>

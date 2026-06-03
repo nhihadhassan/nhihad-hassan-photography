@@ -15,21 +15,21 @@ export default async function AdminLoginPage() {
   }
 
   return (
-    <main className="grid min-h-[100dvh] place-items-center bg-[#f3f0ea] px-4 py-10 text-[#17130f]">
-      <div className="w-full max-w-md rounded-md border border-[#17130f]/10 bg-[#fbf8f1] p-8 shadow-[0_24px_80px_-52px_rgba(23,19,15,0.45)]">
+    <main className="grid min-h-[100dvh] place-items-center bg-admin-bg px-4 py-10 text-admin-ink">
+      <div className="w-full max-w-md rounded-md border border-admin-ink/10 bg-admin-surface p-8 shadow-[0_24px_80px_-52px_rgba(23,19,15,0.45)]">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex size-12 items-center justify-center rounded-full bg-[#17130f] text-[#fbf8f1]">
+          <div className="flex size-12 items-center justify-center rounded-full bg-admin-ink text-admin-surface">
             <LockKeyhole className="size-5" aria-hidden="true" />
           </div>
-          <Link href="/" className="text-sm text-[#17130f]/55 transition hover:text-[#17130f]">
+          <Link href="/" className="text-sm text-admin-ink/55 transition hover:text-admin-ink">
             Public site
           </Link>
         </div>
         <h1 className="mt-6 text-2xl font-semibold tracking-tight">Admin login</h1>
-        <p className="mt-3 text-sm leading-6 text-[#17130f]/62">
+        <p className="mt-3 text-sm leading-6 text-admin-ink/62">
           Sign in to manage galleries, inquiries, and settings for {brandConfig.name}.
         </p>
-        <div className="mt-6 rounded-md border border-[#17130f]/10 bg-[#f3f0ea] p-4 text-sm text-[#17130f]/64">
+        <div className="mt-6 rounded-md border border-admin-ink/10 bg-admin-bg p-4 text-sm text-admin-ink/64">
           Supabase config: {configured ? "detected" : "waiting for environment variables"}
         </div>
         <AdminLoginForm disabled={!configured} />

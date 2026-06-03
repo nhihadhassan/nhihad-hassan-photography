@@ -13,10 +13,10 @@ import {
 } from "@/app/admin/(protected)/sections/actions";
 
 const inputClass =
-  "min-h-10 w-full rounded-md border border-[#17130f]/12 bg-white/70 px-3 text-sm text-[#17130f] outline-none transition focus:border-[#b98257]";
+  "min-h-10 w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition focus:border-admin-copper";
 const textareaClass =
-  "min-h-20 w-full rounded-md border border-[#17130f]/12 bg-white/70 px-3 py-2 text-sm text-[#17130f] outline-none focus:border-[#b98257]";
-const labelClass = "grid gap-1 text-xs font-medium text-[#17130f]";
+  "min-h-20 w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 py-2 text-sm text-admin-ink outline-none focus:border-admin-copper";
+const labelClass = "grid gap-1 text-xs font-medium text-admin-ink";
 
 const TYPE_FIELDS: Record<BlockType, { key: string; label: string; multiline?: boolean }[]> = {
   text: [
@@ -78,8 +78,8 @@ export function SectionsManager({
   return (
     <div className="space-y-6">
       {/* Add */}
-      <div className="flex flex-wrap items-center gap-3 rounded-md border border-[#9b744f]/30 bg-[#b98257]/10 p-4">
-        <span className="text-sm font-medium text-[#17130f]">Add a section</span>
+      <div className="flex flex-wrap items-center gap-3 rounded-md border border-admin-accent/30 bg-admin-copper/10 p-4">
+        <span className="text-sm font-medium text-admin-ink">Add a section</span>
         <select
           className={`${inputClass} max-w-xs`}
           value={addType}
@@ -101,7 +101,7 @@ export function SectionsManager({
           <button
             type="submit"
             disabled={pending}
-            className="inline-flex items-center gap-2 rounded-md bg-[#17130f] px-4 py-2 text-sm font-medium text-[#fbf8f1] disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-md bg-admin-ink px-4 py-2 text-sm font-medium text-admin-surface disabled:opacity-50"
           >
             <Plus className="size-4" aria-hidden="true" />
             Add
@@ -110,32 +110,32 @@ export function SectionsManager({
       </div>
 
       {blocks.length === 0 ? (
-        <p className="rounded-md border border-dashed border-[#17130f]/15 bg-[#fbf8f1] p-8 text-center text-sm text-[#17130f]/55">
+        <p className="rounded-md border border-dashed border-admin-ink/15 bg-admin-surface p-8 text-center text-sm text-admin-ink/55">
           No custom sections yet. Add one above — it appears near the bottom of the homepage.
         </p>
       ) : (
         <ul className="space-y-3">
           {blocks.map((block, index) => (
-            <li key={block.id} className="rounded-md border border-[#17130f]/10 bg-[#fbf8f1]">
+            <li key={block.id} className="rounded-md border border-admin-ink/10 bg-admin-surface">
               <div className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-[#17130f]/8 px-2.5 py-0.5 text-xs font-medium text-[#17130f]/70">
+                    <span className="rounded-full bg-admin-ink/8 px-2.5 py-0.5 text-xs font-medium text-admin-ink/70">
                       {BLOCK_TYPE_LABELS[block.block_type]}
                     </span>
                     {block.is_hidden && (
-                      <span className="rounded-full bg-[#17130f]/80 px-2 py-0.5 text-[10px] font-medium text-white">
+                      <span className="rounded-full bg-admin-ink/80 px-2 py-0.5 text-[10px] font-medium text-white">
                         Hidden
                       </span>
                     )}
                   </div>
-                  <p className="mt-1.5 truncate text-sm text-[#17130f]/70">{summary(block)}</p>
+                  <p className="mt-1.5 truncate text-sm text-admin-ink/70">{summary(block)}</p>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   <button
                     type="button"
                     onClick={() => setEditingId(editingId === block.id ? null : block.id)}
-                    className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[11px] text-[#17130f]/70 hover:bg-[#17130f] hover:text-[#fbf8f1]"
+                    className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[11px] text-admin-ink/70 hover:bg-admin-ink hover:text-admin-surface"
                   >
                     <Pencil className="size-3" aria-hidden="true" />
                     {editingId === block.id ? "Close" : "Edit"}
@@ -144,7 +144,7 @@ export function SectionsManager({
                     <input type="hidden" name="id" value={block.id} />
                     <input type="hidden" name="page_slug" value={pageSlug} />
                     <input type="hidden" name="direction" value="up" />
-                    <button type="submit" disabled={pending || index === 0} title="Move up" className="inline-flex rounded-md border border-[#17130f]/10 px-2 py-1 text-[11px] text-[#17130f]/70 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:opacity-40">
+                    <button type="submit" disabled={pending || index === 0} title="Move up" className="inline-flex rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[11px] text-admin-ink/70 hover:bg-admin-ink hover:text-admin-surface disabled:opacity-40">
                       <ArrowUp className="size-3" aria-hidden="true" />
                     </button>
                   </form>
@@ -152,7 +152,7 @@ export function SectionsManager({
                     <input type="hidden" name="id" value={block.id} />
                     <input type="hidden" name="page_slug" value={pageSlug} />
                     <input type="hidden" name="direction" value="down" />
-                    <button type="submit" disabled={pending || index === blocks.length - 1} title="Move down" className="inline-flex rounded-md border border-[#17130f]/10 px-2 py-1 text-[11px] text-[#17130f]/70 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:opacity-40">
+                    <button type="submit" disabled={pending || index === blocks.length - 1} title="Move down" className="inline-flex rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[11px] text-admin-ink/70 hover:bg-admin-ink hover:text-admin-surface disabled:opacity-40">
                       <ArrowDown className="size-3" aria-hidden="true" />
                     </button>
                   </form>
@@ -160,7 +160,7 @@ export function SectionsManager({
                     <input type="hidden" name="id" value={block.id} />
                     <input type="hidden" name="page_slug" value={pageSlug} />
                     <input type="hidden" name="next" value={String(!block.is_hidden)} />
-                    <button type="submit" disabled={pending} className="inline-flex items-center gap-1 rounded-md border border-[#17130f]/10 px-2 py-1 text-[11px] text-[#17130f]/70 hover:bg-[#17130f] hover:text-[#fbf8f1] disabled:opacity-40">
+                    <button type="submit" disabled={pending} className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[11px] text-admin-ink/70 hover:bg-admin-ink hover:text-admin-surface disabled:opacity-40">
                       {block.is_hidden ? <Eye className="size-3" aria-hidden="true" /> : <EyeOff className="size-3" aria-hidden="true" />}
                       {block.is_hidden ? "Show" : "Hide"}
                     </button>
@@ -173,7 +173,7 @@ export function SectionsManager({
                   >
                     <input type="hidden" name="id" value={block.id} />
                     <input type="hidden" name="page_slug" value={pageSlug} />
-                    <button type="submit" disabled={pending} className="inline-flex items-center rounded-md border border-[#8a2f24]/20 px-2 py-1 text-[11px] text-[#8a2f24] hover:bg-[#8a2f24] hover:text-white disabled:opacity-40">
+                    <button type="submit" disabled={pending} className="inline-flex items-center rounded-md border border-admin-danger/20 min-h-9 px-2 py-1 text-[11px] text-admin-danger hover:bg-admin-danger hover:text-white disabled:opacity-40">
                       <Trash2 className="size-3" aria-hidden="true" />
                     </button>
                   </form>
@@ -186,7 +186,7 @@ export function SectionsManager({
                     run(fd, updateBlock);
                     setEditingId(null);
                   }}
-                  className="grid gap-3 border-t border-[#17130f]/10 bg-white/40 p-4"
+                  className="grid gap-3 border-t border-admin-ink/10 bg-white/40 p-4"
                 >
                   <input type="hidden" name="id" value={block.id} />
                   <input type="hidden" name="page_slug" value={pageSlug} />
@@ -208,7 +208,7 @@ export function SectionsManager({
                     );
                   })}
                   {block.block_type === "gallery_strip" && (
-                    <p className="text-xs text-[#17130f]/50">
+                    <p className="text-xs text-admin-ink/50">
                       Shows up to 6 of your featured portfolio photos. Mark photos as featured in the
                       Portfolio manager.
                     </p>
@@ -217,7 +217,7 @@ export function SectionsManager({
                     <button
                       type="submit"
                       disabled={pending}
-                      className="inline-flex items-center gap-2 rounded-md bg-[#17130f] px-4 py-2 text-sm font-medium text-[#fbf8f1] disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-md bg-admin-ink px-4 py-2 text-sm font-medium text-admin-surface disabled:opacity-50"
                     >
                       Save section
                     </button>

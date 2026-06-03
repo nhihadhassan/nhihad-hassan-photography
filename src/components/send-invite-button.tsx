@@ -58,7 +58,7 @@ export function SendInviteButton({
           type="button"
           onClick={handleSend}
           disabled={isPending}
-          className="inline-flex min-h-10 items-center gap-2 rounded-md bg-[#17130f] px-4 text-sm font-medium text-[#fbf8f1] transition hover:bg-[#2e2822] disabled:opacity-60"
+          className="inline-flex min-h-10 items-center gap-2 rounded-md bg-admin-ink px-4 text-sm font-medium text-admin-surface transition hover:bg-[#2e2822] disabled:opacity-60"
         >
           {isPending ? (
             <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
@@ -69,7 +69,7 @@ export function SendInviteButton({
         </button>
 
         {sentLabel ? (
-          <span className="text-xs text-[#17130f]/45">{sentLabel}</span>
+          <span className="text-xs text-admin-ink/45">{sentLabel}</span>
         ) : null}
       </div>
 
@@ -78,7 +78,7 @@ export function SendInviteButton({
           className={
             result.ok
               ? "inline-flex items-center gap-2 rounded-md bg-[#2a4a2a]/20 px-3 py-2 text-sm text-[#3a6a3a]"
-              : "inline-flex items-center gap-2 rounded-md bg-[#8a2f24]/10 px-3 py-2 text-sm text-[#7a2e25]"
+              : "inline-flex items-center gap-2 rounded-md bg-admin-danger/10 px-3 py-2 text-sm text-admin-danger-ink"
           }
         >
           {result.ok ? (

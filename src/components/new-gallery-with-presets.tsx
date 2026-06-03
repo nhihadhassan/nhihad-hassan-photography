@@ -38,14 +38,14 @@ function PresetCard({ preset, selected, onSelect }: PresetCardProps) {
       className={[
         "rounded-md border p-4 text-left transition",
         selected
-          ? "border-[#9b744f] bg-[#b98257]/10 ring-1 ring-[#9b744f]/40"
-          : "border-[#17130f]/10 bg-[#fbf8f1] hover:border-[#17130f]/22 hover:bg-[#f6f2ea]",
+          ? "border-admin-accent bg-admin-copper/10 ring-1 ring-admin-accent/40"
+          : "border-admin-ink/10 bg-admin-surface hover:border-admin-ink/22 hover:bg-[#f6f2ea]",
       ].join(" ")}
     >
-      <p className={["text-sm font-medium", selected ? "text-[#9b744f]" : "text-[#17130f]"].join(" ")}>
+      <p className={["text-sm font-medium", selected ? "text-admin-accent" : "text-admin-ink"].join(" ")}>
         {preset.label}
       </p>
-      <p className="mt-0.5 text-xs text-[#17130f]/50">{preset.tagline}</p>
+      <p className="mt-0.5 text-xs text-admin-ink/50">{preset.tagline}</p>
     </button>
   );
 }
@@ -67,11 +67,11 @@ export function NewGalleryWithPresets() {
   return (
     <div>
       {/* Preset picker */}
-      <div className="rounded-md border border-[#17130f]/10 bg-[#f6f3ed] p-5 sm:p-6">
+      <div className="rounded-md border border-admin-ink/10 bg-[#f6f3ed] p-5 sm:p-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <div>
             <h2 className="text-base font-semibold tracking-tight">Start from a preset</h2>
-            <p className="mt-1 text-sm text-[#17130f]/55">
+            <p className="mt-1 text-sm text-admin-ink/55">
               Choose a template to pre-fill download settings, description, and expiry. You can edit everything after.
             </p>
           </div>
@@ -79,7 +79,7 @@ export function NewGalleryWithPresets() {
             <button
               type="button"
               onClick={() => handleSelect(null)}
-              className="text-xs text-[#17130f]/45 underline-offset-2 hover:text-[#17130f] hover:underline"
+              className="text-xs text-admin-ink/45 underline-offset-2 hover:text-admin-ink hover:underline"
             >
               Clear preset
             </button>
@@ -94,12 +94,12 @@ export function NewGalleryWithPresets() {
             className={[
               "rounded-md border p-4 text-left transition",
               selectedId === null
-                ? "border-[#17130f]/30 bg-[#17130f]/6 ring-1 ring-[#17130f]/20"
-                : "border-[#17130f]/10 bg-[#fbf8f1] hover:border-[#17130f]/22 hover:bg-[#f6f2ea]",
+                ? "border-admin-ink/30 bg-admin-ink/6 ring-1 ring-admin-ink/20"
+                : "border-admin-ink/10 bg-admin-surface hover:border-admin-ink/22 hover:bg-[#f6f2ea]",
             ].join(" ")}
           >
-            <p className="text-sm font-medium text-[#17130f]">Blank</p>
-            <p className="mt-0.5 text-xs text-[#17130f]/50">No preset defaults</p>
+            <p className="text-sm font-medium text-admin-ink">Blank</p>
+            <p className="mt-0.5 text-xs text-admin-ink/50">No preset defaults</p>
           </button>
 
           {galleryPresets.map((preset) => (
@@ -113,7 +113,7 @@ export function NewGalleryWithPresets() {
         </div>
 
         {selectedPreset ? (
-          <p className="mt-3 text-xs text-[#9b744f]">
+          <p className="mt-3 text-xs text-admin-accent">
             <span className="font-medium">{selectedPreset.label} preset applied.</span>{" "}
             All fields below are editable.
           </p>

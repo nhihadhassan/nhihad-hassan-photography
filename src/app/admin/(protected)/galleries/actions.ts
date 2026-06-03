@@ -210,6 +210,8 @@ export async function createGallery(
 
   revalidatePath("/admin");
   revalidatePath("/admin/galleries");
+  revalidatePath("/");
+  revalidatePath("/galleries");
   redirect(`/admin/galleries/${data.id}`);
 }
 
@@ -289,6 +291,8 @@ export async function updateGallery(
 
   revalidatePath("/admin");
   revalidatePath("/admin/galleries");
+  revalidatePath("/");
+  revalidatePath("/galleries");
   revalidatePath(`/admin/galleries/${id}`);
   revalidatePath(`/galleries/${parsed.data.slug}`);
 
@@ -313,6 +317,8 @@ export async function toggleGalleryPublished(formData: FormData) {
   await supabase.from("galleries").update({ is_published: nextValue }).eq("id", id);
   revalidatePath("/admin");
   revalidatePath("/admin/galleries");
+  revalidatePath("/");
+  revalidatePath("/galleries");
 }
 
 export async function toggleGalleryArchived(formData: FormData) {
@@ -323,6 +329,8 @@ export async function toggleGalleryArchived(formData: FormData) {
   await supabase.from("galleries").update({ is_archived: nextValue }).eq("id", id);
   revalidatePath("/admin");
   revalidatePath("/admin/galleries");
+  revalidatePath("/");
+  revalidatePath("/galleries");
 }
 
 export async function deleteGallery(formData: FormData) {
@@ -332,6 +340,8 @@ export async function deleteGallery(formData: FormData) {
   await supabase.from("galleries").delete().eq("id", id);
   revalidatePath("/admin");
   revalidatePath("/admin/galleries");
+  revalidatePath("/");
+  revalidatePath("/galleries");
   redirect("/admin/galleries");
 }
 

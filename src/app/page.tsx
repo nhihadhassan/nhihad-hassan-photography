@@ -11,6 +11,7 @@ import { InquiryCallout } from "@/components/inquiry-callout";
 import { brandConfig } from "@/lib/config";
 import { featuredGalleries, portfolioItems } from "@/data/photography";
 import { getFeaturedPortfolio } from "@/lib/portfolio";
+import { getPublicGalleryIndex } from "@/lib/public-gallery";
 import { getContent } from "@/lib/site-content";
 import { EditPencil } from "@/components/edit-mode";
 import { PageBlocks } from "@/components/page-blocks";
@@ -33,6 +34,22 @@ export const revalidate = 1800;
 
 export default async function Home() {
   const featuredPortfolio = await getFeaturedPortfolio(5);
+  // The two most recent public galleries, kept current automatically. Falls back
+  // to the static featured list only if no public galleries exist yet.
+  const dbGalleries = (await getPublicGalleryIndex()).slice(0, 2);
+  const recentGalleries =
+    dbGalleries.length > 0
+      ? dbGalleries
+      : featuredGalleries.map((g) => ({
+          slug: g.slug,
+          title: g.title,
+          date: g.date,
+          location: g.location,
+          description: g.description,
+          imageUrl: g.imageUrl,
+          alt: g.alt,
+          hasPassword: false,
+        }));
   const heroTagline = await getContent("home.hero.tagline");
   const selectedHeading = await getContent("home.selected.heading");
   const aboutHeading = await getContent("home.about.heading");
@@ -181,7 +198,7 @@ export default async function Home() {
               </div>
             </Reveal>
             <div className="grid gap-5 sm:grid-cols-2">
-              {featuredGalleries.map((gallery, index) => (
+              {recentGalleries.map((gallery, index) => (
                 <Reveal key={gallery.slug} delay={index * 0.06}>
                   <Link
                     href={`/galleries/${gallery.slug}`}
@@ -194,21 +211,30 @@ export default async function Home() {
                         fill
                         sizes="(min-width: 768px) 40vw, 100vw"
                         className="object-cover transition duration-700 group-hover:scale-[1.035]"
+                        unoptimized={gallery.imageUrl.startsWith("http")}
                       />
                     </div>
                     <div className="p-5">
-                      <div className="flex items-center gap-3 text-xs text-soft-white/52">
-                        <span className="inline-flex items-center gap-1.5">
-                          <CalendarDays className="size-3.5" aria-hidden="true" />
-                          {formatDisplayDate(gallery.date)}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <MapPin className="size-3.5" aria-hidden="true" />
-                          {gallery.location}
-                        </span>
-                      </div>
+                      {gallery.date || gallery.location ? (
+                        <div className="flex items-center gap-3 text-xs text-soft-white/55">
+                          {gallery.date ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              <CalendarDays className="size-3.5" aria-hidden="true" />
+                              {formatDisplayDate(gallery.date)}
+                            </span>
+                          ) : null}
+                          {gallery.location ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              <MapPin className="size-3.5" aria-hidden="true" />
+                              {gallery.location}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null}
                       <h3 className="mt-4 font-serif text-3xl text-soft-white">{gallery.title}</h3>
-                      <p className="mt-2 text-sm leading-6 text-soft-white/58">{gallery.description}</p>
+                      {gallery.description ? (
+                        <p className="mt-2 text-sm leading-6 text-soft-white/60">{gallery.description}</p>
+                      ) : null}
                     </div>
                   </Link>
                 </Reveal>

@@ -289,6 +289,7 @@ export type PublicGalleryCard = {
   title: string;
   date: string | null;
   location: string | null;
+  description: string | null;
   imageUrl: string;
   alt: string;
   hasPassword: boolean;
@@ -311,6 +312,7 @@ export async function getPublicGalleryIndex(): Promise<PublicGalleryCard[]> {
             title: mock.title,
             date: mock.date,
             location: mock.location,
+            description: mock.description,
             imageUrl: mock.imageUrl,
             alt: mock.alt,
             hasPassword: false,
@@ -323,7 +325,7 @@ export async function getPublicGalleryIndex(): Promise<PublicGalleryCard[]> {
   const { data, error } = await supabase
     .from("galleries")
     .select(
-      "id,title,slug,event_date,location,cover_image_url,cover_image_alt,cover_photo_id,expires_at,password_hash",
+      "id,title,slug,event_date,location,description,cover_image_url,cover_image_alt,cover_photo_id,expires_at,password_hash",
     )
     .eq("is_public", true)
     .eq("is_published", true)
@@ -385,6 +387,7 @@ export async function getPublicGalleryIndex(): Promise<PublicGalleryCard[]> {
         title: g.title as string,
         date: (g.event_date as string | null) ?? null,
         location: (g.location as string | null) ?? null,
+        description: (g.description as string | null) ?? null,
         imageUrl,
         alt,
         hasPassword: Boolean(g.password_hash),

@@ -62,7 +62,7 @@ function ImageBlock({ block }: { block: PageBlock }) {
       <Reveal className="mx-auto max-w-5xl">
         {/* Admin-provided URL — use a plain img to avoid remote-pattern limits. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imageUrl} alt={alt} className="w-full rounded-[2px]" />
+        <img src={imageUrl} alt={alt} loading="lazy" decoding="async" className="w-full rounded-[2px]" />
         {caption ? (
           <p className="mt-3 text-center text-sm text-soft-white/55">{caption}</p>
         ) : null}

@@ -35,9 +35,9 @@ export const revalidate = 1800;
 
 export default async function Home() {
   const featuredPortfolio = await getFeaturedPortfolio(5);
-  // The two most recent public galleries, kept current automatically. Falls back
-  // to the static featured list only if no public galleries exist yet.
-  const dbGalleries = (await getPublicGalleryIndex()).slice(0, 2);
+  // The three most recent public galleries, kept current automatically. Falls
+  // back to the static featured list only if no public galleries exist yet.
+  const dbGalleries = (await getPublicGalleryIndex()).slice(0, 3);
   const recentGalleries =
     dbGalleries.length > 0
       ? dbGalleries
@@ -162,21 +162,21 @@ export default async function Home() {
         </section>
 
         <section className="bg-charcoal px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-          <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.7fr_1fr]">
+          <div className="mx-auto max-w-7xl">
             <Reveal>
-              <div>
+              <div className="max-w-2xl">
                 <p className="text-xs uppercase tracking-[0.2em] text-copper">Client galleries</p>
                 <h2 className="mt-4 font-serif text-5xl leading-[0.96] text-soft-white sm:text-6xl">
                   Your photos, delivered in a gallery worth opening.
                 </h2>
               </div>
             </Reveal>
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="mt-12 grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
               {recentGalleries.map((gallery, index) => (
                 <Reveal key={gallery.slug} delay={index * 0.06}>
                   <Link
                     href={`/galleries/${gallery.slug}`}
-                    className="group block overflow-hidden rounded-[2px] border border-soft-white/10 bg-soft-white/5"
+                    className="group block h-full overflow-hidden rounded-[2px] border border-soft-white/10 bg-soft-white/5"
                   >
                     <div className="relative aspect-[4/3] overflow-hidden bg-soft-white/8">
                       <Image

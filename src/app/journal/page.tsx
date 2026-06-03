@@ -40,14 +40,9 @@ export default function JournalPage() {
         <section className="border-b border-soft-white/10 px-5 py-16 lg:px-8">
           <div className="mx-auto max-w-3xl">
             <Reveal>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-copper">Journal</p>
-              <h1 className="mt-4 font-serif text-5xl font-medium leading-tight tracking-tight sm:text-6xl">
-                Notes on photography.
+              <h1 className="font-serif text-5xl font-medium leading-tight tracking-tight sm:text-6xl">
+                Journal
               </h1>
-              <p className="mt-4 text-base leading-relaxed text-soft-white/62">
-                Location guides, session tips, and the occasional behind-the-scenes thought.
-                Not a content farm. Just useful things worth writing down.
-              </p>
             </Reveal>
           </div>
         </section>

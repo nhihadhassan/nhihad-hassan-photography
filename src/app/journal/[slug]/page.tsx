@@ -50,11 +50,11 @@ function formatDate(iso: string) {
 
 /**
  * Very lightweight markdown-lite renderer.
- * Supports: **bold**, paragraph breaks.
- * Not a full MDX pipeline — keep posts simple.
+ * Supports: **bold** inline, paragraph breaks, and inline images via a marker:
+ *   [img:portfolio-item-id|optional caption]
+ * which pulls the photo from the portfolio. Not a full MDX pipeline.
  */
 function renderParagraph(text: string, key: number) {
-  // **bold** → <strong>
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   const nodes = parts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
@@ -67,6 +67,34 @@ function renderParagraph(text: string, key: number) {
       {nodes}
     </p>
   );
+}
+
+function renderBlock(text: string, key: number) {
+  const img = text.match(/^\[img:([a-z0-9-]+)(?:\|(.+))?\]$/);
+  if (img) {
+    const item = portfolioItems.find((p) => p.id === img[1]);
+    if (!item) return null;
+    const caption = img[2]?.trim();
+    return (
+      <figure key={key} className="my-9 first:mt-0">
+        <div className="relative aspect-[3/2] overflow-hidden rounded-[2px] bg-soft-white/8">
+          <Image
+            src={item.imageUrl}
+            alt={caption || item.alt}
+            fill
+            sizes="(min-width: 672px) 672px, 100vw"
+            className="object-cover"
+          />
+        </div>
+        {caption ? (
+          <figcaption className="mt-2.5 text-center text-xs italic text-soft-white/55">
+            {caption}
+          </figcaption>
+        ) : null}
+      </figure>
+    );
+  }
+  return renderParagraph(text, key);
 }
 
 export default async function JournalPostPage({ params }: Props) {
@@ -137,7 +165,7 @@ export default async function JournalPostPage({ params }: Props) {
 
           <Reveal delay={0.1}>
             <div className="mt-10 border-t border-soft-white/10 pt-10 text-[1.0625rem]">
-              {post.body.map((paragraph, i) => renderParagraph(paragraph, i))}
+              {post.body.map((block, i) => renderBlock(block, i))}
             </div>
 
             <div className="mt-12 border-t border-soft-white/10 pt-8">

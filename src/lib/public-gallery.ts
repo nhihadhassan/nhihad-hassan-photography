@@ -76,12 +76,17 @@ function mockToPublicPhoto(item: PortfolioItem): PublicGalleryPhoto {
   };
 }
 
-function realToPublicPhoto(photo: PhotoWithUrls): PublicGalleryPhoto {
+function realToPublicPhoto(
+  photo: PhotoWithUrls,
+  galleryTitle?: string,
+  index = 0,
+): PublicGalleryPhoto {
   return {
     id: photo.id,
     imageUrl: photo.display_url,
     thumbnailUrl: photo.thumbnail_url || photo.display_url,
-    alt: photo.filename,
+    // Human alt instead of the raw uploaded filename.
+    alt: galleryTitle ? `${galleryTitle}, photo ${index + 1}` : `Photo ${index + 1}`,
     width: photo.width,
     height: photo.height,
     orientation: orientationFromDims(photo.width, photo.height),
@@ -248,7 +253,9 @@ export async function getPublishedGalleryBySlug(slug: string): Promise<PublicGal
     }
   }
 
-  const photos: PublicGalleryPhoto[] = realPhotos.map(realToPublicPhoto);
+  const photos: PublicGalleryPhoto[] = realPhotos.map((p, i) =>
+    realToPublicPhoto(p, gallery.title, i),
+  );
 
   return {
     id: gallery.id,

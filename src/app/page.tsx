@@ -214,6 +214,15 @@ export default async function Home() {
                 </Reveal>
               ))}
             </div>
+            <div className="mt-10 flex justify-center">
+              <Link
+                href="/galleries"
+                className="inline-flex items-center gap-2 rounded-full border border-soft-white/20 px-6 py-2.5 text-xs uppercase tracking-[0.18em] text-soft-white/80 transition hover:border-copper hover:text-copper"
+              >
+                View all galleries
+                <ArrowRight className="size-3.5" aria-hidden="true" />
+              </Link>
+            </div>
           </div>
         </section>
 

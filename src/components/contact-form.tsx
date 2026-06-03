@@ -87,7 +87,7 @@ export function ContactForm() {
 
       {/* Secondary, optional details kept visually lighter. */}
       <div className="mt-1 border-t border-ink/10 pt-5">
-        <p className="text-xs uppercase tracking-[0.18em] text-ink/45">Optional details</p>
+        <p className="text-xs uppercase tracking-[0.18em] text-ink/60">Optional details</p>
         <div className="mt-4 grid gap-5 md:grid-cols-2">
           <label className="grid gap-2">
             <span className="text-sm font-medium text-ink/75">Phone</span>
@@ -123,7 +123,7 @@ export function ContactForm() {
           <Send className="size-4" aria-hidden="true" />
           {pending ? "Sending" : "Send inquiry"}
         </Button>
-        <p className="inline-flex items-center gap-1.5 text-xs text-ink/45">
+        <p className="inline-flex items-center gap-1.5 text-xs text-ink/60">
           <ArrowDown className="size-3.5" aria-hidden="true" />
           Check availability below
         </p>

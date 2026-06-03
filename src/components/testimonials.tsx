@@ -46,8 +46,8 @@ export function Testimonials({
     ? "text-sm font-medium text-soft-white"
     : "text-sm font-medium text-ink";
   const metaSecondaryClass = isDark
-    ? "text-xs uppercase tracking-[0.18em] text-soft-white/55"
-    : "text-xs uppercase tracking-[0.18em] text-ink/55";
+    ? "text-xs uppercase tracking-[0.18em] text-soft-white/60"
+    : "text-xs uppercase tracking-[0.18em] text-ink/60";
 
   return (
     <section className={sectionClass}>

@@ -108,7 +108,7 @@ function MonthGrid({
         {MONTH_NAMES[month]} <span className="text-soft-white/55">{year}</span>
       </h3>
 
-      <div className="mt-5 grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-[0.16em] text-soft-white/45">
+      <div className="mt-5 grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-[0.16em] text-soft-white/60">
         {DAY_HEADERS.map((d, i) => (
           <div key={i} className="py-1">
             {d}
@@ -184,7 +184,7 @@ function DayCell({
   // Number color reacts to overall state.
   let numberClass = "text-soft-white/85";
   if (isPast) numberClass = "text-soft-white/25";
-  else if (fullyHeld) numberClass = "text-soft-white/35 line-through";
+  else if (fullyHeld) numberClass = "text-soft-white/50 line-through";
   else if (fullyTentative) numberClass = "text-soft-white/65";
 
   // Container styling: selected wins, then available days get a copper
@@ -256,7 +256,7 @@ function SlotIndicator({ state, selected }: { state: SlotStatus; selected: boole
 function Legend() {
   return (
     <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-soft-white/55">
-      <span className="text-soft-white/40">Slots: day · night</span>
+      <span className="text-soft-white/60">Slots: day · night</span>
       <span className="inline-flex items-center gap-1.5">
         <span className="block h-1 w-3 rounded-[1px] bg-copper/80" aria-hidden="true" />
         Open

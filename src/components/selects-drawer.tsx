@@ -120,7 +120,7 @@ export function SelectsDrawer({ slug, photos, downloadEnabled = false }: Selects
           >
             <header className="flex items-center justify-between gap-4 border-b border-ink/10 px-5 py-4 sm:px-6">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-ink/55">My selects</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-ink/60">My selects</p>
                 <h2 className="mt-1 font-serif text-2xl leading-none">
                   {submitted
                     ? "Sent"
@@ -161,7 +161,7 @@ export function SelectsDrawer({ slug, photos, downloadEnabled = false }: Selects
               <>
                 <div className="flex-1 overflow-y-auto px-5 pt-4 sm:px-6">
                   {selectedPhotos.length === 0 ? (
-                    <p className="mt-8 text-center text-sm text-ink/55">
+                    <p className="mt-8 text-center text-sm text-ink/60">
                       Tap the heart on any photo to add it to your selects.
                     </p>
                   ) : (
@@ -206,7 +206,7 @@ export function SelectsDrawer({ slug, photos, downloadEnabled = false }: Selects
                     {selectedPhotos.map((p) => (
                       <input key={p.id} type="hidden" name="photo_ids" value={p.id} />
                     ))}
-                    <p className="text-xs text-ink/55">
+                    <p className="text-xs text-ink/60">
                       Download your selects as a ZIP. No need to send them first.
                     </p>
                     <button

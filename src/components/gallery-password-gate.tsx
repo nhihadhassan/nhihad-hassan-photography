@@ -54,7 +54,7 @@ export function GalleryPasswordGate({
           required
           minLength={1}
           placeholder="Password"
-          className="min-h-12 rounded-[2px] border border-soft-white/16 bg-ink/55 px-4 text-sm text-soft-white placeholder:text-soft-white/35 focus:border-copper focus:outline-none"
+          className="min-h-12 rounded-[2px] border border-soft-white/16 bg-ink/55 px-4 text-sm text-soft-white placeholder:text-soft-white/55 focus:border-copper focus:outline-none"
         />
       </label>
 

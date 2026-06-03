@@ -46,7 +46,7 @@ export function GalleryContent({ gallery }: { gallery: PublicGallery }) {
         <section className="mx-auto max-w-7xl py-12 md:py-16">
           <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
-              <a href="#cover" className="text-sm text-ink/55 hover:text-ink">
+              <a href="#cover" className="text-sm text-ink/65 hover:text-ink">
                 Back to cover
               </a>
               <h1 className="mt-6 font-display font-extrabold uppercase leading-tight tracking-[-0.01em] text-2xl sm:text-3xl lg:text-4xl xl:text-[2.5rem]">{gallery.title}</h1>

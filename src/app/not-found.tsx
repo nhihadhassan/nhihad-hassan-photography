@@ -24,7 +24,7 @@ export default function NotFound() {
             Portfolio
           </ButtonLink>
         </div>
-        <p className="mt-12 text-xs text-soft-white/30">{brandConfig.name}</p>
+        <p className="mt-12 text-xs text-soft-white/55">{brandConfig.name}</p>
       </main>
       <SiteFooter />
     </div>

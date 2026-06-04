@@ -21,7 +21,7 @@ export default async function AdminSettingsPage() {
   const { data: settings } = await supabase
     .from("site_settings")
     .select(
-      "brand_name,tagline,contact_email,contact_phone,instagram_primary,instagram_secondary,about_text,seo_title,seo_description,theme_serif_font,theme_accent_hex",
+      "brand_name,tagline,contact_email,contact_phone,instagram_primary,instagram_secondary,about_text,seo_title,seo_description,seo_google_verification,theme_serif_font,theme_accent_hex",
     )
     .limit(1)
     .maybeSingle();
@@ -80,6 +80,18 @@ export default async function AdminSettingsPage() {
           <label className={`${labelClass} sm:col-span-2`}>
             SEO description <span className="font-normal text-admin-ink/40">(search + link previews)</span>
             <textarea className={textareaClass} name="seo_description" defaultValue={v("seo_description")} placeholder={brandConfig.tagline} />
+          </label>
+          <label className={`${labelClass} sm:col-span-2`}>
+            Google verification code{" "}
+            <span className="font-normal text-admin-ink/40">
+              (from Google Search Console, the content value of the meta tag)
+            </span>
+            <input
+              className={inputClass}
+              name="seo_google_verification"
+              defaultValue={v("seo_google_verification")}
+              placeholder="e.g. AbCdEf123..."
+            />
           </label>
         </div>
         <div className="mt-5">

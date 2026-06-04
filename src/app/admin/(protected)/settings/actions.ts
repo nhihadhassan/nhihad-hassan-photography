@@ -24,6 +24,7 @@ export async function updateSiteSettings(formData: FormData) {
     about_text: clean(formData.get("about_text")),
     seo_title: clean(formData.get("seo_title")),
     seo_description: clean(formData.get("seo_description")),
+    seo_google_verification: clean(formData.get("seo_google_verification")),
     updated_at: new Date().toISOString(),
   };
 

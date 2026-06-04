@@ -46,6 +46,9 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${settings.brandName}`,
     },
     description,
+    ...(settings.googleVerification
+      ? { verification: { google: settings.googleVerification } }
+      : {}),
     openGraph: {
       title,
       description,
@@ -63,19 +66,43 @@ export default async function RootLayout({
   const settings = await getSiteSettings();
   const organizationSchema = {
     "@context": "https://schema.org",
-    "@type": "Photographer",
+    "@type": ["Photographer", "LocalBusiness"],
     name: settings.brandName,
     url: SITE_URL,
     image: `${SITE_URL}/opengraph-image.png`,
+    logo: `${SITE_URL}/icon.png`,
     email: settings.contactEmail,
+    ...(settings.contactPhone ? { telephone: settings.contactPhone } : {}),
     description: settings.tagline,
+    priceRange: "$$",
     address: {
       "@type": "PostalAddress",
       addressLocality: "Toronto",
       addressRegion: "ON",
       addressCountry: "CA",
     },
-    areaServed: "Toronto, Ontario",
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 43.6532,
+      longitude: -79.3832,
+    },
+    areaServed: [
+      "Toronto",
+      "Greater Toronto Area",
+      "Etobicoke",
+      "North York",
+      "Scarborough",
+      "Mississauga",
+      "Markham",
+      "Vaughan",
+      "Ontario",
+    ],
+    knowsAbout: [
+      "Wedding photography",
+      "Engagement photography",
+      "Portrait photography",
+      "Event photography",
+    ],
     sameAs: settings.instagram.map((account) => account.href),
   };
   const websiteSchema = {

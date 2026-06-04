@@ -1,10 +1,10 @@
 import type { MetadataRoute } from "next";
 import { categoryLabels } from "@/data/photography";
-import { journalPosts } from "@/data/journal";
+import { getPublicJournalPosts } from "@/lib/journal";
 
 const SITE_URL = "https://nhihadhassan.ca";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date().toISOString();
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -55,14 +55,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }),
   );
 
-  const journalRoutes: MetadataRoute.Sitemap = journalPosts
-    .filter((post) => post.published)
-    .map((post) => ({
-      url: `${SITE_URL}/journal/${post.slug}`,
-      lastModified: post.updatedAt ?? post.date,
-      changeFrequency: "yearly" as const,
-      priority: 0.5,
-    }));
+  // Published posts come from the database (with a static fallback baked in),
+  // so newly written or imported posts are discoverable by search engines.
+  const posts = await getPublicJournalPosts();
+  const journalRoutes: MetadataRoute.Sitemap = posts.map((post) => ({
+    url: `${SITE_URL}/journal/${post.slug}`,
+    lastModified: post.date,
+    changeFrequency: "yearly" as const,
+    priority: 0.5,
+  }));
 
   return [...staticRoutes, ...categoryRoutes, ...journalRoutes];
 }

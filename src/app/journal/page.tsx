@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { InquiryCallout } from "@/components/inquiry-callout";
+import { EditPencil } from "@/components/edit-mode";
 import { getPublicJournalPosts } from "@/lib/journal";
 import { brandConfig } from "@/lib/config";
 
@@ -39,9 +40,12 @@ export default async function JournalPage() {
         <section className="border-b border-soft-white/10 px-5 py-16 lg:px-8">
           <div className="mx-auto max-w-3xl">
             <Reveal>
-              <h1 className="font-serif text-5xl font-medium leading-tight tracking-tight sm:text-6xl">
-                Journal
-              </h1>
+              <div className="flex items-center justify-between gap-4">
+                <h1 className="font-serif text-5xl font-medium leading-tight tracking-tight sm:text-6xl">
+                  Journal
+                </h1>
+                <EditPencil href="/admin/journal" label="Manage journal" />
+              </div>
             </Reveal>
           </div>
         </section>

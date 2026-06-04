@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { InquiryCallout } from "@/components/inquiry-callout";
 import { JournalBlocks } from "@/components/journal-blocks";
+import { EditPencil } from "@/components/edit-mode";
 import { getPublicJournalPost, getPublishedJournalSlugs } from "@/lib/journal";
 import { brandConfig } from "@/lib/config";
 
@@ -90,13 +91,16 @@ export default async function JournalPostPage({ params }: Props) {
 
         <article className="mx-auto max-w-2xl px-5 py-14 lg:px-8">
           <Reveal>
-            <Link
-              href="/journal"
-              className="inline-flex items-center gap-1.5 text-sm text-soft-white/55 hover:text-soft-white"
-            >
-              <ArrowLeft className="size-3.5" aria-hidden="true" />
-              Journal
-            </Link>
+            <div className="flex items-center justify-between gap-3">
+              <Link
+                href="/journal"
+                className="inline-flex items-center gap-1.5 text-sm text-soft-white/55 hover:text-soft-white"
+              >
+                <ArrowLeft className="size-3.5" aria-hidden="true" />
+                Journal
+              </Link>
+              <EditPencil href={`/admin/journal/by-slug/${post.slug}`} label="Edit post" />
+            </div>
 
             <div className="mt-6">
               <p className="text-xs text-soft-white/60">{formatDate(post.date)}</p>

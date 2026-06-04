@@ -7,27 +7,23 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { InquiryCallout } from "@/components/inquiry-callout";
-import { journalPosts } from "@/data/journal";
-import { portfolioItems } from "@/data/photography";
+import { JournalBlocks } from "@/components/journal-blocks";
+import { getPublicJournalPost, getPublishedJournalSlugs } from "@/lib/journal";
 import { brandConfig } from "@/lib/config";
 
 type Props = { params: Promise<{ slug: string }> };
 
+// Cover and inline images can be signed R2 URLs; re-render within the TTL.
+export const revalidate = 1800;
+
 export async function generateStaticParams() {
-  return journalPosts
-    .filter((p) => p.published)
-    .map((p) => ({ slug: p.slug }));
+  return (await getPublishedJournalSlugs()).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = journalPosts.find((p) => p.slug === slug && p.published);
+  const post = await getPublicJournalPost(slug);
   if (!post) return { title: "Not Found" };
-
-  const cover = post.coverImageId
-    ? portfolioItems.find((p) => p.id === post.coverImageId)
-    : null;
-
   return {
     title: post.title,
     description: post.excerpt,
@@ -35,77 +31,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${post.title} | ${brandConfig.name}`,
       description: post.excerpt,
       type: "article",
-      ...(cover ? { images: [{ url: cover.imageUrl, alt: cover.alt }] } : {}),
+      ...(post.coverUrl ? { images: [{ url: post.coverUrl, alt: post.coverAlt }] } : {}),
     },
   };
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-CA", {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString("en-CA", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
 }
 
-/**
- * Very lightweight markdown-lite renderer.
- * Supports: **bold** inline, paragraph breaks, and inline images via a marker:
- *   [img:portfolio-item-id|optional caption]
- * which pulls the photo from the portfolio. Not a full MDX pipeline.
- */
-function renderParagraph(text: string, key: number) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  const nodes = parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>;
-    }
-    return part;
-  });
-  return (
-    <p key={key} className="mt-5 leading-[1.85] text-soft-white/75 first:mt-0">
-      {nodes}
-    </p>
-  );
-}
-
-function renderBlock(text: string, key: number) {
-  const img = text.match(/^\[img:([a-z0-9-]+)(?:\|(.+))?\]$/);
-  if (img) {
-    const item = portfolioItems.find((p) => p.id === img[1]);
-    if (!item) return null;
-    const caption = img[2]?.trim();
-    return (
-      <figure key={key} className="my-9 first:mt-0">
-        <div className="relative aspect-[3/2] overflow-hidden rounded-[2px] bg-soft-white/8">
-          <Image
-            src={item.imageUrl}
-            alt={caption || item.alt}
-            fill
-            sizes="(min-width: 672px) 672px, 100vw"
-            className="object-cover"
-          />
-        </div>
-        {caption ? (
-          <figcaption className="mt-2.5 text-center text-xs italic text-soft-white/55">
-            {caption}
-          </figcaption>
-        ) : null}
-      </figure>
-    );
-  }
-  return renderParagraph(text, key);
-}
-
 export default async function JournalPostPage({ params }: Props) {
   const { slug } = await params;
-  const post = journalPosts.find((p) => p.slug === slug && p.published);
-
+  const post = await getPublicJournalPost(slug);
   if (!post) notFound();
-
-  const cover = post.coverImageId
-    ? portfolioItems.find((p) => p.id === post.coverImageId)
-    : null;
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -113,15 +55,17 @@ export default async function JournalPostPage({ params }: Props) {
     headline: post.title,
     description: post.excerpt,
     datePublished: post.date,
-    ...(post.updatedAt ? { dateModified: post.updatedAt } : {}),
     author: { "@type": "Organization", name: brandConfig.name },
     publisher: { "@type": "Organization", name: brandConfig.name },
-    ...(cover ? { image: `https://nhihadhassan.ca${cover.imageUrl}` } : {}),
+    ...(post.coverUrl ? { image: post.coverUrl } : {}),
     mainEntityOfPage: `https://nhihadhassan.ca/journal/${post.slug}`,
   };
 
+  // Per-post accent override (Phase C), scoped to this article.
+  const accentStyle = post.accentHex ? ({ "--copper": post.accentHex } as React.CSSProperties) : undefined;
+
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-ink text-soft-white">
+    <div className="flex min-h-[100dvh] flex-col bg-ink text-soft-white" style={accentStyle}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
@@ -129,16 +73,16 @@ export default async function JournalPostPage({ params }: Props) {
       <SiteHeader />
 
       <main className="flex-1 pt-40">
-        {/* Cover image */}
-        {cover ? (
+        {post.coverUrl ? (
           <div className="relative h-64 w-full overflow-hidden bg-soft-white/10 sm:h-80 lg:h-96">
             <Image
-              src={cover.imageUrl}
-              alt={cover.alt}
+              src={post.coverUrl}
+              alt={post.coverAlt}
               fill
               className="object-cover"
               sizes="100vw"
               priority
+              unoptimized={post.coverUrl.startsWith("http")}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/40" />
           </div>
@@ -159,13 +103,15 @@ export default async function JournalPostPage({ params }: Props) {
               <h1 className="mt-3 font-serif text-4xl font-medium leading-tight tracking-tight sm:text-5xl">
                 {post.title}
               </h1>
-              <p className="mt-3 text-base leading-relaxed text-soft-white/60">{post.excerpt}</p>
+              {post.excerpt ? (
+                <p className="mt-3 text-base leading-relaxed text-soft-white/60">{post.excerpt}</p>
+              ) : null}
             </div>
           </Reveal>
 
           <Reveal delay={0.1}>
-            <div className="mt-10 border-t border-soft-white/10 pt-10 text-[1.0625rem]">
-              {post.body.map((block, i) => renderBlock(block, i))}
+            <div className="mt-10 border-t border-soft-white/10 pt-10">
+              <JournalBlocks blocks={post.blocks} bodyFont={post.bodyFont} />
             </div>
 
             <div className="mt-12 border-t border-soft-white/10 pt-8">

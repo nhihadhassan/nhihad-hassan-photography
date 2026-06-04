@@ -73,6 +73,21 @@ export function buildPortfolioKey({
   return `portfolio/${variant}/${randomUUID()}-${safeFilename}`;
 }
 
+/**
+ * Object key for journal post images, not tied to a gallery. Keys live under
+ * `journal/{variant}/...` and reuse the same variant folders.
+ */
+export function buildJournalKey({
+  variant,
+  filename,
+}: {
+  variant: PhotoVariant;
+  filename: string;
+}) {
+  const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-120);
+  return `journal/${variant}/${randomUUID()}-${safeFilename}`;
+}
+
 export async function uploadToR2({
   key,
   body,

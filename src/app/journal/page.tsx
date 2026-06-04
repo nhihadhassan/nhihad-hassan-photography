@@ -5,9 +5,11 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { InquiryCallout } from "@/components/inquiry-callout";
-import { journalPosts } from "@/data/journal";
-import { portfolioItems } from "@/data/photography";
+import { getPublicJournalPosts } from "@/lib/journal";
 import { brandConfig } from "@/lib/config";
+
+// Covers can be signed R2 URLs; re-render within the TTL.
+export const revalidate = 1800;
 
 export const metadata: Metadata = {
   title: "Journal",
@@ -18,19 +20,16 @@ export const metadata: Metadata = {
   },
 };
 
-const published = journalPosts.filter((p) => p.published).sort(
-  (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-);
-
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-CA", {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString("en-CA", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
 }
 
-export default function JournalPage() {
+export default async function JournalPage() {
+  const published = await getPublicJournalPosts();
   return (
     <div className="flex min-h-[100dvh] flex-col bg-ink text-soft-white">
       <SiteHeader />
@@ -57,22 +56,19 @@ export default function JournalPage() {
             ) : (
               <div className="divide-y divide-soft-white/10">
                 {published.map((post, i) => {
-                  const cover = post.coverImageId
-                    ? portfolioItems.find((p) => p.id === post.coverImageId)
-                    : null;
-
                   return (
                     <Reveal key={post.slug} delay={i * 0.05}>
                       <article className="group py-8">
                         <Link href={`/journal/${post.slug}`} className="flex gap-6">
-                          {cover ? (
+                          {post.coverUrl ? (
                             <div className="relative hidden h-24 w-36 shrink-0 overflow-hidden rounded-sm sm:block">
                               <Image
-                                src={cover.imageUrl}
-                                alt={cover.alt}
+                                src={post.coverUrl}
+                                alt={post.coverAlt}
                                 fill
                                 className="object-cover transition duration-500 group-hover:scale-[1.04]"
                                 sizes="144px"
+                                unoptimized={post.coverUrl.startsWith("http")}
                               />
                             </div>
                           ) : null}

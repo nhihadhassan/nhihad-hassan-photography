@@ -8,8 +8,9 @@ import { Reveal } from "@/components/reveal";
 import { InquiryCallout } from "@/components/inquiry-callout";
 import { getPublicGalleryIndex } from "@/lib/public-gallery";
 import { formatDisplayDate } from "@/lib/utils";
+import { withDefaultSocialImages } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withDefaultSocialImages({
   title: "Galleries",
   description:
     "Browse client galleries from Nhihad Hassan Photography, a Toronto-based wedding, couples, and event photographer.",
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
     description:
       "A selection of client galleries from weddings, couples, and events around Toronto.",
   },
-};
+});
 
 // Cover URLs are signed and time-limited, so this page must render per request.
 export const dynamic = "force-dynamic";

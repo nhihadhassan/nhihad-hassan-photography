@@ -11,6 +11,7 @@ import { JournalBlocks } from "@/components/journal-blocks";
 import { EditPencil } from "@/components/edit-mode";
 import { getPublicJournalPost, getPublishedJournalSlugs } from "@/lib/journal";
 import { brandConfig } from "@/lib/config";
+import { siteUrl, withDefaultSocialImages } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPublicJournalPost(slug);
   if (!post) return { title: "Not Found" };
-  return {
+  return withDefaultSocialImages({
     title: post.title,
     description: post.excerpt,
     openGraph: {
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       ...(post.coverUrl ? { images: [{ url: post.coverUrl, alt: post.coverAlt }] } : {}),
     },
-  };
+  });
 }
 
 function formatDate(iso: string) {
@@ -59,7 +60,7 @@ export default async function JournalPostPage({ params }: Props) {
     author: { "@type": "Organization", name: brandConfig.name },
     publisher: { "@type": "Organization", name: brandConfig.name },
     ...(post.coverUrl ? { image: post.coverUrl } : {}),
-    mainEntityOfPage: `https://nhihadhassan.ca/journal/${post.slug}`,
+    mainEntityOfPage: `${siteUrl}/journal/${post.slug}`,
   };
 
   // Per-post accent override (Phase C), scoped to this article.

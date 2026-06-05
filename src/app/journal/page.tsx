@@ -8,18 +8,19 @@ import { InquiryCallout } from "@/components/inquiry-callout";
 import { EditPencil } from "@/components/edit-mode";
 import { getPublicJournalPosts } from "@/lib/journal";
 import { brandConfig } from "@/lib/config";
+import { withDefaultSocialImages } from "@/lib/seo";
 
 // Covers can be signed R2 URLs; re-render within the TTL.
 export const revalidate = 1800;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withDefaultSocialImages({
   title: "Journal",
   description: `Photography notes, tips, and location guides from ${brandConfig.name}, Toronto-based photographer.`,
   openGraph: {
     title: `Journal | ${brandConfig.name}`,
     description: "Photography notes, location guides, and session tips.",
   },
-};
+});
 
 function formatDate(iso: string) {
   return new Date(`${iso}T12:00:00`).toLocaleDateString("en-CA", {

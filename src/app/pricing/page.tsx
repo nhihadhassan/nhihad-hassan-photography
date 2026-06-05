@@ -9,8 +9,9 @@ import { PricingTierCard } from "@/components/pricing-tier-card";
 import { HowBookingWorks } from "@/components/how-booking-works";
 import { pricingCategories } from "@/data/pricing";
 import { brandConfig } from "@/lib/config";
+import { withDefaultSocialImages } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withDefaultSocialImages({
   title: "Pricing",
   description:
     "Photography rates for weddings, couples, events, portraits, and nightlife in Toronto. Booked by inquiry, deposit by Interac e-Transfer.",
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
     description:
       "Wedding, couples, event, portrait, and nightlife photography rates for Toronto and Ontario.",
   },
-};
+});
 
 export default function PricingPage() {
   return (

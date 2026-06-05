@@ -5,6 +5,7 @@ import { brandConfig } from "@/lib/config";
 import { getShareLinkByToken } from "@/lib/share-links";
 import { hasServiceRoleKey } from "@/lib/env";
 import { SharePhotoViewer } from "@/components/share-photo-viewer";
+import { withDefaultSocialImages } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -17,11 +18,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const link = await getShareLinkByToken(token);
   if (!link) return { title: "Not Found" };
 
-  return {
+  return withDefaultSocialImages({
     title: link.title,
     description: `${link.photos.length} curated photos shared by ${brandConfig.name}.`,
     robots: { index: false, follow: false },
-  };
+  });
 }
 
 export default async function SharePage({ params }: Props) {

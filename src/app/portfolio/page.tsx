@@ -8,8 +8,9 @@ import { InquiryCallout } from "@/components/inquiry-callout";
 import { EditPencil } from "@/components/edit-mode";
 import { categoryLabels } from "@/data/photography";
 import { getPublicPortfolio } from "@/lib/portfolio";
+import { withDefaultSocialImages } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withDefaultSocialImages({
   title: "Portfolio",
   description:
     "Weddings, couples, events, nightlife, portraits, and lifestyle photography by Nhihad Hassan, Toronto-based photographer.",
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
     description:
       "Browse work across weddings, couples, portraits, events, and nightlife. Based in Toronto.",
   },
-};
+});
 
 // Cover URLs are signed and time-limited; re-render comfortably within the TTL.
 export const revalidate = 1800;
@@ -67,4 +68,3 @@ export default async function PortfolioPage() {
     </div>
   );
 }
-

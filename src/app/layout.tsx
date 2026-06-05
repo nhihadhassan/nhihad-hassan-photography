@@ -4,8 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { getSiteSettings } from "@/lib/site-settings";
 import { EditModeProvider } from "@/components/edit-mode";
-
-const SITE_URL = "https://nhihadhassan.ca";
+import { defaultOgImage, defaultTwitterImage, siteUrl } from "@/lib/seo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,20 +39,32 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = settings.seoTitle ?? settings.brandName;
   const description = settings.seoDescription ?? settings.tagline;
   return {
-    metadataBase: new URL(SITE_URL),
+    metadataBase: new URL(siteUrl),
     title: {
       default: title,
       template: `%s | ${settings.brandName}`,
     },
     description,
+    alternates: {
+      canonical: "/",
+    },
     ...(settings.googleVerification
       ? { verification: { google: settings.googleVerification } }
       : {}),
     openGraph: {
       title,
       description,
+      url: siteUrl,
+      siteName: settings.brandName,
       type: "website",
       locale: "en_CA",
+      images: [defaultOgImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [defaultTwitterImage],
     },
   };
 }
@@ -68,9 +79,9 @@ export default async function RootLayout({
     "@context": "https://schema.org",
     "@type": ["Photographer", "LocalBusiness"],
     name: settings.brandName,
-    url: SITE_URL,
-    image: `${SITE_URL}/opengraph-image.png`,
-    logo: `${SITE_URL}/icon.png`,
+    url: siteUrl,
+    image: `${siteUrl}/opengraph-image.png`,
+    logo: `${siteUrl}/icon.png`,
     email: settings.contactEmail,
     ...(settings.contactPhone ? { telephone: settings.contactPhone } : {}),
     description: settings.tagline,
@@ -109,7 +120,7 @@ export default async function RootLayout({
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: settings.brandName,
-    url: SITE_URL,
+    url: siteUrl,
   };
 
   // Curated theme overrides: re-point the serif font and accent token site-wide.

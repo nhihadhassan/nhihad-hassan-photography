@@ -10,8 +10,9 @@ import { SelectedDateProvider } from "@/components/selected-date-context";
 import { EditPencil } from "@/components/edit-mode";
 import { getSiteSettings } from "@/lib/site-settings";
 import { getContent } from "@/lib/site-content";
+import { withDefaultSocialImages } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withDefaultSocialImages({
   title: "Contact",
   description:
     "Book a wedding, couples, portrait, or event session with Nhihad Hassan Photography in Toronto. Inquiry-based, no checkout on this site.",
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     description:
       "Start an inquiry for weddings, portraits, events, or nightlife coverage in Toronto.",
   },
-};
+});
 
 export default async function ContactPage() {
   const settings = await getSiteSettings();

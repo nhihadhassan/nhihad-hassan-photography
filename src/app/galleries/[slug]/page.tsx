@@ -5,6 +5,7 @@ import { GalleryUnavailable } from "@/components/gallery-unavailable";
 import { SelectsRoot } from "@/components/selects-root";
 import { getPublishedGalleryBySlug } from "@/lib/public-gallery";
 import { mockClientGalleries } from "@/data/photography";
+import { withDefaultSocialImages } from "@/lib/seo";
 
 type GalleryPageProps = {
   params: Promise<{ slug: string }>;
@@ -22,10 +23,10 @@ export async function generateMetadata({ params }: GalleryPageProps): Promise<Me
     return {};
   }
 
-  return {
+  return withDefaultSocialImages({
     title: gallery.title,
     description: gallery.description,
-  };
+  });
 }
 
 export default async function GalleryPage({ params }: GalleryPageProps) {

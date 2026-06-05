@@ -8,6 +8,7 @@ import { PhotoCard } from "@/components/photo-card";
 import { InquiryCallout } from "@/components/inquiry-callout";
 import { categoryLabels, type PortfolioCategory } from "@/data/photography";
 import { getPublicPortfolioByCategory } from "@/lib/portfolio";
+import { withDefaultSocialImages } from "@/lib/seo";
 
 type CategoryPageProps = {
   params: Promise<{ category: string }>;
@@ -23,10 +24,10 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const { category } = await params;
   const label = categoryLabels[category as PortfolioCategory];
   if (!label) return {};
-  return {
+  return withDefaultSocialImages({
     title: `${label} Photography Toronto | Nhihad Hassan`,
     description: categoryMeta[category as PortfolioCategory]?.description ?? `${label} photography by Nhihad Hassan, Toronto-based photographer.`,
-  };
+  });
 }
 
 /** Per-category hero description shown under the H1. */

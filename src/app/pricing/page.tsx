@@ -103,6 +103,15 @@ export default function PricingPage() {
 
         {/* How booking works */}
         <HowBookingWorks className="mt-16 lg:mt-20" />
+
+        <div className="mx-auto mt-8 max-w-7xl">
+          <a
+            href="/booking-agreement"
+            className="text-sm text-ink/55 underline-offset-4 transition hover:text-ink hover:underline"
+          >
+            Read the full booking agreement
+          </a>
+        </div>
       </main>
 
       <InquiryCallout tone="light" />

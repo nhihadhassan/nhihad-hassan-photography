@@ -9,6 +9,7 @@ import {
   Copy,
   ExternalLink,
   MessageSquareText,
+  PenLine,
   Trash2,
 } from "lucide-react";
 import {
@@ -17,6 +18,7 @@ import {
   toggleGalleryPublished,
 } from "@/app/admin/(protected)/galleries/actions";
 import { createGalleryReviewRequestAction } from "@/app/admin/(protected)/reviews/actions";
+import { createGalleryAgreementRequestAction } from "@/app/admin/(protected)/agreements/actions";
 
 export function GalleryRowActions({
   id,
@@ -35,6 +37,7 @@ export function GalleryRowActions({
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [reviewCopied, setReviewCopied] = useState(false);
+  const [agreementCopied, setAgreementCopied] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const copyLink = async () => {
@@ -64,6 +67,25 @@ export function GalleryRowActions({
       }
 
       window.alert(result.message ?? "Could not create a review request link.");
+    });
+  };
+
+  const copyAgreementRequest = () => {
+    startTransition(async () => {
+      const result = await createGalleryAgreementRequestAction(id);
+      if (result.signUrl) {
+        try {
+          await navigator.clipboard.writeText(result.signUrl);
+          setAgreementCopied(true);
+          setTimeout(() => setAgreementCopied(false), 2500);
+        } catch {
+          window.alert(`Signing link created: ${result.signUrl}`);
+        }
+        setOpen(false);
+        return;
+      }
+
+      window.alert(result.message ?? "Could not create a signing link.");
     });
   };
 
@@ -143,6 +165,20 @@ export function GalleryRowActions({
                   <MessageSquareText className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
                 )}
                 {reviewCopied ? "Review link copied" : "Copy review request"}
+              </button>
+
+              <button
+                type="button"
+                disabled={pending}
+                onClick={copyAgreementRequest}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-admin-ink hover:bg-admin-surface disabled:opacity-50"
+              >
+                {agreementCopied ? (
+                  <Check className="size-4 shrink-0 text-admin-success" aria-hidden="true" />
+                ) : (
+                  <PenLine className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                )}
+                {agreementCopied ? "Signing link copied" : "Copy agreement to sign"}
               </button>
 
               <div className="my-1 border-t border-admin-ink/8" />

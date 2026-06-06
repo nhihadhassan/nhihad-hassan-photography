@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Camera, Download, FolderOpen, Images, Inbox, LayoutDashboard, LayoutTemplate, LogOut, Newspaper, Settings, Shield } from "lucide-react";
+import { Camera, Download, FolderOpen, Images, Inbox, LayoutDashboard, LayoutTemplate, LogOut, MessageSquareText, Newspaper, Settings, Shield } from "lucide-react";
 import { logoutAdmin } from "@/app/admin/login/actions";
 import { brandConfig } from "@/lib/config";
 
@@ -11,6 +11,7 @@ const adminNav = [
   { href: "/admin/journal", label: "Journal", icon: Newspaper },
   { href: "/admin/sections", label: "Sections", icon: LayoutTemplate },
   { href: "/admin/inquiries", label: "Inquiries", icon: Inbox },
+  { href: "/admin/reviews", label: "Reviews", icon: MessageSquareText },
   { href: "/admin/access-logs", label: "Access logs", icon: Shield },
   { href: "/admin/download-logs", label: "Download logs", icon: Download },
   { href: "/admin/settings", label: "Settings", icon: Settings },

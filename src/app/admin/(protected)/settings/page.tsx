@@ -21,7 +21,7 @@ export default async function AdminSettingsPage() {
   const { data: settings } = await supabase
     .from("site_settings")
     .select(
-      "brand_name,tagline,contact_email,contact_phone,instagram_primary,instagram_secondary,about_text,seo_title,seo_description,seo_google_verification,theme_serif_font,theme_accent_hex",
+      "brand_name,tagline,contact_email,contact_phone,instagram_primary,instagram_secondary,about_text,seo_title,seo_description,seo_google_verification,google_review_url,theme_serif_font,theme_accent_hex",
     )
     .limit(1)
     .maybeSingle();
@@ -91,6 +91,18 @@ export default async function AdminSettingsPage() {
               name="seo_google_verification"
               defaultValue={v("seo_google_verification")}
               placeholder="e.g. AbCdEf123..."
+            />
+          </label>
+          <label className={`${labelClass} sm:col-span-2`}>
+            Google review link{" "}
+            <span className="font-normal text-admin-ink/40">
+              (the direct Google Business Profile review URL)
+            </span>
+            <input
+              className={inputClass}
+              name="google_review_url"
+              defaultValue={v("google_review_url")}
+              placeholder="https://g.page/r/..."
             />
           </label>
         </div>

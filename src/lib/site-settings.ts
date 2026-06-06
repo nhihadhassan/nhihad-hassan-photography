@@ -15,6 +15,7 @@ export type SiteSettings = {
   seoTitle: string | null;
   seoDescription: string | null;
   googleVerification: string | null;
+  googleReviewUrl: string | null;
   themeSerifFont: "cormorant" | "bodoni";
   themeAccentHex: string | null;
 };
@@ -42,7 +43,7 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
     const { data } = await supabase
       .from("site_settings")
       .select(
-        "brand_name,tagline,contact_email,contact_phone,instagram_primary,instagram_secondary,about_text,seo_title,seo_description,seo_google_verification,theme_serif_font,theme_accent_hex",
+        "brand_name,tagline,contact_email,contact_phone,instagram_primary,instagram_secondary,about_text,seo_title,seo_description,seo_google_verification,google_review_url,theme_serif_font,theme_accent_hex",
       )
       .limit(1)
       .maybeSingle();
@@ -72,6 +73,7 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
     seoTitle: str(row?.seo_title),
     seoDescription: str(row?.seo_description),
     googleVerification: str(row?.seo_google_verification),
+    googleReviewUrl: str(row?.google_review_url),
     themeSerifFont: row?.theme_serif_font === "bodoni" ? "bodoni" : "cormorant",
     themeAccentHex: (() => {
       const hex = str(row?.theme_accent_hex);

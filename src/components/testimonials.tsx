@@ -1,27 +1,29 @@
-import { Quote } from "lucide-react";
+import { ExternalLink, Quote, Star } from "lucide-react";
 import { Reveal } from "@/components/reveal";
-import { testimonials, type Testimonial } from "@/data/testimonials";
+import { getApprovedClientReviews, type ClientReview } from "@/lib/reviews";
+import { formatCompactDate } from "@/lib/utils";
 
 type TestimonialsProps = {
   /** Override the default eyebrow ("Words from clients"). */
   eyebrow?: string;
   /** Override the default headline. */
   headline?: string;
-  /** Background variant — "dark" for ink sections, "light" for cream sections. */
+  /** Background variant: "dark" for ink sections, "light" for cream sections. */
   tone?: "dark" | "light";
 };
 
 /**
- * Public testimonials section. Returns `null` until the testimonials array
- * has at least one real entry — this is intentional so the site never
- * ships placeholder or empty-state social proof.
+ * Public testimonials section. Returns `null` until at least one approved
+ * Google review exists, so the site never ships placeholder social proof.
  */
-export function Testimonials({
+export async function Testimonials({
   eyebrow = "Words from clients",
   headline = "What people remember after the gallery arrives.",
   tone = "dark",
 }: TestimonialsProps) {
-  if (testimonials.length === 0) {
+  const reviews = await getApprovedClientReviews(6);
+
+  if (reviews.length === 0) {
     return null;
   }
 
@@ -59,7 +61,7 @@ export function Testimonials({
           </div>
         </Reveal>
         <ul className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((entry, index) => (
+          {reviews.map((entry, index) => (
             <Reveal key={entry.id} delay={index * 0.05}>
               <TestimonialCard
                 entry={entry}
@@ -85,25 +87,43 @@ function TestimonialCard({
   metaPrimaryClass,
   metaSecondaryClass,
 }: {
-  entry: Testimonial;
+  entry: ClientReview;
   cardClass: string;
   quoteIconClass: string;
   quoteTextClass: string;
   metaPrimaryClass: string;
   metaSecondaryClass: string;
 }) {
-  const metaParts = [entry.shootType, entry.location, entry.date].filter(
-    (part): part is string => Boolean(part),
-  );
+  const sourceText = `Google review · ${formatCompactDate(entry.review_date)}`;
 
   return (
     <li className={cardClass}>
-      <Quote className={quoteIconClass} aria-hidden="true" />
-      <p className={quoteTextClass}>&ldquo;{entry.quote}&rdquo;</p>
+      <div className="flex items-center justify-between gap-4">
+        <Quote className={quoteIconClass} aria-hidden="true" />
+        <div className="flex gap-0.5 text-copper" aria-label={`${entry.rating} out of 5 stars`}>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <Star
+              key={index}
+              className={`size-4 ${index < entry.rating ? "fill-current" : "opacity-30"}`}
+              aria-hidden="true"
+            />
+          ))}
+        </div>
+      </div>
+      <p className={quoteTextClass}>&ldquo;{entry.review_text}&rdquo;</p>
       <div className="mt-auto">
-        <p className={metaPrimaryClass}>{entry.name}</p>
-        {metaParts.length > 0 ? (
-          <p className={`${metaSecondaryClass} mt-1`}>{metaParts.join(" · ")}</p>
+        <p className={metaPrimaryClass}>{entry.reviewer_name}</p>
+        <p className={`${metaSecondaryClass} mt-1`}>{sourceText}</p>
+        {entry.source_url ? (
+          <a
+            href={entry.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${metaSecondaryClass} mt-3 inline-flex items-center gap-1.5 transition hover:text-copper`}
+          >
+            Read more on Google
+            <ExternalLink className="size-3.5" aria-hidden="true" />
+          </a>
         ) : null}
       </div>
     </li>

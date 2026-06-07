@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { sendInquiryAdminAlert, sendInquiryAutoReply } from "@/lib/notify-email";
 
 const inquirySchema = z.object({
   name: z.string().min(2, "Please enter your name."),
@@ -65,6 +66,22 @@ export async function submitInquiry(
         message: "The inquiry could not be sent. Please email directly for now.",
       };
     }
+
+    // Fire the auto-reply and admin alert. Best-effort: never block or fail the
+    // submission if email is unconfigured or sending errors out.
+    await Promise.allSettled([
+      sendInquiryAutoReply({ to: parsed.data.email, name: parsed.data.name }),
+      sendInquiryAdminAlert({
+        name: parsed.data.name,
+        email: parsed.data.email,
+        phone: parsed.data.phone,
+        eventType: parsed.data.eventType,
+        eventDate: parsed.data.eventDate,
+        location: parsed.data.location,
+        budget: parsed.data.budget,
+        message: parsed.data.message,
+      }),
+    ]);
 
     return {
       status: "success",

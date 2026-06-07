@@ -2,9 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
-import { createBooking, deleteBooking, updateBooking, type BookingInput } from "@/lib/bookings";
+import {
+  createBooking,
+  deleteBooking,
+  getBookingById,
+  updateBooking,
+  type BookingInput,
+} from "@/lib/bookings";
 import { getAdminGallery } from "@/lib/admin-data";
 import { torontoLocalToUtc } from "@/lib/ics";
+import { sendBookingHubEmail } from "@/lib/notify-email";
 import { siteUrl } from "@/lib/seo";
 
 export type BookingActionState = {
@@ -116,6 +123,22 @@ export async function createGalleryBookingAction(
       message: error instanceof Error ? error.message : "Could not create booking.",
     };
   }
+}
+
+/** Email the booking hub link to the client on file. */
+export async function emailBookingHubAction(id: string): Promise<{ ok: boolean; message: string }> {
+  await requireAdmin();
+  const booking = await getBookingById(id);
+  if (!booking) return { ok: false, message: "Booking not found." };
+  if (!booking.client_email) {
+    return { ok: false, message: "This booking has no client email. Add one first." };
+  }
+  const result = await sendBookingHubEmail({
+    to: booking.client_email,
+    clientName: booking.client_name,
+    url: hubUrlFor(booking.token),
+  });
+  return { ok: result.ok, message: result.message };
 }
 
 export async function deleteBookingAction(id: string): Promise<{ ok: boolean; message: string }> {

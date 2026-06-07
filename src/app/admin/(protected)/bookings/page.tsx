@@ -92,6 +92,7 @@ export default async function AdminBookingsPage() {
                     hubUrl={hubUrl}
                     invoiceUrl={invoiceUrl}
                     hasCalendar={Boolean(b.start_at)}
+                    hasEmail={Boolean(b.client_email)}
                   />
                 </div>
               </article>

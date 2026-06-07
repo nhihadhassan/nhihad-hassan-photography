@@ -5,7 +5,8 @@ import { requireAdmin } from "@/lib/auth";
 import { getAdminDashboardCounts, getAdminGalleries, getAdminInquiries } from "@/lib/admin-data";
 import { getAdminBookings } from "@/lib/bookings";
 import { getAdminAgreementRequests } from "@/lib/agreements";
-import { formatCompactDate, formatMoney, parseAmount } from "@/lib/utils";
+import { getFinanceSummary } from "@/lib/finance";
+import { formatCompactDate, formatMoney } from "@/lib/utils";
 
 const TZ = "America/Toronto";
 
@@ -23,12 +24,13 @@ function shootDateTime(iso: string) {
 export default async function AdminDashboardPage() {
   await requireAdmin();
 
-  const [counts, galleries, inquiries, bookings, agreements] = await Promise.all([
+  const [counts, galleries, inquiries, bookings, agreements, finance] = await Promise.all([
     getAdminDashboardCounts(),
     getAdminGalleries(),
     getAdminInquiries(),
     getAdminBookings(),
     getAdminAgreementRequests(),
+    getFinanceSummary(),
   ]);
 
   const now = Date.now();
@@ -36,12 +38,12 @@ export default async function AdminDashboardPage() {
     .filter((b) => b.start_at && new Date(b.start_at).getTime() >= now)
     .sort((a, b) => new Date(a.start_at!).getTime() - new Date(b.start_at!).getTime());
   const unsignedContracts = agreements.filter((a) => !a.signed_at && !a.revoked_at).length;
-  const outstanding = bookings.reduce((sum, b) => sum + (parseAmount(b.balance) ?? 0), 0);
 
   const cockpit = [
+    { label: "Income this month", value: formatMoney(finance.incomeThisMonth), href: "/admin/finances", icon: Wallet, attention: false },
     { label: "Upcoming shoots", value: String(upcomingShoots.length), href: "/admin/bookings", icon: CalendarClock, attention: false },
     { label: "Unsigned contracts", value: String(unsignedContracts), href: "/admin/agreements", icon: PenLine, attention: unsignedContracts > 0 },
-    { label: "Outstanding balance", value: outstanding > 0 ? formatMoney(outstanding) : "$0", href: "/admin/bookings", icon: Wallet, attention: outstanding > 0 },
+    { label: "Outstanding", value: formatMoney(finance.outstandingTotal), href: "/admin/finances", icon: Wallet, attention: finance.outstandingTotal > 0 },
     { label: "New inquiries", value: String(counts.inquiries), href: "/admin/inquiries", icon: Inbox, attention: false },
   ];
 
@@ -70,7 +72,7 @@ export default async function AdminDashboardPage() {
         </Link>
       </div>
       {/* Action cockpit */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {cockpit.map((card) => {
           const Icon = card.icon;
           return (

@@ -16,11 +16,11 @@ export default async function AdminBookingAgreementPage() {
           <FileText className="size-5 text-admin-accent" aria-hidden="true" />
         </div>
         <div>
-          <p className="text-sm font-medium text-admin-accent">Contract</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Booking agreement</h1>
+          <p className="text-sm font-medium text-admin-accent">Contract template</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Contract wording</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
-            Edit the wording of the contract clients read and sign. The client and shoot details
-            (names, date, totals) are filled in per client and are not edited here.
+            This is the master wording of your booking agreement, the same for every client. Edit it
+            once here. To send it to a specific client to sign, use <strong>Send to sign</strong>.
           </p>
         </div>
       </div>

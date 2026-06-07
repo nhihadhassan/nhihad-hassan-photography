@@ -122,7 +122,8 @@ export default async function ReviewRequestPage({
               <li>Was there anything about the final gallery or delivery that stood out?</li>
             </ul>
             <p className="mt-7 text-xs uppercase tracking-[0.18em] text-ink/45">
-              Verified on-site by Google source and review date after manual approval.
+              Reviews shown on the site are genuine Google reviews, added by hand with their
+              original date.
             </p>
           </aside>
         </section>

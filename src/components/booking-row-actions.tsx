@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, Copy, ExternalLink, Trash2 } from "lucide-react";
+import { Check, Copy, ExternalLink, FileText, Trash2 } from "lucide-react";
 import { deleteBookingAction } from "@/app/admin/(protected)/bookings/actions";
 
 export function BookingRowActions({
   id,
   hubUrl,
+  invoiceUrl,
   hasCalendar,
 }: {
   id: string;
   hubUrl: string;
+  invoiceUrl: string;
   hasCalendar: boolean;
 }) {
   const [pending, startTransition] = useTransition();
@@ -54,6 +56,15 @@ export function BookingRowActions({
           .ics
         </a>
       ) : null}
+      <a
+        href={invoiceUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-ink/12 px-3 text-xs font-medium text-admin-ink/70 hover:bg-admin-ink/6"
+      >
+        <FileText className="size-3.5" />
+        Invoice
+      </a>
       <button
         type="button"
         disabled={pending}

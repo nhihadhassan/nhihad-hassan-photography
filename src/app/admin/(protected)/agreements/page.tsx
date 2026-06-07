@@ -24,11 +24,12 @@ export default async function AdminAgreementsPage() {
           <PenLine className="size-5 text-admin-accent" aria-hidden="true" />
         </div>
         <div>
-          <p className="text-sm font-medium text-admin-accent">Signed agreements</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Agreements</h1>
+          <p className="text-sm font-medium text-admin-accent">Send to sign</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Sign requests</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
-            Send a client a link to review and sign the booking agreement online. Signed copies are
-            stored against the client and gallery. Edit the contract wording under Contract.
+            Send a client a link to review and sign your booking agreement online. Signed copies are
+            stored against the client and gallery. To change the contract wording itself, use{" "}
+            <strong>Contract template</strong>.
           </p>
         </div>
       </div>

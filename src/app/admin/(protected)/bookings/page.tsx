@@ -66,6 +66,7 @@ export default async function AdminBookingsPage() {
         <div className="mt-8 grid gap-3">
           {bookings.map((b) => {
             const hubUrl = `${origin}/booking/${b.token}`;
+            const invoiceUrl = `${origin}/invoice/${b.token}`;
             return (
               <article key={b.id} className="rounded-md border border-admin-ink/10 bg-admin-surface p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -86,7 +87,12 @@ export default async function AdminBookingsPage() {
                       {b.location ? ` · ${b.location}` : ""}
                     </p>
                   </div>
-                  <BookingRowActions id={b.id} hubUrl={hubUrl} hasCalendar={Boolean(b.start_at)} />
+                  <BookingRowActions
+                    id={b.id}
+                    hubUrl={hubUrl}
+                    invoiceUrl={invoiceUrl}
+                    hasCalendar={Boolean(b.start_at)}
+                  />
                 </div>
               </article>
             );

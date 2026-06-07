@@ -244,6 +244,12 @@ export default async function BookingHubPage({
                   .{balance ? ` The remaining ${balance} is due on or before the shoot day.` : ""}
                 </p>
               ) : null}
+              <Link
+                href={`/invoice/${booking.token}`}
+                className="mt-4 inline-flex text-sm font-medium text-ink underline-offset-4 transition hover:text-[#8b6444] hover:underline"
+              >
+                View invoice
+              </Link>
             </Card>
           ) : null}
 

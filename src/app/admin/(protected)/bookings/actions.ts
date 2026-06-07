@@ -18,22 +18,27 @@ const clean = (value: FormDataEntryValue | null) => {
   return text || null;
 };
 
-function isoFromLocal(value: FormDataEntryValue | null): string | null {
-  const text = typeof value === "string" ? value.trim() : "";
-  if (!text) return null;
-  const date = torontoLocalToUtc(text);
-  return date ? date.toISOString() : null;
-}
-
 function inputFromForm(formData: FormData): BookingInput {
+  const startLocal = typeof formData.get("start_local") === "string"
+    ? String(formData.get("start_local")).trim()
+    : "";
+  const startUtc = startLocal ? torontoLocalToUtc(startLocal) : null;
+
+  const durationRaw = String(formData.get("duration_minutes") ?? "").trim();
+  const durationMin = durationRaw ? Number(durationRaw) : null;
+  const endUtc =
+    startUtc && durationMin && Number.isFinite(durationMin) && durationMin > 0
+      ? new Date(startUtc.getTime() + durationMin * 60000)
+      : null;
+
   return {
     galleryId: clean(formData.get("gallery_id")),
     agreementRequestId: clean(formData.get("agreement_request_id")),
     clientName: clean(formData.get("client_name")),
     clientEmail: clean(formData.get("client_email")),
     shootType: clean(formData.get("shoot_type")),
-    startAt: isoFromLocal(formData.get("start_local")),
-    endAt: isoFromLocal(formData.get("end_local")),
+    startAt: startUtc ? startUtc.toISOString() : null,
+    endAt: endUtc ? endUtc.toISOString() : null,
     location: clean(formData.get("location")),
     total: clean(formData.get("total")),
     deposit: clean(formData.get("deposit")),

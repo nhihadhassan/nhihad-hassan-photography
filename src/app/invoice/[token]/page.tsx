@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { PrintButton } from "@/components/print-button";
-import { getBookingByToken } from "@/lib/bookings";
+import { getBookingByToken, getOrAssignInvoiceNumber } from "@/lib/bookings";
 import { brandConfig } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -71,7 +71,9 @@ export default async function InvoicePage({
   const deposit = money(booking.deposit);
   const balance = money(booking.balance);
   const totalNum = amount(booking.total);
-  const number = invoiceNumber(booking.created_at, booking.token);
+  const number =
+    (await getOrAssignInvoiceNumber(booking.id)) ??
+    invoiceNumber(booking.created_at, booking.token);
   const issued = formatDate(booking.created_at);
   const shootDate = formatDate(booking.start_at);
   const depositSettled =

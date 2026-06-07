@@ -172,3 +172,14 @@ export async function getBookingByToken(token: string): Promise<BookingWithLinks
   const { data } = await admin.from("bookings").select(SELECT).eq("token", token).maybeSingle();
   return data ? mapBooking(data as Record<string, unknown>) : null;
 }
+
+/**
+ * Return the booking's sequential invoice number, assigning one on first call.
+ * Formatted as "INV-0001". Falls back to null if assignment fails.
+ */
+export async function getOrAssignInvoiceNumber(bookingId: string): Promise<string | null> {
+  const admin = getServiceRoleSupabaseClient();
+  const { data, error } = await admin.rpc("assign_invoice_no", { b_id: bookingId });
+  if (error || data === null || data === undefined) return null;
+  return `INV-${String(data).padStart(4, "0")}`;
+}

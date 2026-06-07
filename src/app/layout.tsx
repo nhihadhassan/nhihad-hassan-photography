@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, Cormorant_Garamond, Geist, Geist_Mono, Montserrat } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { getSiteSettings } from "@/lib/site-settings";
 import { EditModeProvider } from "@/components/edit-mode";
@@ -145,6 +146,7 @@ export default async function RootLayout({
         />
         <EditModeProvider>{children}</EditModeProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

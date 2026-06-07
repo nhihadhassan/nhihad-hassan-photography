@@ -149,6 +149,32 @@ export async function sendInquiryAdminAlert(input: {
   });
 }
 
+/** Generic reminder email used by the daily scheduler. */
+export async function sendReminderEmail(input: {
+  to: string;
+  subject: string;
+  eyebrow: string;
+  heading: string;
+  bodyHtml: string;
+  bodyText: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+}): Promise<SendResult> {
+  return sendMail({
+    to: input.to,
+    replyTo: brandConfig.contactEmail,
+    subject: input.subject,
+    text: input.bodyText,
+    html: emailShell({
+      eyebrow: input.eyebrow,
+      heading: input.heading,
+      bodyHtml: input.bodyHtml,
+      ctaLabel: input.ctaLabel,
+      ctaUrl: input.ctaUrl,
+    }),
+  });
+}
+
 /** Send a client their booking hub link (date, calendar invite, contract, invoice, gallery). */
 export async function sendBookingHubEmail(input: {
   to: string;

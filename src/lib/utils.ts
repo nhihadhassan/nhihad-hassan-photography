@@ -5,6 +5,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** Parse a free-form money string ("$1,400", "1400") to a number, or null. */
+export function parseAmount(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const n = Number(String(value).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Format a number as Canadian dollars with no cents (e.g. "$1,400"). */
+export function formatMoney(n: number): string {
+  return `$${Math.round(n).toLocaleString("en-CA")}`;
+}
+
 export function formatDisplayDate(date: string) {
   const value = date.includes("T") ? new Date(date) : new Date(`${date}T12:00:00`);
 

@@ -2,6 +2,10 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import type { DepositStatus } from "@/lib/payment-constants";
+import { BOOKING_STAGES, type BookingStage } from "@/lib/booking-stages";
+
+export { BOOKING_STAGES, BOOKING_STAGE_LABELS } from "@/lib/booking-stages";
+export type { BookingStage } from "@/lib/booking-stages";
 
 export type Booking = {
   id: string;
@@ -19,6 +23,7 @@ export type Booking = {
   balance: string | null;
   notes: string | null;
   internal_note: string | null;
+  stage: BookingStage;
   created_at: string;
   updated_at: string;
 };
@@ -69,6 +74,7 @@ function mapBooking(row: Record<string, unknown>): BookingWithLinks {
     balance: (row.balance as string | null) ?? null,
     notes: (row.notes as string | null) ?? null,
     internal_note: (row.internal_note as string | null) ?? null,
+    stage: ((row.stage as BookingStage) ?? "booked"),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
     gallery: gallery
@@ -165,6 +171,15 @@ export async function getBookingById(id: string): Promise<BookingWithLinks | nul
   const admin = getServiceRoleSupabaseClient();
   const { data } = await admin.from("bookings").select(SELECT).eq("id", id).maybeSingle();
   return data ? mapBooking(data as Record<string, unknown>) : null;
+}
+
+export async function updateBookingStage(id: string, stage: BookingStage) {
+  const admin = getServiceRoleSupabaseClient();
+  const { error } = await admin
+    .from("bookings")
+    .update({ stage, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 export async function getBookingByToken(token: string): Promise<BookingWithLinks | null> {

@@ -15,6 +15,7 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().min(1).optional(),
   SELECTS_NOTIFICATION_TO: z.string().email().optional(),
   SELECTS_NOTIFICATION_FROM: z.string().min(1).optional(),
+  CRON_SECRET: z.string().min(1).optional(),
 });
 
 export const env = envSchema.parse({
@@ -32,6 +33,7 @@ export const env = envSchema.parse({
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   SELECTS_NOTIFICATION_TO: process.env.SELECTS_NOTIFICATION_TO,
   SELECTS_NOTIFICATION_FROM: process.env.SELECTS_NOTIFICATION_FROM,
+  CRON_SECRET: process.env.CRON_SECRET,
 });
 
 export function hasSupabaseBrowserConfig() {

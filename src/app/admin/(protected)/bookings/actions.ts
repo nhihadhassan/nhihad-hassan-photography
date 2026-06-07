@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createBooking, deleteBooking, updateBooking, type BookingInput } from "@/lib/bookings";
+import { getAdminGallery } from "@/lib/admin-data";
 import { torontoLocalToUtc } from "@/lib/ics";
 import { siteUrl } from "@/lib/seo";
 
@@ -80,6 +81,34 @@ export async function updateBookingAction(
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Could not save booking.",
+    };
+  }
+}
+
+/** Spin up a booking prefilled from a gallery, for editing before sending. */
+export async function createGalleryBookingAction(
+  galleryId: string,
+): Promise<{ ok: boolean; message: string; id?: string }> {
+  await requireAdmin();
+  const gallery = await getAdminGallery(galleryId);
+  if (!gallery) return { ok: false, message: "Gallery not found." };
+  try {
+    const startAt = gallery.event_date
+      ? (torontoLocalToUtc(`${gallery.event_date}T12:00`)?.toISOString() ?? null)
+      : null;
+    const { id } = await createBooking({
+      galleryId,
+      clientName: gallery.client_name,
+      clientEmail: gallery.client_email,
+      shootType: gallery.title,
+      startAt,
+    });
+    revalidatePath("/admin/bookings");
+    return { ok: true, message: "Booking created.", id };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Could not create booking.",
     };
   }
 }

@@ -1,9 +1,11 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Archive,
   ArchiveRestore,
+  CalendarPlus,
   Check,
   ChevronDown,
   Copy,
@@ -19,6 +21,7 @@ import {
 } from "@/app/admin/(protected)/galleries/actions";
 import { createGalleryReviewRequestAction } from "@/app/admin/(protected)/reviews/actions";
 import { createGalleryAgreementRequestAction } from "@/app/admin/(protected)/agreements/actions";
+import { createGalleryBookingAction } from "@/app/admin/(protected)/bookings/actions";
 
 export function GalleryRowActions({
   id,
@@ -33,6 +36,7 @@ export function GalleryRowActions({
   isPublished: boolean;
   isArchived: boolean;
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -86,6 +90,18 @@ export function GalleryRowActions({
       }
 
       window.alert(result.message ?? "Could not create a signing link.");
+    });
+  };
+
+  const createBooking = () => {
+    startTransition(async () => {
+      const result = await createGalleryBookingAction(id);
+      if (result.ok && result.id) {
+        setOpen(false);
+        router.push(`/admin/bookings/${result.id}`);
+        return;
+      }
+      window.alert(result.message ?? "Could not create a booking.");
     });
   };
 
@@ -179,6 +195,16 @@ export function GalleryRowActions({
                   <PenLine className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
                 )}
                 {agreementCopied ? "Signing link copied" : "Copy agreement to sign"}
+              </button>
+
+              <button
+                type="button"
+                disabled={pending}
+                onClick={createBooking}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-admin-ink hover:bg-admin-surface disabled:opacity-50"
+              >
+                <CalendarPlus className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                Create booking hub
               </button>
 
               <div className="my-1 border-t border-admin-ink/8" />

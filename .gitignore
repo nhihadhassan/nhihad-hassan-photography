@@ -40,5 +40,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# source photos (full-res originals — processed output lives in public/portfolio/)
+# source photos (full-res originals; processed output lives in public/portfolio/)
 Website pics/
+
+# local agent and tooling state (never commit)
+.claude/
+.agents/
+skills-lock.json
+
+# personal documents that are not part of the site
+/Invoice_*.pdf

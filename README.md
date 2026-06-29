@@ -1,39 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nhihad Hassan Photography
 
-## Getting Started
+A full-stack photography **business platform** — not just a portfolio. It pairs a public
+marketing site with a complete client workflow: online inquiry/booking, private client
+galleries, password protection, client proof selections, bulk downloads, and an admin
+dashboard to run it all.
 
-First, run the development server:
+**Live site:** https://nhihad-hassan-photography.vercel.app
+
+---
+
+## Features
+
+**Public site**
+- Responsive portfolio and curated, category-based galleries
+- Services, investment, and contact pages with inquiry-based booking
+- Optimized image delivery (WebP variants, signed URLs, lazy lightbox)
+
+**Client workflow**
+- 🖼️ **Private galleries** — share-by-link delivery with a full-screen, swipeable lightbox
+- 🔒 **Password-protected galleries** — scrypt-hashed passwords, HMAC-signed access cookies
+- ❤️ **Client selects** — visitors heart proofs and submit selections to the photographer
+- ⬇️ **Bulk downloads** — server-streamed ZIP of all or selected photos (memory-bounded)
+- 🧾 **Manual Interac e-Transfer payment workflow** with per-gallery deposit tracking
+
+**Admin**
+- Dashboard to manage galleries, photos, inquiries, selects, and access/download logs
+- Per-IP rate limiting and access logging on sensitive actions
+
+## Tech stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js (App Router) · React · TypeScript |
+| Styling | Tailwind CSS · Framer Motion |
+| Data / Auth | Supabase (Postgres + SSR auth + RLS) |
+| Image storage | Cloudflare R2 / S3 API · Sharp (processing) · `archiver` (ZIP streaming) |
+| Email | Resend |
+| Validation | Zod |
+| Analytics | Vercel Analytics |
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The app requires environment variables
+for Supabase, object storage (R2/S3), and Resend — see the setup notes in each section below
+and `.env.local.example`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build   # production build
+npm run start   # serve production build
+npm run lint    # lint
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## License
 
-## Learn More
+Released under the [MIT License](LICENSE).
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Engineering notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> The sections below are a detailed, phase-by-phase record of how each subsystem was
+> built — storage, image processing, gallery security, rate limiting, downloads, and the
+> payment workflow. Kept as living documentation of the architecture and security model.
 
 ## Cloudflare R2 photo storage (Phase 3B)
 

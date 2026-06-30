@@ -2,7 +2,9 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import { getBookingAgreement } from "@/lib/booking-agreement";
+import { sendSignedAgreementEmails } from "@/lib/notify-email";
 import { brandConfig } from "@/lib/config";
+import { siteUrl } from "@/lib/seo";
 
 /** Per-client shoot details captured at request time and shown on the contract. */
 export type AgreementDetails = {
@@ -245,6 +247,14 @@ export async function signAgreement(input: {
     .from("agreement_requests")
     .update({ signed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
     .eq("id", request.id);
+
+  // Email a copy to the client and a notification to the photographer.
+  const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
+  await sendSignedAgreementEmails({
+    signerName: input.signerName,
+    clientEmail: input.signerEmail ?? request.client_email,
+    url: `${origin}/agreement/${input.token}`,
+  }).catch(() => undefined);
 
   return { ok: true };
 }

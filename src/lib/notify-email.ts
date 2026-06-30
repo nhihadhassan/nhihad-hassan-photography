@@ -175,6 +175,55 @@ export async function sendReminderEmail(input: {
   });
 }
 
+/**
+ * On signing, email a confirmation/copy to the client and a notification to the
+ * photographer. Best-effort: each send is independent and never throws.
+ */
+export async function sendSignedAgreementEmails(input: {
+  signerName: string;
+  clientEmail: string | null;
+  url: string;
+}): Promise<void> {
+  const tasks: Promise<SendResult>[] = [];
+
+  if (input.clientEmail) {
+    const first = input.signerName.trim().split(/\s+/)[0] || "there";
+    tasks.push(
+      sendMail({
+        to: input.clientEmail,
+        replyTo: brandConfig.contactEmail,
+        subject: `Your signed booking agreement · ${brandConfig.name}`,
+        text: `Hi ${first},\n\nThank you for signing your booking agreement with ${brandConfig.name}. You can view or print a copy anytime here:\n\n${input.url}\n\nLooking forward to working together.`,
+        html: emailShell({
+          eyebrow: "Agreement signed",
+          heading: "Thanks for signing.",
+          bodyHtml: `<p style="margin:0 0 14px 0;">Hi ${escapeHtml(first)},</p><p style="margin:0 0 14px 0;">Thank you for signing your booking agreement with ${escapeHtml(brandConfig.name)}. You can view or print a copy anytime using the button below.</p>`,
+          ctaLabel: "View your signed agreement",
+          ctaUrl: input.url,
+        }),
+      }),
+    );
+  }
+
+  tasks.push(
+    sendMail({
+      to: adminRecipient(),
+      replyTo: input.clientEmail ?? undefined,
+      subject: `${input.signerName} signed the agreement`,
+      text: `${input.signerName} just signed their booking agreement. View it here:\n\n${input.url}`,
+      html: emailShell({
+        eyebrow: "Agreement signed",
+        heading: `${input.signerName} signed.`,
+        bodyHtml: `<p style="margin:0;">${escapeHtml(input.signerName)} just signed their booking agreement.</p>`,
+        ctaLabel: "View the signed agreement",
+        ctaUrl: input.url,
+      }),
+    }),
+  );
+
+  await Promise.allSettled(tasks);
+}
+
 /** Send a client their booking hub link (date, calendar invite, contract, invoice, gallery). */
 export async function sendBookingHubEmail(input: {
   to: string;

@@ -7,9 +7,12 @@ import { ButtonLink } from "@/components/ui/button";
 import { InquiryCallout } from "@/components/inquiry-callout";
 import { PricingTierCard } from "@/components/pricing-tier-card";
 import { HowBookingWorks } from "@/components/how-booking-works";
-import { pricingCategories } from "@/data/pricing";
+import { getPricing } from "@/lib/pricing";
 import { brandConfig } from "@/lib/config";
 import { withDefaultSocialImages } from "@/lib/seo";
+
+// Pricing is editable from the admin; re-render within a short window.
+export const revalidate = 300;
 
 export const metadata: Metadata = withDefaultSocialImages({
   title: "Pricing",
@@ -22,7 +25,8 @@ export const metadata: Metadata = withDefaultSocialImages({
   },
 });
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const pricingCategories = await getPricing();
   return (
     <div className="min-h-[100dvh] bg-[#f3eee5] text-ink">
       <SiteHeader tone="light" />

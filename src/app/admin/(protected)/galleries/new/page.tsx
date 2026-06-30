@@ -1,23 +1,21 @@
 import Link from "next/link";
-import { NewGalleryWithPresets } from "@/components/new-gallery-with-presets";
+import { NewCollectionForm } from "@/components/new-collection-form";
 
 export default function NewGalleryPage() {
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-2xl">
       <Link href="/admin/galleries" className="text-sm text-admin-ink/58 hover:text-admin-ink">
         Back to galleries
       </Link>
       <div className="mt-6">
-        <p className="text-sm font-medium text-admin-accent">New gallery</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">Create gallery</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
-          Choose a preset to pre-fill common settings, or start blank and configure everything manually.
+        <h1 className="text-2xl font-semibold tracking-tight">New collection</h1>
+        <p className="mt-2 text-sm leading-6 text-admin-ink/60">
+          Just the essentials to get started. Add photos and fine-tune settings next.
         </p>
       </div>
-      <div className="mt-8">
-        <NewGalleryWithPresets />
+      <div className="mt-6">
+        <NewCollectionForm />
       </div>
     </div>
   );
 }
-

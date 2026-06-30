@@ -10,7 +10,10 @@ import {
   ChevronDown,
   Copy,
   ExternalLink,
+  Eye,
+  EyeOff,
   MessageSquareText,
+  MoreHorizontal,
   PenLine,
   Trash2,
 } from "lucide-react";
@@ -29,12 +32,15 @@ export function GalleryRowActions({
   slug,
   isPublished,
   isArchived,
+  variant = "full",
 }: {
   id: string;
   title: string;
   slug: string;
   isPublished: boolean;
   isArchived: boolean;
+  /** "full" shows Publish + More inline; "compact" is a single "…" icon menu. */
+  variant?: "full" | "compact";
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -105,36 +111,54 @@ export function GalleryRowActions({
     });
   };
 
+  const togglePublish = () => {
+    const data = new FormData();
+    data.set("id", id);
+    data.set("next", String(!isPublished));
+    setOpen(false);
+    startTransition(() => toggleGalleryPublished(data));
+  };
+
+  const compact = variant === "compact";
+
   return (
     <div className="flex items-center gap-2">
-      {/* Primary CTA: Publish / Unpublish */}
-      <button
-        disabled={pending}
-        onClick={() => {
-          const data = new FormData();
-          data.set("id", id);
-          data.set("next", String(!isPublished));
-          startTransition(() => toggleGalleryPublished(data));
-        }}
-        className={
-          "inline-flex min-h-9 items-center gap-2 rounded-md px-4 text-sm font-medium transition disabled:opacity-45 " +
-          (isPublished
-            ? "border border-admin-ink/15 bg-admin-ink/6 text-admin-ink/70 hover:bg-admin-ink/12"
-            : "bg-admin-ink text-admin-surface hover:bg-[#2a2218]")
-        }
-      >
-        {isPublished ? "Unpublish" : "Publish"}
-      </button>
+      {/* Primary CTA: Publish / Unpublish (full variant only) */}
+      {!compact ? (
+        <button
+          disabled={pending}
+          onClick={togglePublish}
+          className={
+            "inline-flex min-h-9 items-center gap-2 rounded-md px-4 text-sm font-medium transition disabled:opacity-45 " +
+            (isPublished
+              ? "border border-admin-ink/15 bg-admin-ink/6 text-admin-ink/70 hover:bg-admin-ink/12"
+              : "bg-admin-ink text-admin-surface hover:bg-[#2a2218]")
+          }
+        >
+          {isPublished ? "Unpublish" : "Publish"}
+        </button>
+      ) : null}
 
       {/* More dropdown */}
       <div className="relative" ref={menuRef}>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-ink/12 px-3 text-sm text-admin-ink/65 transition hover:bg-admin-ink/6"
+          aria-label="Gallery actions"
+          className={
+            compact
+              ? "inline-flex size-8 items-center justify-center rounded-md border border-admin-ink/12 bg-white/80 text-admin-ink/70 transition hover:bg-admin-ink/6"
+              : "inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-ink/12 px-3 text-sm text-admin-ink/65 transition hover:bg-admin-ink/6"
+          }
         >
-          More
-          <ChevronDown className="size-3.5" aria-hidden="true" />
+          {compact ? (
+            <MoreHorizontal className="size-4" aria-hidden="true" />
+          ) : (
+            <>
+              More
+              <ChevronDown className="size-3.5" aria-hidden="true" />
+            </>
+          )}
         </button>
 
         {open && (
@@ -143,6 +167,26 @@ export function GalleryRowActions({
             <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
 
             <div className="absolute right-0 top-full z-20 mt-1.5 min-w-52 overflow-hidden rounded-md border border-admin-ink/10 bg-white shadow-lg">
+              {/* Publish / Unpublish (compact variant only — it has no inline button) */}
+              {compact ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={togglePublish}
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-admin-ink hover:bg-admin-surface disabled:opacity-50"
+                  >
+                    {isPublished ? (
+                      <EyeOff className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                    ) : (
+                      <Eye className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                    )}
+                    {isPublished ? "Unpublish" : "Publish"}
+                  </button>
+                  <div className="my-1 border-t border-admin-ink/8" />
+                </>
+              ) : null}
+
               {/* Copy gallery link */}
               <button
                 type="button"

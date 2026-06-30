@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hashPassword } from "@/lib/password";
 import { slugify } from "@/lib/utils";
+import { galleryPresets } from "@/data/gallery-presets";
 
 const gallerySchema = z.object({
   title: z.string().min(2, "Title is required."),
@@ -149,6 +150,81 @@ async function extractDownloadPinChange(
   }
   const hash = await hashPassword(pin);
   return { set: hash };
+}
+
+const quickCreateSchema = z.object({
+  title: z.string().min(2, "Give the collection a title."),
+  client_name: z.string().optional(),
+  client_email: z.string().email("Enter a valid client email.").optional().or(z.literal("")),
+  event_date: z.string().optional(),
+  preset_id: z.string().optional(),
+});
+
+/**
+ * Minimal "New collection" create. Captures only the essentials, applies the
+ * chosen preset's defaults, inserts a draft, and drops the admin straight into
+ * the Photos tab to upload — the rest of the settings live on the Settings tab.
+ */
+export async function createGalleryQuick(
+  _previousState: GalleryFormState,
+  formData: FormData,
+): Promise<GalleryFormState> {
+  await requireAdmin();
+
+  const parsed = quickCreateSchema.safeParse({
+    title: formData.get("title"),
+    client_name: formData.get("client_name") || undefined,
+    client_email: formData.get("client_email") || undefined,
+    event_date: formData.get("event_date") || undefined,
+    preset_id: formData.get("preset_id") || undefined,
+  });
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Please check the highlighted fields.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const preset = galleryPresets.find((p) => p.id === parsed.data.preset_id)?.defaults ?? null;
+
+  const expiresAt =
+    preset && preset.expiry_days !== null
+      ? new Date(Date.now() + preset.expiry_days * 24 * 60 * 60 * 1000).toISOString()
+      : null;
+
+  const insertPayload = {
+    title: parsed.data.title.trim(),
+    slug: slugify(parsed.data.title),
+    client_name: emptyToNull(parsed.data.client_name),
+    client_email: emptyToNull(parsed.data.client_email),
+    event_date: dateToNull(parsed.data.event_date),
+    description: preset?.description ?? null,
+    download_enabled: preset?.download_enabled ?? false,
+    download_quality: preset?.download_quality ?? "web",
+    is_public: preset?.is_public ?? false,
+    is_published: false,
+    expires_at: expiresAt,
+  };
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("galleries")
+    .insert(insertPayload)
+    .select("id")
+    .single();
+
+  if (error) {
+    return {
+      status: "error",
+      message: error.code === "23505" ? "That title makes a link already in use. Try another." : error.message,
+    };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/galleries");
+  redirect(`/admin/galleries/${data.id}/photos`);
 }
 
 export async function createGallery(

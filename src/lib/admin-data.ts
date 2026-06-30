@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSignedReadUrl } from "@/lib/r2";
+import { getSignedReadUrl, getPublicImageUrl } from "@/lib/r2";
 import { hasR2Config } from "@/lib/env";
 import type { DepositStatus } from "@/lib/payment-constants";
 
@@ -43,6 +43,10 @@ export type GalleryRecord = {
   download_count: number;
   /** When true, web display variants have a text watermark composited in. */
   watermark_enabled: boolean;
+  /** Saved invite email subject override (null = use default). Admin-only. */
+  invite_subject: string | null;
+  /** Saved invite email message override (null = use default). Admin-only. */
+  invite_message: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -85,7 +89,7 @@ export type InquiryRecord = {
 };
 
 const GALLERY_COLUMNS =
-  "id,title,slug,client_name,client_email,event_date,description,location,cover_image_url,cover_image_alt,cover_photo_id,cover_focal_x,cover_focal_y,cover_layout,is_public,is_published,is_archived,download_enabled,download_quality,download_pin_hash,download_limit,download_count,watermark_enabled,deposit_status,payment_notes,expires_at,password_hash,password_plain,created_at,updated_at";
+  "id,title,slug,client_name,client_email,event_date,description,location,cover_image_url,cover_image_alt,cover_photo_id,cover_focal_x,cover_focal_y,cover_layout,is_public,is_published,is_archived,download_enabled,download_quality,download_pin_hash,download_limit,download_count,watermark_enabled,invite_subject,invite_message,deposit_status,payment_notes,expires_at,password_hash,password_plain,created_at,updated_at";
 
 export async function getAdminGalleries() {
   const supabase = await createSupabaseServerClient();
@@ -99,6 +103,34 @@ export async function getAdminGalleries() {
   }
 
   return ((data ?? []) as GalleryRow[]).map(withHasPassword);
+}
+
+export type GalleryListItem = GalleryRecord & { photo_count: number };
+
+/**
+ * Galleries for the admin list view, each with its total photo count (used to
+ * show "N items" on the card grid). Service role bypasses RLS so the embedded
+ * count is accurate. Kept separate from getAdminGalleries so the many other
+ * callers of that function are unaffected.
+ */
+export async function getAdminGalleriesWithCounts(): Promise<GalleryListItem[]> {
+  const supabase = await createSupabaseServerClient();
+  // Disambiguate the embed: galleries<->photos has two FKs (photos.gallery_id
+  // and galleries.cover_photo_id). We want the count of photos belonging to the
+  // gallery, i.e. the photos.gallery_id relationship.
+  const { data, error } = await supabase
+    .from("galleries")
+    .select(`${GALLERY_COLUMNS},photos!photos_gallery_id_fkey(count)`)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return ((data ?? []) as (GalleryRow & { photos?: { count: number }[] })[]).map((row) => {
+    const { photos, ...rest } = row;
+    return { ...withHasPassword(rest as GalleryRow), photo_count: photos?.[0]?.count ?? 0 };
+  });
 }
 
 export async function getAdminGallery(id: string) {
@@ -117,14 +149,12 @@ export async function getAdminGallery(id: string) {
 }
 
 /**
- * Resolves the cover image to show in the admin focal-point picker, mirroring
- * the public cover fallback order: explicit URL, then the chosen cover photo,
- * then the first visible photo.
+ * Resolves the R2 object key for a gallery's cover image, mirroring the public
+ * cover fallback order: chosen cover photo, then the first visible photo.
+ * Returns null when there is no usable photo (or R2 is unconfigured).
  */
-export async function getGalleryCoverPreviewUrl(gallery: GalleryRecord): Promise<string | null> {
-  if (gallery.cover_image_url) return gallery.cover_image_url;
+async function resolveGalleryCoverKey(gallery: GalleryRecord): Promise<string | null> {
   if (!hasR2Config()) return null;
-
   const supabase = await createSupabaseServerClient();
 
   if (gallery.cover_photo_id) {
@@ -134,7 +164,7 @@ export async function getGalleryCoverPreviewUrl(gallery: GalleryRecord): Promise
       .eq("id", gallery.cover_photo_id)
       .maybeSingle();
     const key = (photo?.web_key as string | null) ?? (photo?.thumbnail_key as string | null) ?? null;
-    if (key) return getSignedReadUrl(key);
+    if (key) return key;
   }
 
   const { data: first } = await supabase
@@ -146,10 +176,29 @@ export async function getGalleryCoverPreviewUrl(gallery: GalleryRecord): Promise
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
-  const key = (first?.web_key as string | null) ?? (first?.thumbnail_key as string | null) ?? null;
-  if (key) return getSignedReadUrl(key);
+  return (first?.web_key as string | null) ?? (first?.thumbnail_key as string | null) ?? null;
+}
 
-  return null;
+/**
+ * Resolves the cover image to show in the admin focal-point picker, mirroring
+ * the public cover fallback order: explicit URL, then the chosen cover photo,
+ * then the first visible photo. Uses a short-lived signed URL (admin-only view).
+ */
+export async function getGalleryCoverPreviewUrl(gallery: GalleryRecord): Promise<string | null> {
+  if (gallery.cover_image_url) return gallery.cover_image_url;
+  const key = await resolveGalleryCoverKey(gallery);
+  return key ? getSignedReadUrl(key) : null;
+}
+
+/**
+ * Cover image URL safe to embed in an email — a permanent public URL when R2
+ * public access is configured, otherwise a long-lived (7-day) signed URL so the
+ * image survives being opened later. Falls back to the explicit cover URL.
+ */
+export async function getGalleryEmailCoverUrl(gallery: GalleryRecord): Promise<string | null> {
+  if (gallery.cover_image_url) return gallery.cover_image_url;
+  const key = await resolveGalleryCoverKey(gallery);
+  return key ? getPublicImageUrl(key) : null;
 }
 
 export async function getAdminInquiries() {

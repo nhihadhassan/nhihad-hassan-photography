@@ -2,8 +2,10 @@
 
 import { useActionState } from "react";
 import {
+  ChevronDown,
   Download,
   FileText,
+  ImageIcon,
   Key,
   Lock,
   Receipt,
@@ -46,32 +48,52 @@ function Required() {
   );
 }
 
-function SectionHeader({
+/**
+ * Collapsible settings section built on native <details>, so only General is
+ * expanded by default and the rest stay out of the way until needed.
+ */
+function Section({
   icon: Icon,
   title,
   description,
+  defaultOpen = false,
   badge,
+  children,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   description?: string;
+  defaultOpen?: boolean;
   badge?: React.ReactNode;
+  children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-admin-ink/8">
-      <div className="flex items-start gap-3">
-        <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-admin-ink/6 text-admin-ink/60">
-          <Icon className="size-4" aria-hidden="true" />
-        </span>
-        <div>
-          <h2 className="text-base font-semibold tracking-tight text-admin-ink">{title}</h2>
-          {description && (
-            <p className="mt-0.5 text-sm leading-5 text-admin-ink/55">{description}</p>
-          )}
+    <details
+      open={defaultOpen}
+      className="group rounded-md border border-admin-ink/10 bg-admin-surface"
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 sm:p-6 [&::-webkit-details-marker]:hidden">
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-admin-ink/6 text-admin-ink/60">
+            <Icon className="size-4" aria-hidden="true" />
+          </span>
+          <div>
+            <h2 className="text-base font-semibold tracking-tight text-admin-ink">{title}</h2>
+            {description && (
+              <p className="mt-0.5 text-sm leading-5 text-admin-ink/55">{description}</p>
+            )}
+          </div>
         </div>
-      </div>
-      {badge}
-    </div>
+        <div className="flex shrink-0 items-center gap-3">
+          {badge}
+          <ChevronDown
+            className="size-4 text-admin-ink/45 transition group-open:rotate-180"
+            aria-hidden="true"
+          />
+        </div>
+      </summary>
+      <div className="border-t border-admin-ink/8 px-5 py-5 sm:px-6">{children}</div>
+    </details>
   );
 }
 
@@ -84,9 +106,7 @@ function toDateTimeLocal(value: string | null) {
 
 /**
  * Extends GalleryPresetDefaults with the computed expires_at string that the
- * datetime-local input requires. The preset stores expiry_days (raw); the
- * wrapper component converts it to a datetime-local string before passing it
- * here.
+ * datetime-local input requires.
  */
 type GalleryFormDefaults = GalleryPresetDefaults & { expires_at?: string };
 
@@ -97,22 +117,31 @@ type GalleryFormProps = {
   coverImageUrl?: string | null;
 };
 
+/** Small "Protected"/"Active" style pill used in section headers. */
+function StatusBadge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-admin-accent/40 bg-admin-copper/15 px-2.5 py-0.5 text-xs font-medium text-admin-accent">
+      {children}
+    </span>
+  );
+}
+
 export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFormProps) {
   const action = gallery ? updateGallery : createGallery;
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <form action={formAction} className="grid gap-5">
+    <form action={formAction} className="grid gap-4">
       {gallery ? <input type="hidden" name="id" value={gallery.id} /> : null}
 
       {/* ── General ───────────────────────────────────────────────────────── */}
-      <section className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
-        <SectionHeader
-          icon={FileText}
-          title="General"
-          description="Basic details shown on the gallery cover page."
-        />
-        <div className="mt-5 grid gap-5 md:grid-cols-2">
+      <Section
+        icon={FileText}
+        title="General"
+        description="Basic details shown on the gallery cover page."
+        defaultOpen
+      >
+        <div className="grid gap-5 md:grid-cols-2">
           <label className="grid gap-2">
             <span className="text-sm font-medium">
               Title
@@ -196,7 +225,15 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
             Shown under the cover and above the gallery, and on the homepage gallery card.
           </span>
         </label>
-        <div className="mt-5 grid gap-5 md:grid-cols-2">
+      </Section>
+
+      {/* ── Cover ─────────────────────────────────────────────────────────── */}
+      <Section
+        icon={ImageIcon}
+        title="Cover"
+        description="The image and layout used on the gallery cover page."
+      >
+        <div className="grid gap-5 md:grid-cols-2">
           <label className="grid gap-2 md:col-span-2">
             <span className="text-sm font-medium">Cover image URL</span>
             <input
@@ -227,16 +264,16 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
             initialLayout={gallery?.cover_layout ?? "center"}
           />
         </div>
-      </section>
+      </Section>
 
       {/* ── Privacy & Access ──────────────────────────────────────────────── */}
-      <section className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
-        <SectionHeader
-          icon={Shield}
-          title="Privacy & Access"
-          description="Control who can find and view this gallery."
-        />
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <Section
+        icon={Shield}
+        title="Privacy & Access"
+        description="Control who can find and view this gallery."
+        badge={gallery?.has_password ? <StatusBadge>Password</StatusBadge> : undefined}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-admin-ink/10 bg-white/50 px-4 py-3.5">
             <div>
               <p className="text-sm font-medium text-admin-ink">Published</p>
@@ -285,11 +322,7 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
             <div className="flex items-center gap-2">
               <Lock className="size-4 text-admin-ink/45" aria-hidden="true" />
               <p className="text-sm font-semibold text-admin-ink">Password protection</p>
-              {gallery?.has_password && (
-                <span className="inline-flex items-center rounded-full border border-admin-accent/40 bg-admin-copper/15 px-2.5 py-0.5 text-xs font-medium text-admin-accent">
-                  Protected
-                </span>
-              )}
+              {gallery?.has_password && <StatusBadge>Protected</StatusBadge>}
             </div>
           </div>
           <p className="mt-1 text-xs text-admin-ink/50">
@@ -324,16 +357,16 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
             ) : null}
           </div>
         </div>
-      </section>
+      </Section>
 
       {/* ── Download ──────────────────────────────────────────────────────── */}
-      <section className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
-        <SectionHeader
-          icon={Download}
-          title="Download"
-          description="Control how clients can download photos from this gallery."
-        />
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <Section
+        icon={Download}
+        title="Download"
+        description="Control how clients can download photos from this gallery."
+        badge={gallery?.has_download_pin ? <StatusBadge>PIN</StatusBadge> : undefined}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-admin-ink/10 bg-white/50 px-4 py-3.5">
             <div>
               <p className="text-sm font-medium text-admin-ink">Downloads enabled</p>
@@ -349,7 +382,7 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
           <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-admin-ink/10 bg-white/50 px-4 py-3.5">
             <div>
               <p className="text-sm font-medium text-admin-ink">Watermark previews</p>
-              <p className="mt-0.5 text-xs text-admin-ink/50">Web previews only — originals stay clean</p>
+              <p className="mt-0.5 text-xs text-admin-ink/50">Web previews only. Originals stay clean.</p>
             </div>
             <input
               type="checkbox"
@@ -400,11 +433,7 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
           <div className="flex items-center gap-2">
             <Key className="size-4 text-admin-ink/45" aria-hidden="true" />
             <p className="text-sm font-semibold text-admin-ink">Download PIN</p>
-            {gallery?.has_download_pin && (
-              <span className="inline-flex items-center rounded-full border border-admin-accent/40 bg-admin-copper/15 px-2.5 py-0.5 text-xs font-medium text-admin-accent">
-                Active
-              </span>
-            )}
+            {gallery?.has_download_pin && <StatusBadge>Active</StatusBadge>}
           </div>
           <p className="mt-1 text-xs text-admin-ink/50">
             {gallery?.has_download_pin
@@ -440,18 +469,15 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
             ) : null}
           </div>
         </div>
-      </section>
+      </Section>
 
       {/* ── Payment ───────────────────────────────────────────────────────── */}
-      <section className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
-        <SectionHeader
-          icon={Receipt}
-          title="Payment"
-          description={
-            "Track deposit and final payment status. Payments are collected manually via Interac e-Transfer — nothing is charged through this site."
-          }
-        />
-        <div className="mt-5 grid gap-5 md:grid-cols-2">
+      <Section
+        icon={Receipt}
+        title="Payment"
+        description="Track deposit and final payment status. Payments are collected manually via Interac e-Transfer. Nothing is charged through this site."
+      >
+        <div className="grid gap-5 md:grid-cols-2">
           <label className="grid gap-2">
             <span className="text-sm font-medium">Deposit status</span>
             <select
@@ -477,7 +503,7 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
             <span className="text-xs text-admin-ink/45">Admin-only. Never shown publicly.</span>
           </label>
         </div>
-      </section>
+      </Section>
 
       {state.message ? (
         <p

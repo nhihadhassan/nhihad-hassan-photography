@@ -20,6 +20,7 @@ export type JournalBlock =
       images: { imageKey?: string | null; imageUrl?: string | null; alt?: string }[];
       caption?: string;
     }
+  | { id: string; type: "list"; items: string[] }
   | { id: string; type: "divider" };
 
 export type BlockType = JournalBlock["type"];

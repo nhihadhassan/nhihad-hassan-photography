@@ -11,7 +11,9 @@ import {
   GripVertical,
   Heading,
   Image as ImageIcon,
+  ImagePlus,
   Images,
+  List,
   Loader2,
   Minus,
   Plus,
@@ -21,9 +23,12 @@ import {
   Text as TextIcon,
   Trash2,
   Upload,
+  X,
 } from "lucide-react";
 import { JOURNAL_TAGS } from "@/lib/journal-types";
 import type { BlockType, JournalBlock, JournalPostRecord } from "@/lib/journal-types";
+
+export type JournalPortfolioPhoto = { key: string; url: string; title: string };
 import { deleteJournalPost, saveJournalPost } from "@/app/admin/(protected)/journal/actions";
 
 const inputClass =
@@ -44,6 +49,7 @@ const ADD_BUTTONS: { type: BlockType; label: string; icon: typeof TextIcon }[] =
   { type: "image", label: "Photo", icon: ImageIcon },
   { type: "image_row", label: "Photo row", icon: Images },
   { type: "quote", label: "Quote", icon: Quote },
+  { type: "list", label: "List", icon: List },
   { type: "divider", label: "Divider", icon: Minus },
 ];
 
@@ -66,6 +72,8 @@ function newBlock(type: BlockType): JournalBlock {
       return { id, type, imageKey: null, imageUrl: null, caption: "", alt: "", width: "normal" };
     case "image_row":
       return { id, type, images: [{ imageKey: null, imageUrl: null }, { imageKey: null, imageUrl: null }] };
+    case "list":
+      return { id, type, items: [""] };
     case "divider":
       return { id, type };
   }
@@ -130,11 +138,19 @@ function serializeBlocks(blocks: JournalBlock[]): JournalBlock[] {
   });
 }
 
-type Props = { record: JournalPostRecord; coverUrl: string | null };
+type Props = {
+  record: JournalPostRecord;
+  coverUrl: string | null;
+  portfolioPhotos: JournalPortfolioPhoto[];
+};
 
-export function JournalEditor({ record, coverUrl: initialCoverUrl }: Props) {
+export function JournalEditor({ record, coverUrl: initialCoverUrl, portfolioPhotos }: Props) {
   const router = useRouter();
   const [saving, startSaving] = useTransition();
+  // When set, the portfolio picker modal is open; choosing a photo calls this.
+  const [pickerApply, setPickerApply] = useState<((p: JournalPortfolioPhoto) => void) | null>(null);
+  const hasPortfolio = portfolioPhotos.length > 0;
+  const openPicker = (apply: (p: JournalPortfolioPhoto) => void) => setPickerApply(() => apply);
 
   const [title, setTitle] = useState(record.title === "Untitled post" ? "" : record.title);
   const [slug, setSlug] = useState(record.slug.startsWith("untitled-") ? "" : record.slug);
@@ -201,6 +217,21 @@ export function JournalEditor({ record, coverUrl: initialCoverUrl }: Props) {
         if (b.type === "image_row" && typeof slot === "number") {
           const images = [...b.images];
           images[slot] = { imageKey: result.key, imageUrl: result.url };
+          return { ...b, images };
+        }
+        return b;
+      }),
+    );
+  };
+
+  const applyPortfolioToBlock = (blockId: string, photo: JournalPortfolioPhoto, slot?: number) => {
+    setBlocks((prev) =>
+      prev.map((b) => {
+        if (b.id !== blockId) return b;
+        if (b.type === "image") return { ...b, imageKey: photo.key, imageUrl: photo.url };
+        if (b.type === "image_row" && typeof slot === "number") {
+          const images = [...b.images];
+          images[slot] = { imageKey: photo.key, imageUrl: photo.url };
           return { ...b, images };
         }
         return b;
@@ -436,6 +467,16 @@ export function JournalEditor({ record, coverUrl: initialCoverUrl }: Props) {
                         {coverBusy ? <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> : <Upload className="size-3.5" aria-hidden="true" />}
                         {coverUrl ? "Replace" : "Upload cover"}
                       </button>
+                      {hasPortfolio ? (
+                        <button
+                          type="button"
+                          onClick={() => openPicker((p) => { setCoverKey(p.key); setCoverUrl(p.url); })}
+                          className="inline-flex min-h-9 items-center gap-2 rounded-md border border-admin-ink/15 px-3 text-xs font-medium text-admin-ink/75"
+                        >
+                          <ImagePlus className="size-3.5" aria-hidden="true" />
+                          From portfolio
+                        </button>
+                      ) : null}
                       {coverUrl ? (
                         <button
                           type="button"
@@ -473,6 +514,11 @@ export function JournalEditor({ record, coverUrl: initialCoverUrl }: Props) {
                 onMove={moveBlock}
                 onRemove={removeBlock}
                 onImage={onBlockImage}
+                onPickPortfolio={
+                  hasPortfolio
+                    ? (id, slot) => openPicker((p) => applyPortfolioToBlock(id, p, slot))
+                    : undefined
+                }
               />
             ))}
             {blocks.length === 0 ? (
@@ -524,6 +570,56 @@ export function JournalEditor({ record, coverUrl: initialCoverUrl }: Props) {
           </div>
         </div>
       </div>
+
+      {pickerApply ? (
+        <PortfolioPicker
+          photos={portfolioPhotos}
+          onClose={() => setPickerApply(null)}
+          onSelect={(p) => {
+            pickerApply(p);
+            setPickerApply(null);
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+/* ── Portfolio picker modal ────────────────────────────────────────── */
+
+function PortfolioPicker({
+  photos,
+  onSelect,
+  onClose,
+}: {
+  photos: JournalPortfolioPhoto[];
+  onSelect: (p: JournalPortfolioPhoto) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-admin-ink/40 p-4" onClick={onClose}>
+      <div className="flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-admin-ink/10 bg-admin-bg shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-admin-ink/10 px-5 py-3">
+          <h2 className="text-sm font-semibold tracking-tight text-admin-ink">Choose from portfolio</h2>
+          <button type="button" onClick={onClose} className="rounded p-1 text-admin-ink/55 hover:bg-admin-ink/6" aria-label="Close">
+            <X className="size-4" aria-hidden="true" />
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-3 overflow-y-auto p-5 sm:grid-cols-3 md:grid-cols-4">
+          {photos.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              onClick={() => onSelect(p)}
+              className="group relative aspect-square overflow-hidden rounded-md border border-admin-ink/10 bg-admin-ink/5 transition hover:border-admin-copper"
+              title={p.title}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.url} alt={p.title} className="size-full object-cover transition group-hover:scale-105" />
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -536,6 +632,7 @@ const BLOCK_LABELS: Record<BlockType, string> = {
   quote: "Quote",
   image: "Photo",
   image_row: "Photo row",
+  list: "List",
   divider: "Divider",
 };
 
@@ -547,6 +644,7 @@ function BlockCard({
   onMove,
   onRemove,
   onImage,
+  onPickPortfolio,
 }: {
   block: JournalBlock;
   first: boolean;
@@ -555,6 +653,7 @@ function BlockCard({
   onMove: (id: string, dir: "up" | "down") => void;
   onRemove: (id: string) => void;
   onImage: (id: string, file: File | undefined, slot?: number) => void;
+  onPickPortfolio?: (id: string, slot?: number) => void;
 }) {
   return (
     <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-3">
@@ -592,7 +691,7 @@ function BlockCard({
           </button>
         </div>
       </div>
-      <BlockFields block={block} onPatch={onPatch} onImage={onImage} />
+      <BlockFields block={block} onPatch={onPatch} onImage={onImage} onPickPortfolio={onPickPortfolio} />
     </div>
   );
 }
@@ -601,10 +700,12 @@ function BlockFields({
   block,
   onPatch,
   onImage,
+  onPickPortfolio,
 }: {
   block: JournalBlock;
   onPatch: (id: string, patch: Partial<JournalBlock>) => void;
   onImage: (id: string, file: File | undefined, slot?: number) => void;
+  onPickPortfolio?: (id: string, slot?: number) => void;
 }) {
   switch (block.type) {
     case "heading":
@@ -643,7 +744,7 @@ function BlockFields({
             value={block.text}
             onChange={(e) => onPatch(block.id, { text: e.target.value })}
             rows={4}
-            placeholder="Write your paragraph. Use **bold** for emphasis."
+            placeholder="Write your paragraph. Use **bold** and [links](https://example.com)."
             className={`${inputClass} resize-y leading-relaxed`}
           />
           <SegToggle
@@ -681,6 +782,7 @@ function BlockFields({
             url={block.imageUrl ?? null}
             onFile={(f) => onImage(block.id, f)}
             aspect="aspect-[3/2]"
+            onPickPortfolio={onPickPortfolio ? () => onPickPortfolio(block.id) : undefined}
           />
           <input
             value={block.caption ?? ""}
@@ -715,6 +817,7 @@ function BlockFields({
                 onFile={(f) => onImage(block.id, f, slot)}
                 aspect="aspect-square"
                 optional={slot === 2}
+                onPickPortfolio={onPickPortfolio ? () => onPickPortfolio(block.id, slot) : undefined}
               />
             ))}
           </div>
@@ -726,6 +829,16 @@ function BlockFields({
           />
         </div>
       );
+    case "list":
+      return (
+        <textarea
+          value={block.items.join("\n")}
+          onChange={(e) => onPatch(block.id, { items: e.target.value.split("\n") })}
+          rows={Math.max(3, block.items.length)}
+          placeholder="One item per line."
+          className={`${inputClass} resize-y leading-relaxed`}
+        />
+      );
     case "divider":
       return <div className="h-px bg-admin-ink/15" />;
   }
@@ -736,20 +849,18 @@ function ImageSlot({
   onFile,
   aspect,
   optional,
+  onPickPortfolio,
 }: {
   url: string | null;
   onFile: (file: File | undefined) => void;
   aspect: string;
   optional?: boolean;
+  onPickPortfolio?: () => void;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   return (
-    <button
-      type="button"
-      onClick={() => ref.current?.click()}
-      className={`relative ${aspect} overflow-hidden rounded-md border border-dashed border-admin-ink/20 bg-admin-ink/5 transition hover:border-admin-copper`}
-    >
+    <div className={`relative ${aspect} overflow-hidden rounded-md border border-dashed border-admin-ink/20 bg-admin-ink/5`}>
       <input
         ref={ref}
         type="file"
@@ -763,16 +874,27 @@ function ImageSlot({
           setBusy(false);
         }}
       />
-      {url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt="" className="size-full object-cover" />
-      ) : (
-        <span className="flex size-full flex-col items-center justify-center gap-1 text-admin-ink/40">
-          {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Upload className="size-4" aria-hidden="true" />}
-          <span className="text-[10px]">{optional ? "Optional" : "Upload"}</span>
-        </span>
-      )}
-    </button>
+      <button type="button" onClick={() => ref.current?.click()} className="absolute inset-0 transition hover:bg-admin-ink/[0.03]">
+        {url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={url} alt="" className="size-full object-cover" />
+        ) : (
+          <span className="flex size-full flex-col items-center justify-center gap-1 text-admin-ink/40">
+            {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Upload className="size-4" aria-hidden="true" />}
+            <span className="text-[10px]">{optional ? "Optional" : "Upload"}</span>
+          </span>
+        )}
+      </button>
+      {onPickPortfolio ? (
+        <button
+          type="button"
+          onClick={onPickPortfolio}
+          className="absolute bottom-1 right-1 rounded bg-admin-ink/80 px-1.5 py-0.5 text-[9px] font-medium text-admin-surface transition hover:bg-admin-ink"
+        >
+          Portfolio
+        </button>
+      ) : null}
+    </div>
   );
 }
 
@@ -807,9 +929,12 @@ function SegToggle<T extends string | number>({
 /* ── Live preview (mirrors the public article styling) ─────────────── */
 
 function previewInline(text: string) {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
-    part.startsWith("**") && part.endsWith("**") ? <strong key={i}>{part.slice(2, -2)}</strong> : <span key={i}>{part}</span>,
-  );
+  return text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g).map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) return <strong key={i}>{part.slice(2, -2)}</strong>;
+    const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (link) return <span key={i} className="underline underline-offset-2">{link[1]}</span>;
+    return <span key={i}>{part}</span>;
+  });
 }
 
 function Preview({
@@ -929,6 +1054,19 @@ function PreviewBlock({ block, accent }: { block: JournalBlock; accent: string }
             <figcaption className="mt-2 text-center text-xs italic text-soft-white/55">{block.caption}</figcaption>
           ) : null}
         </figure>
+      );
+    }
+    case "list": {
+      const items = block.items.filter((i) => i.trim());
+      if (items.length === 0) return <p className="mt-4 text-soft-white/30">Empty list</p>;
+      return (
+        <ul className="my-5 ml-5 list-disc space-y-1.5 first:mt-0" style={{ color: accent }}>
+          {items.map((item, i) => (
+            <li key={i} className="leading-[1.8] text-soft-white/75">
+              {previewInline(item)}
+            </li>
+          ))}
+        </ul>
       );
     }
     case "divider":

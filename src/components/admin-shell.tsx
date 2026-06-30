@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BellRing, Calendar, Camera, Download, FileText, FolderOpen, Images, Inbox, LayoutDashboard, LayoutTemplate, LogOut, MessageSquareText, Newspaper, PenLine, Settings, Shield, Users, Wallet, Workflow } from "lucide-react";
+import { BellRing, Calendar, Camera, Download, FileText, FolderOpen, Images, Inbox, LayoutDashboard, LayoutTemplate, LogOut, MessageSquareText, Newspaper, PenLine, Settings, Shield, Tag, Users, Wallet, Workflow } from "lucide-react";
 import { logoutAdmin } from "@/app/admin/login/actions";
 import { brandConfig } from "@/lib/config";
 
@@ -13,6 +13,7 @@ const adminNav = [
   { href: "/admin/finances", label: "Finances", icon: Wallet },
   { href: "/admin/portfolio", label: "Portfolio", icon: Images },
   { href: "/admin/journal", label: "Journal", icon: Newspaper },
+  { href: "/admin/pricing", label: "Pricing", icon: Tag },
   { href: "/admin/sections", label: "Sections", icon: LayoutTemplate },
   { href: "/admin/inquiries", label: "Inquiries", icon: Inbox },
   { href: "/admin/reviews", label: "Reviews", icon: MessageSquareText },

@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import { getPublicSupabaseClient } from "@/lib/supabase/public";
 import { hasR2Config, hasServiceRoleKey } from "@/lib/env";
-import { getSignedReadUrl } from "@/lib/r2";
+import { getPublicImageUrl } from "@/lib/r2";
 import { portfolioItems, type PortfolioCategory } from "@/data/photography";
 
 /** Full portfolio_items row (admin-facing). */
@@ -68,8 +68,8 @@ async function attachSignedUrls(
       const displayKey = row.web_key ?? row.original_key;
       const thumbKey = row.thumbnail_key ?? row.web_key ?? row.original_key;
       const [display_url, thumbnail_url] = await Promise.all([
-        getSignedReadUrl(displayKey),
-        thumbKey === displayKey ? Promise.resolve("") : getSignedReadUrl(thumbKey),
+        getPublicImageUrl(displayKey),
+        thumbKey === displayKey ? Promise.resolve("") : getPublicImageUrl(thumbKey),
       ]);
       return { ...row, display_url, thumbnail_url: thumbnail_url || display_url };
     }),

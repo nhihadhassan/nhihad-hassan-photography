@@ -184,3 +184,20 @@ export async function getSignedReadUrl(key: string, ttlSeconds = 3600) {
     { expiresIn: ttlSeconds },
   );
 }
+
+/** Max lifetime for an AWS SigV4 presigned URL (7 days). */
+const PUBLIC_IMAGE_TTL_SECONDS = 60 * 60 * 24 * 7;
+
+/**
+ * URL for an image shown on PUBLIC marketing pages (portfolio, public gallery
+ * covers, journal). Prefers a permanent public URL when R2 public access is
+ * configured (R2_PUBLIC_BASE_URL); otherwise falls back to a long-lived (7-day)
+ * signed URL so cached/shared pages don't break when a 1-hour link expires.
+ */
+export async function getPublicImageUrl(key: string): Promise<string> {
+  const { publicBaseUrl } = requireR2Config();
+  if (publicBaseUrl) {
+    return `${publicBaseUrl.replace(/\/$/, "")}/${key}`;
+  }
+  return getSignedReadUrl(key, PUBLIC_IMAGE_TTL_SECONDS);
+}

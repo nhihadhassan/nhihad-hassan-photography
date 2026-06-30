@@ -3,7 +3,7 @@ import { getPublicSupabaseClient } from "@/lib/supabase/public";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import { hasServiceRoleKey, hasR2Config } from "@/lib/env";
-import { getSignedReadUrl } from "@/lib/r2";
+import { getPublicImageUrl } from "@/lib/r2";
 import { journalPosts as staticPosts } from "@/data/journal";
 import { portfolioItems } from "@/data/photography";
 import type {
@@ -44,7 +44,7 @@ const COLUMNS =
 /** Resolve a single image reference (R2 key or direct URL) to a usable src. */
 async function resolveSrc(key?: string | null, url?: string | null): Promise<string> {
   if (key && hasR2Config()) {
-    const signed = await getSignedReadUrl(key);
+    const signed = await getPublicImageUrl(key);
     if (signed) return signed;
   }
   return url ?? "";

@@ -6,7 +6,7 @@ import {
 } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
-import { getSignedReadUrl } from "@/lib/r2";
+import { getSignedReadUrl, getPublicImageUrl } from "@/lib/r2";
 import {
   getPublicGalleryPhotosBySlug,
   type PhotoRecord,
@@ -377,8 +377,8 @@ export async function getPublicGalleryIndex(): Promise<PublicGalleryCard[]> {
             null;
         }
         if (key) {
-          const signed = await getSignedReadUrl(key);
-          if (signed) imageUrl = signed;
+          const publicUrl = await getPublicImageUrl(key);
+          if (publicUrl) imageUrl = publicUrl;
         }
       }
 
@@ -398,5 +398,5 @@ export async function getPublicGalleryIndex(): Promise<PublicGalleryCard[]> {
 
 export async function getSignedCoverUrlForKey(key: string) {
   if (!hasR2Config()) return null;
-  return getSignedReadUrl(key);
+  return getPublicImageUrl(key);
 }

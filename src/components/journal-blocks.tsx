@@ -2,15 +2,30 @@ import Image from "next/image";
 import { Fragment } from "react";
 import type { ResolvedBlock } from "@/lib/journal-types";
 
-/** Inline **bold** support inside paragraphs / headings. */
+/** Inline **bold** and [text](url) link support inside paragraphs / headings. */
 function inline(text: string) {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
-    part.startsWith("**") && part.endsWith("**") ? (
-      <strong key={i}>{part.slice(2, -2)}</strong>
-    ) : (
-      <Fragment key={i}>{part}</Fragment>
-    ),
-  );
+  return text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g).map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (link) {
+      const raw = link[2].trim();
+      const href = /^(https?:\/\/|mailto:|\/)/.test(raw) ? raw : `https://${raw}`;
+      const external = href.startsWith("http");
+      return (
+        <a
+          key={i}
+          href={href}
+          {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+          className="underline underline-offset-2 transition hover:text-copper"
+        >
+          {link[1]}
+        </a>
+      );
+    }
+    return <Fragment key={i}>{part}</Fragment>;
+  });
 }
 
 function JournalImage({ src, alt }: { src: string; alt?: string }) {
@@ -92,6 +107,19 @@ function Block({ block }: { block: ResolvedBlock }) {
             </figcaption>
           ) : null}
         </figure>
+      );
+    }
+    case "list": {
+      const items = block.items.filter((i) => i.trim());
+      if (items.length === 0) return null;
+      return (
+        <ul className="my-6 ml-5 list-disc space-y-2 marker:text-copper/70 first:mt-0">
+          {items.map((item, i) => (
+            <li key={i} className="leading-[1.85] text-soft-white/75">
+              {inline(item)}
+            </li>
+          ))}
+        </ul>
       );
     }
     case "divider":

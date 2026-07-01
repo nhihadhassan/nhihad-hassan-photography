@@ -132,7 +132,7 @@ export function GalleryRowActions({
             "inline-flex min-h-9 items-center gap-2 rounded-md px-4 text-sm font-medium transition disabled:opacity-45 " +
             (isPublished
               ? "border border-admin-ink/15 bg-admin-ink/6 text-admin-ink/70 hover:bg-admin-ink/12"
-              : "bg-admin-ink text-admin-surface hover:bg-[#2a2218]")
+              : "bg-admin-ink text-admin-surface hover:opacity-90")
           }
         >
           {isPublished ? "Unpublish" : "Publish"}
@@ -145,10 +145,12 @@ export function GalleryRowActions({
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-label="Gallery actions"
+          aria-haspopup="menu"
+          aria-expanded={open}
           className={
             compact
-              ? "inline-flex size-8 items-center justify-center rounded-md border border-admin-ink/12 bg-white/80 text-admin-ink/70 transition hover:bg-admin-ink/6"
-              : "inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-ink/12 px-3 text-sm text-admin-ink/65 transition hover:bg-admin-ink/6"
+              ? "inline-flex size-10 items-center justify-center rounded-md border border-admin-ink/12 bg-white/85 text-admin-ink/75 shadow-sm transition hover:bg-white focus-visible:ring-2 focus-visible:ring-admin-copper/40"
+              : "inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-ink/12 px-3 text-sm text-admin-ink/70 transition hover:bg-admin-ink/6 focus-visible:ring-2 focus-visible:ring-admin-copper/40"
           }
         >
           {compact ? (
@@ -166,7 +168,10 @@ export function GalleryRowActions({
             {/* Click-away backdrop */}
             <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
 
-            <div className="absolute right-0 top-full z-20 mt-1.5 min-w-52 overflow-hidden rounded-md border border-admin-ink/10 bg-white shadow-lg">
+            <div
+              role="menu"
+              className="absolute right-0 top-full z-20 mt-1.5 min-w-52 overflow-hidden rounded-md border border-admin-ink/10 bg-white shadow-lg"
+            >
               {/* Publish / Unpublish (compact variant only — it has no inline button) */}
               {compact ? (
                 <>

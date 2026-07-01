@@ -201,6 +201,78 @@ export async function getGalleryEmailCoverUrl(gallery: GalleryRecord): Promise<s
   return key ? getPublicImageUrl(key) : null;
 }
 
+/**
+ * Resolves cover thumbnails for a list of galleries in a bounded number of
+ * queries (previously N+1: two per gallery). One query batches the chosen cover
+ * photos; a second batches the first visible photo for galleries without an
+ * explicit cover. Signing the URLs is local (no I/O). Returns a map of
+ * galleryId -> URL (or null).
+ */
+export async function getGalleryListCoverUrls(
+  galleries: GalleryRecord[],
+): Promise<Record<string, string | null>> {
+  const result: Record<string, string | null> = {};
+  for (const g of galleries) result[g.id] = g.cover_image_url ?? null;
+
+  const needPhoto = galleries.filter((g) => !g.cover_image_url);
+  if (!needPhoto.length || !hasR2Config()) return result;
+
+  const supabase = await createSupabaseServerClient();
+  const pickKey = (p: { web_key: string | null; thumbnail_key: string | null }) =>
+    p.web_key ?? p.thumbnail_key ?? null;
+
+  // 1) Chosen cover photos, batched by id.
+  const coverPhotoIds = needPhoto
+    .map((g) => g.cover_photo_id)
+    .filter((id): id is string => Boolean(id));
+  const keyByPhotoId = new Map<string, string>();
+  if (coverPhotoIds.length) {
+    const { data } = await supabase
+      .from("photos")
+      .select("id,web_key,thumbnail_key")
+      .in("id", coverPhotoIds);
+    for (const p of (data ?? []) as { id: string; web_key: string | null; thumbnail_key: string | null }[]) {
+      const key = pickKey(p);
+      if (key) keyByPhotoId.set(p.id, key);
+    }
+  }
+
+  // 2) First visible photo per gallery, for those still without a cover.
+  const needFirst = needPhoto.filter(
+    (g) => !(g.cover_photo_id && keyByPhotoId.has(g.cover_photo_id)),
+  );
+  const keyByGalleryId = new Map<string, string>();
+  if (needFirst.length) {
+    const { data } = await supabase
+      .from("photos")
+      .select("gallery_id,web_key,thumbnail_key")
+      .in("gallery_id", needFirst.map((g) => g.id))
+      .eq("is_hidden", false)
+      .order("gallery_id", { ascending: true })
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+    for (const p of (data ?? []) as {
+      gallery_id: string;
+      web_key: string | null;
+      thumbnail_key: string | null;
+    }[]) {
+      if (keyByGalleryId.has(p.gallery_id)) continue; // first row wins
+      const key = pickKey(p);
+      if (key) keyByGalleryId.set(p.gallery_id, key);
+    }
+  }
+
+  await Promise.all(
+    needPhoto.map(async (g) => {
+      const key =
+        (g.cover_photo_id && keyByPhotoId.get(g.cover_photo_id)) || keyByGalleryId.get(g.id);
+      result[g.id] = key ? await getSignedReadUrl(key) : null;
+    }),
+  );
+
+  return result;
+}
+
 export async function getAdminInquiries() {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase

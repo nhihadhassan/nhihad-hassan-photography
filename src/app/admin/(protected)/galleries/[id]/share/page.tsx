@@ -43,7 +43,7 @@ export default async function GallerySharePage({ params }: Props) {
     <div className="mx-auto max-w-5xl">
       <Link
         href={`/admin/galleries/${id}`}
-        className="inline-flex items-center gap-2 text-sm text-admin-ink/58 hover:text-admin-ink"
+        className="inline-flex items-center gap-2 text-sm text-admin-ink/65 hover:text-admin-ink"
       >
         <ArrowLeft className="size-3.5" aria-hidden="true" />
         Back to gallery
@@ -60,7 +60,7 @@ export default async function GallerySharePage({ params }: Props) {
       {/* Send to client */}
       <section className="mt-7 rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
         <h2 className="text-base font-semibold tracking-tight">Send to client</h2>
-        <p className="mt-1 text-sm text-admin-ink/55">
+        <p className="mt-1 text-sm text-admin-ink/65">
           Edit the subject and message, then send. The preview shows exactly what your client
           receives.
         </p>
@@ -85,7 +85,7 @@ export default async function GallerySharePage({ params }: Props) {
       {/* Gallery link */}
       <section className="mt-6 rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
         <h2 className="text-base font-semibold tracking-tight">Gallery link</h2>
-        <p className="mt-1 text-sm text-admin-ink/55">
+        <p className="mt-1 text-sm text-admin-ink/65">
           The public address for this gallery. Share it by text or social.
           {gallery.has_password ? " Clients need the password to view." : ""}
           {!gallery.is_published ? " This gallery is a draft until you publish it." : ""}
@@ -98,7 +98,7 @@ export default async function GallerySharePage({ params }: Props) {
       {/* Curated share links */}
       <section className="mt-6 rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
         <h2 className="text-base font-semibold tracking-tight">Curated links</h2>
-        <p className="mt-1 max-w-2xl text-sm leading-6 text-admin-ink/55">
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-admin-ink/65">
           Build a link that shows only the photos you select, for vendors, planners, or partners.
           Originals are never exposed.
         </p>

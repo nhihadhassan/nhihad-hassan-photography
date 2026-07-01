@@ -22,13 +22,14 @@ export function CopyLinkField({ url }: { url: string }) {
       <input
         readOnly
         value={url}
+        aria-label="Gallery link"
         onFocus={(e) => e.currentTarget.select()}
-        className="min-h-10 min-w-0 flex-1 rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink/80 outline-none"
+        className="min-h-10 min-w-0 flex-1 rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink/80 outline-none focus-visible:border-admin-copper focus-visible:ring-2 focus-visible:ring-admin-copper/35"
       />
       <button
         type="button"
         onClick={copy}
-        className="inline-flex min-h-10 items-center gap-2 rounded-md bg-admin-ink px-4 text-sm font-medium text-admin-surface transition hover:bg-[#2e2822]"
+        className="inline-flex min-h-10 items-center gap-2 rounded-md bg-admin-ink px-4 text-sm font-medium text-admin-surface transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-admin-copper/40"
       >
         {copied ? <Check className="size-3.5" aria-hidden="true" /> : <Copy className="size-3.5" aria-hidden="true" />}
         {copied ? "Copied" : "Copy"}

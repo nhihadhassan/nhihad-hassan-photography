@@ -25,7 +25,7 @@ function StatusDot({ card }: { card: GalleryCard }) {
       ? { label: "Published", color: "bg-admin-success" }
       : { label: "Draft", color: "bg-admin-accent" };
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-admin-ink/50">
+    <span className="inline-flex items-center gap-1.5 text-xs text-admin-ink/65">
       <span className={`size-1.5 rounded-full ${color}`} aria-hidden="true" />
       {label}
     </span>
@@ -54,15 +54,18 @@ export function GalleriesGrid({ galleries }: { galleries: GalleryCard[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search collections"
-          className="min-h-10 w-full rounded-md border border-admin-ink/12 bg-white/70 pl-9 pr-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/35 focus:border-admin-copper"
+          aria-label="Search collections"
+          className="min-h-10 w-full rounded-md border border-admin-ink/15 bg-white/70 pl-9 pr-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus-visible:border-admin-copper focus-visible:ring-2 focus-visible:ring-admin-copper/35"
         />
       </div>
 
       {filtered.length ? (
         <div className="mt-6 grid grid-cols-1 gap-x-5 gap-y-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((card) => (
-            <div key={card.id} className="group">
-              <div className="relative overflow-hidden rounded-lg bg-admin-ink/8">
+            <div key={card.id} className="group relative">
+              {/* Cover clips its own corners; the action menu lives OUTSIDE this
+                  overflow-hidden box so its dropdown is never clipped. */}
+              <div className="overflow-hidden rounded-lg bg-admin-ink/8">
                 <Link
                   href={`/admin/galleries/${card.id}`}
                   className="block aspect-[4/3]"
@@ -73,24 +76,26 @@ export function GalleriesGrid({ galleries }: { galleries: GalleryCard[] }) {
                     <img
                       src={card.coverUrl}
                       alt={card.title}
+                      loading="lazy"
+                      decoding="async"
                       className="size-full object-cover transition duration-300 group-hover:scale-[1.02]"
                     />
                   ) : (
-                    <div className="flex size-full items-center justify-center text-admin-ink/25">
+                    <div className="flex size-full items-center justify-center text-admin-ink/30">
                       <ImageIcon className="size-7" aria-hidden="true" />
                     </div>
                   )}
                 </Link>
-                <div className="absolute right-2 top-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
-                  <GalleryRowActions
-                    id={card.id}
-                    title={card.title}
-                    slug={card.slug}
-                    isPublished={card.isPublished}
-                    isArchived={card.isArchived}
-                    variant="compact"
-                  />
-                </div>
+              </div>
+              <div className="absolute right-2 top-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+                <GalleryRowActions
+                  id={card.id}
+                  title={card.title}
+                  slug={card.slug}
+                  isPublished={card.isPublished}
+                  isArchived={card.isArchived}
+                  variant="compact"
+                />
               </div>
               <div className="mt-2.5">
                 <div className="flex items-start justify-between gap-2">
@@ -101,7 +106,7 @@ export function GalleriesGrid({ galleries }: { galleries: GalleryCard[] }) {
                     {card.title}
                   </Link>
                 </div>
-                <p className="mt-1 text-xs text-admin-ink/50">
+                <p className="mt-1 text-xs text-admin-ink/65">
                   {card.photoCount} {card.photoCount === 1 ? "item" : "items"}
                   {card.eventDate ? ` · ${formatCompactDate(card.eventDate)}` : ""}
                   {card.clientName ? ` · ${card.clientName}` : ""}
@@ -114,7 +119,7 @@ export function GalleriesGrid({ galleries }: { galleries: GalleryCard[] }) {
           ))}
         </div>
       ) : (
-        <p className="mt-10 text-sm text-admin-ink/55">
+        <p className="mt-10 text-sm text-admin-ink/65">
           No collections match &ldquo;{query}&rdquo;.
         </p>
       )}

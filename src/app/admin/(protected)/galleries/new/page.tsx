@@ -4,7 +4,7 @@ import { NewCollectionForm } from "@/components/new-collection-form";
 export default function NewGalleryPage() {
   return (
     <div className="mx-auto max-w-2xl">
-      <Link href="/admin/galleries" className="text-sm text-admin-ink/58 hover:text-admin-ink">
+      <Link href="/admin/galleries" className="text-sm text-admin-ink/65 hover:text-admin-ink">
         Back to galleries
       </Link>
       <div className="mt-6">

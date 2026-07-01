@@ -32,7 +32,7 @@ export default async function EditGalleryPage({ params }: EditGalleryPageProps) 
   return (
     <div className="mx-auto max-w-4xl">
       {/* Back link */}
-      <Link href="/admin/galleries" className="text-sm text-admin-ink/55 hover:text-admin-ink">
+      <Link href="/admin/galleries" className="text-sm text-admin-ink/65 hover:text-admin-ink">
         ← All galleries
       </Link>
 
@@ -55,7 +55,7 @@ export default async function EditGalleryPage({ params }: EditGalleryPageProps) 
           </div>
           <h1 className="mt-2 truncate text-2xl font-semibold tracking-tight">{gallery.title}</h1>
           {gallery.client_name && (
-            <p className="mt-0.5 text-sm text-admin-ink/55">{gallery.client_name}</p>
+            <p className="mt-0.5 text-sm text-admin-ink/65">{gallery.client_name}</p>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -87,7 +87,7 @@ export default async function EditGalleryPage({ params }: EditGalleryPageProps) 
                 "inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm transition " +
                 (active
                   ? "border-admin-ink font-medium text-admin-ink"
-                  : "border-transparent text-admin-ink/55 hover:border-admin-ink/25 hover:text-admin-ink")
+                  : "border-transparent text-admin-ink/65 hover:border-admin-ink/25 hover:text-admin-ink")
               }
             >
               <Icon className="size-3.5" aria-hidden="true" />

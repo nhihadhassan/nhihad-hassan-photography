@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 const initialState: GalleryFormState = { status: "idle", message: "" };
 
 const inputClass =
-  "min-h-11 w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/35 focus:border-admin-copper";
+  "min-h-11 w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus-visible:border-admin-copper focus-visible:ring-2 focus-visible:ring-admin-copper/35";
 
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
@@ -33,7 +33,7 @@ export function NewCollectionForm() {
         </span>
         <input className={inputClass} name="title" placeholder="MOOVE @ AH" autoFocus />
         <FieldError errors={state.fieldErrors?.title} />
-        <span className="text-xs text-admin-ink/45">The web link is created from the title.</span>
+        <span className="text-xs text-admin-ink/65">The web link is created from the title.</span>
       </label>
 
       <div className="grid gap-5 sm:grid-cols-2">
@@ -54,7 +54,7 @@ export function NewCollectionForm() {
 
       <div className="grid gap-2">
         <span className="text-sm font-medium text-admin-ink">Preset</span>
-        <p className="text-xs text-admin-ink/50">
+        <p className="text-xs text-admin-ink/65">
           Pre-fills download settings and an expiry window. You can change everything later.
         </p>
         <div className="mt-1 flex flex-wrap gap-2">
@@ -80,7 +80,7 @@ export function NewCollectionForm() {
       <Button type="submit" variant="light" disabled={pending} className="justify-self-start rounded-md">
         {pending ? "Creating…" : "Create collection"}
       </Button>
-      <p className="text-xs text-admin-ink/45">
+      <p className="text-xs text-admin-ink/65">
         Next you will land on the Photos tab to upload. Privacy, downloads, and password live on
         the Settings tab.
       </p>
@@ -105,7 +105,7 @@ function PresetChip({
       onClick={onSelect}
       title={tagline}
       className={[
-        "rounded-full border px-3.5 py-1.5 text-sm transition",
+        "inline-flex min-h-10 items-center rounded-full border px-4 text-sm transition focus-visible:ring-2 focus-visible:ring-admin-copper/40",
         selected
           ? "border-admin-accent bg-admin-copper/12 text-admin-accent"
           : "border-admin-ink/15 bg-white/60 text-admin-ink/70 hover:border-admin-ink/30",

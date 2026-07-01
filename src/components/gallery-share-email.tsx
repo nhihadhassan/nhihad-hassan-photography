@@ -26,7 +26,7 @@ type GalleryShareEmailProps = {
 };
 
 const inputClass =
-  "min-h-11 w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/35 focus:border-admin-copper";
+  "min-h-11 w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus-visible:border-admin-copper focus-visible:ring-2 focus-visible:ring-admin-copper/35";
 
 function formatRelativeDate(isoString: string): string {
   const date = new Date(isoString);
@@ -137,11 +137,11 @@ export function GalleryShareEmail({
         <label className="grid gap-1.5">
           <span className="text-sm font-medium text-admin-ink">Message</span>
           <textarea
-            className="min-h-44 w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 py-3 text-sm leading-6 text-admin-ink outline-none transition placeholder:text-admin-ink/35 focus:border-admin-copper"
+            className="min-h-44 w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 py-3 text-sm leading-6 text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus-visible:border-admin-copper focus-visible:ring-2 focus-visible:ring-admin-copper/35"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
-          <span className="text-xs text-admin-ink/45">
+          <span className="text-xs text-admin-ink/65">
             Leave a blank line between paragraphs. The gallery button and footer are added
             automatically.
           </span>
@@ -151,7 +151,7 @@ export function GalleryShareEmail({
           <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-admin-ink/12 bg-white/50 px-4 py-3">
             <div>
               <p className="text-sm font-medium text-admin-ink">Include gallery password</p>
-              <p className="mt-0.5 text-xs text-admin-ink/50">
+              <p className="mt-0.5 text-xs text-admin-ink/65">
                 Shows the access password inside the email.
               </p>
             </div>
@@ -169,7 +169,7 @@ export function GalleryShareEmail({
             type="button"
             onClick={handleSend}
             disabled={isPending}
-            className="inline-flex min-h-10 items-center gap-2 rounded-md bg-admin-ink px-4 text-sm font-medium text-admin-surface transition hover:bg-[#2e2822] disabled:opacity-60"
+            className="inline-flex min-h-10 items-center gap-2 rounded-md bg-admin-ink px-4 text-sm font-medium text-admin-surface transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-admin-copper/40 disabled:opacity-60"
           >
             {isPending ? (
               <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
@@ -178,14 +178,14 @@ export function GalleryShareEmail({
             )}
             {isPending ? "Sending…" : hasSentBefore ? "Resend email" : "Send email"}
           </button>
-          {sentLabel ? <span className="text-xs text-admin-ink/45">{sentLabel}</span> : null}
+          {sentLabel ? <span className="text-xs text-admin-ink/65">{sentLabel}</span> : null}
         </div>
 
         {result ? (
           <p
             className={
               result.ok
-                ? "inline-flex items-center gap-2 rounded-md bg-[#2a4a2a]/15 px-3 py-2 text-sm text-[#3a6a3a]"
+                ? "inline-flex items-center gap-2 rounded-md bg-admin-success/12 px-3 py-2 text-sm text-admin-success"
                 : "inline-flex items-center gap-2 rounded-md bg-admin-danger/10 px-3 py-2 text-sm text-admin-danger-ink"
             }
           >
@@ -201,7 +201,7 @@ export function GalleryShareEmail({
 
       {/* Live preview */}
       <div className="grid gap-2">
-        <span className="text-xs font-medium uppercase tracking-wide text-admin-ink/45">
+        <span className="text-xs font-medium uppercase tracking-wide text-admin-ink/65">
           Preview
         </span>
         <div className="overflow-hidden rounded-md border border-admin-ink/12 bg-[#f3eee5]">

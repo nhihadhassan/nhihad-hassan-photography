@@ -149,7 +149,7 @@ export function GalleryRowActions({
           aria-expanded={open}
           className={
             compact
-              ? "inline-flex size-10 items-center justify-center rounded-md border border-admin-ink/12 bg-white/85 text-admin-ink/75 shadow-sm transition hover:bg-white focus-visible:ring-2 focus-visible:ring-admin-copper/40"
+              ? "inline-flex size-10 items-center justify-center rounded-md border border-admin-ink/12 bg-white/85 text-admin-ink/75 shadow-sm transition hover:bg-white focus-visible:ring-2 focus-visible:ring-admin-copper/40 [@media(pointer:coarse)]:size-11"
               : "inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-ink/12 px-3 text-sm text-admin-ink/70 transition hover:bg-admin-ink/6 focus-visible:ring-2 focus-visible:ring-admin-copper/40"
           }
         >

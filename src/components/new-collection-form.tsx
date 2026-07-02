@@ -105,7 +105,7 @@ function PresetChip({
       onClick={onSelect}
       title={tagline}
       className={[
-        "inline-flex min-h-10 items-center rounded-full border px-4 text-sm transition focus-visible:ring-2 focus-visible:ring-admin-copper/40",
+        "inline-flex min-h-10 items-center rounded-full border px-4 text-sm transition focus-visible:ring-2 focus-visible:ring-admin-copper/40 [@media(pointer:coarse)]:min-h-11",
         selected
           ? "border-admin-accent bg-admin-copper/12 text-admin-accent"
           : "border-admin-ink/15 bg-white/60 text-admin-ink/70 hover:border-admin-ink/30",

@@ -490,7 +490,7 @@ export function PhotoManager({
               browse
             </button>
           </p>
-          <p className="text-xs text-admin-ink/55">
+          <p className="text-xs text-admin-ink/65">
             JPG, PNG, or WebP · up to 50 MB each · multi-select supported
           </p>
         </div>
@@ -500,7 +500,7 @@ export function PhotoManager({
         <div className="rounded-md border border-admin-ink/10 bg-white/60 p-4">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm font-medium text-admin-ink">
-              Uploads — {completedUploads.length} done, {activeUploads.length} active,{" "}
+              Uploads: {completedUploads.length} done, {activeUploads.length} active,{" "}
               {erroredUploads.length} failed
             </p>
             <div className="flex gap-2">
@@ -508,7 +508,7 @@ export function PhotoManager({
                 <button
                   type="button"
                   onClick={clearFinished}
-                  className="text-xs text-admin-ink/55 hover:text-admin-ink"
+                  className="text-xs text-admin-ink/65 hover:text-admin-ink"
                 >
                   Clear finished
                 </button>
@@ -549,9 +549,9 @@ export function PhotoManager({
                       />
                     </div>
                   ) : u.status === "success" ? (
-                    <p className="text-admin-ink/55">Uploaded · {formatBytes(u.file.size)}</p>
+                    <p className="text-admin-ink/65">Uploaded · {formatBytes(u.file.size)}</p>
                   ) : (
-                    <p className="text-admin-ink/55">Queued</p>
+                    <p className="text-admin-ink/65">Queued</p>
                   )}
                 </div>
               </li>
@@ -566,7 +566,7 @@ export function PhotoManager({
             <ImageOff className="size-5 text-admin-ink/60" aria-hidden="true" />
           </span>
           <p className="mt-4 text-base font-medium text-admin-ink">No photos yet.</p>
-          <p className="mt-1 text-sm text-admin-ink/55">
+          <p className="mt-1 text-sm text-admin-ink/65">
             Drop files above to upload your first photos.
           </p>
         </div>
@@ -575,7 +575,7 @@ export function PhotoManager({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold tracking-tight">
               Photos
-              <span className="ml-2 text-sm font-normal text-admin-ink/45">
+              <span className="ml-2 text-sm font-normal text-admin-ink/65">
                 {photos.length}
               </span>
             </h2>
@@ -865,7 +865,7 @@ export function PhotoManager({
                     <p className="truncate text-xs text-admin-ink/65" title={photo.filename}>
                       {photo.filename}
                     </p>
-                    <p className="mt-0.5 text-[10px] text-admin-ink/45">
+                    <p className="mt-0.5 text-[10px] text-admin-ink/65">
                       {photo.width && photo.height ? `${photo.width}×${photo.height} · ` : ""}
                       {formatBytes(photo.size_bytes)}
                     </p>

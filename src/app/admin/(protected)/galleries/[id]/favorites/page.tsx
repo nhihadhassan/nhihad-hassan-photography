@@ -47,7 +47,7 @@ export default async function GalleryFavoritesPage({ params, searchParams }: Pag
     <div className="mx-auto max-w-6xl">
       <Link
         href={`/admin/galleries/${id}`}
-        className="inline-flex items-center gap-2 text-sm text-admin-ink/58 hover:text-admin-ink"
+        className="inline-flex items-center gap-2 text-sm text-admin-ink/65 hover:text-admin-ink"
       >
         <ArrowLeft className="size-3.5" aria-hidden="true" />
         Back to gallery
@@ -61,7 +61,7 @@ export default async function GalleryFavoritesPage({ params, searchParams }: Pag
             Submissions from visitors who hearted photos in this gallery and sent them in.
           </p>
         </div>
-        <span className="inline-flex items-center gap-2 rounded-full border border-admin-ink/10 px-3 py-1.5 text-xs text-admin-ink/55">
+        <span className="inline-flex items-center gap-2 rounded-full border border-admin-ink/10 px-3 py-1.5 text-xs text-admin-ink/65">
           <Heart className="size-3.5" aria-hidden="true" />
           {sets.length} submission{sets.length === 1 ? "" : "s"}
         </span>
@@ -102,7 +102,7 @@ export default async function GalleryFavoritesPage({ params, searchParams }: Pag
             {detail ? (
               <FavoriteSetDetailCard detail={detail} galleryTitle={gallery.title} />
             ) : (
-              <div className="rounded-md border border-dashed border-admin-ink/15 bg-admin-surface p-8 text-center text-sm text-admin-ink/55">
+              <div className="rounded-md border border-dashed border-admin-ink/15 bg-admin-surface p-8 text-center text-sm text-admin-ink/65">
                 Select a submission on the left to view photos and notes.
               </div>
             )}
@@ -139,12 +139,12 @@ function SubmissionRow({
           </span>
         </div>
         {set.visitor_email && set.visitor_name ? (
-          <p className="mt-0.5 truncate text-xs text-admin-ink/55">
+          <p className="mt-0.5 truncate text-xs text-admin-ink/65">
             <MailOpen className="mr-1 inline size-3 align-middle" aria-hidden="true" />
             {set.visitor_email}
           </p>
         ) : null}
-        <p className="mt-1 text-xs text-admin-ink/45">
+        <p className="mt-1 text-xs text-admin-ink/65">
           {formatTime(set.submitted_at ?? set.created_at)} ·{" "}
           {formatCompactDate(set.submitted_at ?? set.created_at)}
         </p>

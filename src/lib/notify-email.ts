@@ -3,55 +3,7 @@ import { Resend } from "resend";
 import { getGalleryInviteConfig, hasGalleryInviteConfig } from "@/lib/env";
 import { env } from "@/lib/env";
 import { brandConfig } from "@/lib/config";
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-/** Shared branded HTML shell matching the site (cream + copper, serif heading). */
-function emailShell({
-  eyebrow,
-  heading,
-  bodyHtml,
-  ctaLabel,
-  ctaUrl,
-}: {
-  eyebrow: string;
-  heading: string;
-  bodyHtml: string;
-  ctaLabel?: string;
-  ctaUrl?: string;
-}): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(heading)}</title></head>
-<body style="margin:0;padding:0;background:#f3eee5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#17130f;">
-  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:#f3eee5;padding:32px 16px;">
-    <tr><td align="center">
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="560" style="max-width:560px;background:#fbf8f1;border:1px solid rgba(23,19,15,0.08);border-radius:8px;overflow:hidden;">
-        <tr><td style="padding:30px 34px 6px 34px;">
-          <p style="margin:0;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:#9b744f;">${escapeHtml(eyebrow)}</p>
-          <h1 style="margin:10px 0 0 0;font-size:26px;line-height:1.15;font-weight:600;font-family:Georgia,'Times New Roman',serif;">${escapeHtml(heading)}</h1>
-        </td></tr>
-        <tr><td style="padding:14px 34px 4px 34px;font-size:15px;line-height:1.65;color:rgba(23,19,15,0.78);">
-          ${bodyHtml}
-        </td></tr>
-        ${ctaLabel && ctaUrl ? `
-        <tr><td style="padding:22px 34px 30px 34px;">
-          <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;background:#17130f;color:#fbf8f1;padding:13px 22px;border-radius:999px;font-size:14px;font-weight:500;text-decoration:none;">${escapeHtml(ctaLabel)}</a>
-        </td></tr>` : `<tr><td style="padding:8px 34px 30px 34px;"></td></tr>`}
-      </table>
-      <p style="margin:18px 0 0 0;font-size:11px;color:rgba(23,19,15,0.45);">${escapeHtml(brandConfig.name)} · Toronto, Ontario</p>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-}
+import { emailShell, escapeHtml } from "@/lib/emails/shell";
 
 type SendResult = { ok: boolean; message: string };
 

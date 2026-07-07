@@ -24,7 +24,7 @@ function StatusLine({ ok, label, hint }: { ok: boolean; label: string; hint: str
       )}
       <span>
         <span className="font-medium text-admin-ink">{label}</span>
-        <span className="text-admin-ink/55"> {hint}</span>
+        <span className="text-admin-ink/65"> {hint}</span>
       </span>
     </li>
   );
@@ -65,7 +65,7 @@ export default async function AdminRemindersPage() {
           {REMINDERS.map((r) => (
             <li key={r.name} className="text-sm">
               <p className="font-medium text-admin-ink">{r.name}</p>
-              <p className="mt-0.5 text-admin-ink/55">{r.detail}</p>
+              <p className="mt-0.5 text-admin-ink/65">{r.detail}</p>
             </li>
           ))}
         </ul>

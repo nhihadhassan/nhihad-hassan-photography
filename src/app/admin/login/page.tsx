@@ -21,7 +21,7 @@ export default async function AdminLoginPage() {
           <div className="flex size-12 items-center justify-center rounded-full bg-admin-ink text-admin-surface">
             <LockKeyhole className="size-5" aria-hidden="true" />
           </div>
-          <Link href="/" className="text-sm text-admin-ink/55 transition hover:text-admin-ink">
+          <Link href="/" className="text-sm text-admin-ink/65 transition hover:text-admin-ink">
             Public site
           </Link>
         </div>

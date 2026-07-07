@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/empty-state";
 const REASON_LABEL: Record<string, string> = {
   success: "Download started",
   not_enabled: "Downloads disabled",
-  locked: "Locked — no password",
+  locked: "Locked (no password)",
   unavailable_gallery: "Gallery unavailable",
   empty: "No photos",
   error: "Error",
@@ -75,15 +75,15 @@ export default async function DownloadLogsPage({ searchParams }: PageProps) {
         <div className="grid grid-cols-3 gap-3 text-sm">
           <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-3">
             <span className="block text-xl font-semibold">{stats.total}</span>
-            <span className="text-xs text-admin-ink/55">Attempts · 24h</span>
+            <span className="text-xs text-admin-ink/65">Attempts · 24h</span>
           </div>
           <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-3">
             <span className="block text-xl font-semibold text-admin-success">{stats.success}</span>
-            <span className="text-xs text-admin-ink/55">Started</span>
+            <span className="text-xs text-admin-ink/65">Started</span>
           </div>
           <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-3">
             <span className="block text-xl font-semibold text-admin-danger">{stats.failure}</span>
-            <span className="text-xs text-admin-ink/55">Rejected</span>
+            <span className="text-xs text-admin-ink/65">Rejected</span>
           </div>
         </div>
       </div>
@@ -129,7 +129,7 @@ export default async function DownloadLogsPage({ searchParams }: PageProps) {
         <div className="mt-8">
           <EmptyState
             title="No download attempts yet."
-            description="When a visitor downloads a gallery ZIP — successfully or not — it shows up here."
+            description="When a visitor downloads a gallery ZIP, or tries to, it shows up here."
             action={
               <Link
                 href="/admin/galleries"
@@ -143,7 +143,7 @@ export default async function DownloadLogsPage({ searchParams }: PageProps) {
       ) : (
         <div className="mt-6 overflow-hidden rounded-md border border-admin-ink/10 bg-admin-surface">
           <table className="w-full text-sm">
-            <thead className="bg-admin-bg text-xs uppercase tracking-wide text-admin-ink/55">
+            <thead className="bg-admin-bg text-xs uppercase tracking-wide text-admin-ink/65">
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Time</th>
                 <th className="px-4 py-3 text-left font-medium">Gallery</th>
@@ -169,7 +169,7 @@ export default async function DownloadLogsPage({ searchParams }: PageProps) {
                         {log.gallery_title ?? log.gallery_slug}
                       </Link>
                     ) : (
-                      <span className="text-admin-ink/45">(deleted gallery)</span>
+                      <span className="text-admin-ink/65">(deleted gallery)</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -193,11 +193,11 @@ export default async function DownloadLogsPage({ searchParams }: PageProps) {
                       {REASON_LABEL[log.reason ?? ""] ?? log.reason ?? "Unknown"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-admin-ink/55">
+                  <td className="px-4 py-3 font-mono text-xs text-admin-ink/65">
                     {log.ip_hash ?? "—"}
                   </td>
                   <td
-                    className="max-w-xs px-4 py-3 text-xs text-admin-ink/55"
+                    className="max-w-xs px-4 py-3 text-xs text-admin-ink/65"
                     title={log.user_agent ?? undefined}
                   >
                     {summariseUserAgent(log.user_agent)}
@@ -207,7 +207,7 @@ export default async function DownloadLogsPage({ searchParams }: PageProps) {
             </tbody>
           </table>
           {logs.length === 200 ? (
-            <div className="border-t border-admin-ink/10 px-4 py-3 text-xs text-admin-ink/55">
+            <div className="border-t border-admin-ink/10 px-4 py-3 text-xs text-admin-ink/65">
               Showing the most recent 200 attempts.
             </div>
           ) : null}

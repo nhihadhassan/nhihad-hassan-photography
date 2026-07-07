@@ -80,7 +80,7 @@ export function ContactForm() {
         <textarea
           className="min-h-36 rounded-[2px] border border-ink/12 bg-[#fbf8f1] px-3 py-3 text-base text-ink outline-none transition placeholder:text-ink/34 focus:border-copper"
           name="message"
-          placeholder="Tell me about your shoot — the date, the vibe, and what you want the photos to feel like."
+          placeholder="Tell me about your shoot: the date, the vibe, and what you want the photos to feel like."
         />
         <FieldError errors={state.fieldErrors?.message} />
       </label>

@@ -47,7 +47,7 @@ function buildTimeline(p: ClientProfile): TimelineItem[] {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border border-admin-ink/10 bg-admin-surface px-4 py-3">
-      <p className="text-xs text-admin-ink/55">{label}</p>
+      <p className="text-xs text-admin-ink/65">{label}</p>
       <p className="mt-1 text-base font-semibold tracking-tight">{value}</p>
     </div>
   );
@@ -109,7 +109,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             {profile.bookings.map((b) => (
               <Link key={b.id} href={`/admin/bookings/${b.id}`} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm transition hover:text-admin-accent">
                 <span className="font-medium">{b.shoot_type ?? "Booking"}</span>
-                <span className="text-admin-ink/55">
+                <span className="text-admin-ink/65">
                   {b.start_at ? shootDateTime(b.start_at) : "No date"}
                   {b.total ? ` · ${b.total.startsWith("$") ? b.total : `$${b.total}`}` : ""}
                   {b.agreement?.signed_at ? " · Signed" : ""}
@@ -124,7 +124,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             {profile.galleries.map((g) => (
               <Link key={g.id} href={`/admin/galleries/${g.id}`} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm transition hover:text-admin-accent">
                 <span className="font-medium">{g.title}</span>
-                <span className="text-admin-ink/55">
+                <span className="text-admin-ink/65">
                   {formatCompactDate(g.event_date)} · {g.is_published ? "Published" : "Draft"} · {DEPOSIT_STATUS_LABELS[g.deposit_status]}
                 </span>
               </Link>
@@ -137,7 +137,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             {profile.agreements.map((a) => (
               <Link key={a.id} href={`/agreement/${a.token}`} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm transition hover:text-admin-accent">
                 <span className="font-medium">Booking agreement</span>
-                <span className="text-admin-ink/55">
+                <span className="text-admin-ink/65">
                   {a.revoked_at ? "Revoked" : a.signed_at ? `Signed ${formatCompactDate(a.signed_at)}` : a.viewed_at ? "Viewed, not signed" : "Sent"}
                 </span>
               </Link>
@@ -150,7 +150,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             {profile.inquiries.map((i) => (
               <div key={i.id} className="py-3 text-sm">
                 <p className="font-medium">
-                  {i.event_type ?? "Inquiry"} · <span className="font-normal text-admin-ink/55">{formatCompactDate(i.created_at)}</span>
+                  {i.event_type ?? "Inquiry"} · <span className="font-normal text-admin-ink/65">{formatCompactDate(i.created_at)}</span>
                 </p>
                 <p className="mt-1 line-clamp-2 text-admin-ink/65">{i.message}</p>
               </div>
@@ -163,7 +163,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             {profile.reviews.map((r) => (
               <div key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
                 <span className="font-medium">{r.rating}/5 stars</span>
-                <span className="text-admin-ink/55">
+                <span className="text-admin-ink/65">
                   {formatCompactDate(r.review_date)} · {r.approved ? "Public" : "Hidden"}
                 </span>
               </div>
@@ -183,9 +183,9 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
                   ) : (
                     <span className="font-medium">{t.title}</span>
                   )}
-                  {t.detail ? <span className="text-admin-ink/55"> · {t.detail}</span> : null}
+                  {t.detail ? <span className="text-admin-ink/65"> · {t.detail}</span> : null}
                 </span>
-                <span className="text-admin-ink/45">{formatCompactDate(t.date)}</span>
+                <span className="text-admin-ink/65">{formatCompactDate(t.date)}</span>
               </div>
             ))}
           </Section>

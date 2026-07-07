@@ -125,13 +125,13 @@ export function CoverDesignFields({
                 />
               </div>
             </div>
-            <span className="text-xs text-admin-ink/45">
+            <span className="text-xs text-admin-ink/65">
               Click the spot to keep in view (e.g. a face). The cover image shifts to favour it.
               Current: {focalX}% / {focalY}%.
             </span>
           </>
         ) : (
-          <p className="rounded-md border border-dashed border-admin-ink/15 bg-white/40 px-4 py-6 text-center text-xs text-admin-ink/50">
+          <p className="rounded-md border border-dashed border-admin-ink/15 bg-white/40 px-4 py-6 text-center text-xs text-admin-ink/65">
             Set a cover photo first (use Cover in the Photos tab, or a cover image URL above), then
             you can position the focal point here.
           </p>

@@ -14,7 +14,7 @@ import { formatCompactDate } from "@/lib/utils";
 const initialState: AgreementActionState = { status: "idle", message: "" };
 
 const inputClass =
-  "min-h-11 rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/35 focus:border-admin-copper";
+  "min-h-11 rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus:border-admin-copper";
 
 function StatusMessage({ state }: { state: AgreementActionState }) {
   if (!state.message) return null;
@@ -57,7 +57,7 @@ function statusFor(request: AgreementRequest): { label: string; className: strin
   if (request.revoked_at) return { label: "Revoked", className: "bg-admin-danger/10 text-admin-danger" };
   if (request.signed_at) return { label: "Signed", className: "bg-admin-success/10 text-admin-success" };
   if (request.viewed_at) return { label: "Viewed", className: "bg-admin-info/10 text-admin-info" };
-  return { label: "Sent", className: "bg-admin-ink/8 text-admin-ink/55" };
+  return { label: "Sent", className: "bg-admin-ink/8 text-admin-ink/65" };
 }
 
 function CreateForm({ galleries }: { galleries: GalleryRecord[] }) {
@@ -65,7 +65,7 @@ function CreateForm({ galleries }: { galleries: GalleryRecord[] }) {
   return (
     <form action={formAction} className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
       <h2 className="text-base font-semibold tracking-tight">Create signing link</h2>
-      <p className="mt-1 text-sm leading-6 text-admin-ink/55">
+      <p className="mt-1 text-sm leading-6 text-admin-ink/65">
         Prefill the client and shoot details, then send the link. The client reviews the contract
         and signs online.
       </p>
@@ -118,7 +118,7 @@ function CreateForm({ galleries }: { galleries: GalleryRecord[] }) {
           <input className={inputClass} name="window" placeholder="60 days from delivery" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
-          Internal note <span className="font-normal text-admin-ink/40">(not shown to client)</span>
+          Internal note <span className="font-normal text-admin-ink/65">(not shown to client)</span>
           <input className={inputClass} name="message" placeholder="Wedding booking" />
         </label>
       </div>
@@ -134,7 +134,7 @@ function CreateForm({ galleries }: { galleries: GalleryRecord[] }) {
       </div>
       {state.signUrl ? (
         <div className="mt-4 rounded-md border border-admin-ink/10 bg-white/60 p-3">
-          <p className="font-mono text-xs text-admin-ink/50">{state.signUrl}</p>
+          <p className="font-mono text-xs text-admin-ink/65">{state.signUrl}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <CopyLink value={state.signUrl} />
             <a
@@ -167,11 +167,11 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
             <p className="font-medium">{request.client_name ?? request.gallery_title ?? "Signing request"}</p>
             <span className={`rounded-full px-2 py-0.5 text-xs ${status.className}`}>{status.label}</span>
           </div>
-          <p className="mt-1 text-sm text-admin-ink/55">
+          <p className="mt-1 text-sm text-admin-ink/65">
             {request.gallery_title ?? "No gallery"} · Created {formatCompactDate(request.created_at)}
           </p>
           <p className="mt-1 font-mono text-xs text-admin-ink/35">{url}</p>
-          <div className="mt-2 flex flex-wrap gap-3 text-xs text-admin-ink/45">
+          <div className="mt-2 flex flex-wrap gap-3 text-xs text-admin-ink/65">
             <span>Viewed: {request.viewed_at ? formatCompactDate(request.viewed_at) : "No"}</span>
             <span>Signed: {request.signed_at ? formatCompactDate(request.signed_at) : "No"}</span>
           </div>
@@ -228,7 +228,7 @@ export function AgreementAdmin({
               <RequestRow key={request.id} request={request} siteOrigin={siteOrigin} />
             ))
           ) : (
-            <p className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 text-sm text-admin-ink/55">
+            <p className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 text-sm text-admin-ink/65">
               No signing links yet.
             </p>
           )}

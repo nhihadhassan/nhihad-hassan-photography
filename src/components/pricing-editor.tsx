@@ -44,7 +44,7 @@ function toPayload(cats: Category[]) {
 }
 
 function iconBtn(extra = "") {
-  return `rounded p-1.5 text-admin-ink/55 transition hover:bg-admin-ink/6 disabled:opacity-30 ${extra}`;
+  return `rounded p-1.5 text-admin-ink/65 transition hover:bg-admin-ink/6 disabled:opacity-30 ${extra}`;
 }
 
 function move<T>(arr: T[], i: number, dir: "up" | "down"): T[] {
@@ -98,7 +98,7 @@ export function PricingEditor({ content }: { content: PricingCategory[] }) {
   return (
     <div className="space-y-6">
       <div className="sticky top-[57px] z-10 -mx-4 flex flex-wrap items-center justify-between gap-3 border-b border-admin-ink/10 bg-admin-bg/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-        <p className="text-sm text-admin-ink/55">
+        <p className="text-sm text-admin-ink/65">
           Live at{" "}
           <Link href="/pricing" target="_blank" className="inline-flex items-center gap-1 text-admin-accent hover:text-admin-ink">
             /pricing <ExternalLink className="size-3" aria-hidden="true" />
@@ -121,7 +121,7 @@ export function PricingEditor({ content }: { content: PricingCategory[] }) {
         {cats.map((cat, ci) => (
           <div key={ci} className="rounded-lg border border-admin-ink/12 bg-admin-surface p-4 sm:p-5">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium uppercase tracking-wide text-admin-ink/40">Category {ci + 1}</span>
+              <span className="text-xs font-medium uppercase tracking-wide text-admin-ink/65">Category {ci + 1}</span>
               <div className="ml-auto flex items-center gap-1">
                 <button type="button" onClick={() => moveCategory(ci, "up")} disabled={ci === 0} className={iconBtn()} aria-label="Move category up"><ArrowUp className="size-4" /></button>
                 <button type="button" onClick={() => moveCategory(ci, "down")} disabled={ci === cats.length - 1} className={iconBtn()} aria-label="Move category down"><ArrowDown className="size-4" /></button>
@@ -140,7 +140,7 @@ export function PricingEditor({ content }: { content: PricingCategory[] }) {
               {cat.tiers.map((tier, ti) => (
                 <div key={ti} className="rounded-md border border-admin-ink/10 bg-white/50 p-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium uppercase tracking-wide text-admin-ink/40">Tier {ti + 1}</span>
+                    <span className="text-xs font-medium uppercase tracking-wide text-admin-ink/65">Tier {ti + 1}</span>
                     <div className="ml-auto flex items-center gap-1">
                       <button type="button" onClick={() => moveTier(ci, ti, "up")} disabled={ti === 0} className={iconBtn()} aria-label="Move tier up"><ArrowUp className="size-3.5" /></button>
                       <button type="button" onClick={() => moveTier(ci, ti, "down")} disabled={ti === cat.tiers.length - 1} className={iconBtn()} aria-label="Move tier down"><ArrowDown className="size-3.5" /></button>

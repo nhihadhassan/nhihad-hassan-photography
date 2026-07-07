@@ -15,7 +15,7 @@ import { formatCompactDate, formatMoney } from "@/lib/utils";
 const initial: FinanceState = { status: "idle", message: "" };
 
 const inputClass =
-  "min-h-10 w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/35 focus:border-admin-copper";
+  "min-h-10 w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus:border-admin-copper";
 const labelClass = "grid gap-1 text-xs font-medium text-admin-ink/70";
 
 type BookingOption = { id: string; label: string };
@@ -56,7 +56,7 @@ function PaymentForm({ bookings }: { bookings: BookingOption[] }) {
           <input className={inputClass} name="method" defaultValue="Interac" />
         </label>
         <label className={`${labelClass} sm:col-span-2`}>
-          Linked booking <span className="font-normal text-admin-ink/40">(for outstanding tracking)</span>
+          Linked booking <span className="font-normal text-admin-ink/65">(for outstanding tracking)</span>
           <select className={inputClass} name="booking_id" defaultValue="">
             <option value="">No booking</option>
             {bookings.map((b) => (
@@ -173,9 +173,9 @@ export function FinanceManager({
                 <div key={p.id} className="flex items-center justify-between gap-3 p-3.5 text-sm">
                   <div className="min-w-0">
                     <p className="font-medium">
-                      {formatMoney(p.amount)} <span className="font-normal text-admin-ink/50">· {p.kind}</span>
+                      {formatMoney(p.amount)} <span className="font-normal text-admin-ink/65">· {p.kind}</span>
                     </p>
-                    <p className="mt-0.5 text-xs text-admin-ink/55">
+                    <p className="mt-0.5 text-xs text-admin-ink/65">
                       {formatCompactDate(p.paid_on)}
                       {p.method ? ` · ${p.method}` : ""}
                       {p.booking_id && bookingLabel.get(p.booking_id) ? ` · ${bookingLabel.get(p.booking_id)}` : ""}
@@ -187,7 +187,7 @@ export function FinanceManager({
               ))}
             </div>
           ) : (
-            <p className="p-5 text-sm text-admin-ink/55">No payments recorded yet.</p>
+            <p className="p-5 text-sm text-admin-ink/65">No payments recorded yet.</p>
           )}
         </div>
       </section>
@@ -207,9 +207,9 @@ export function FinanceManager({
                   <div className="min-w-0">
                     <p className="font-medium">
                       {formatMoney(e.amount)}
-                      {e.category ? <span className="font-normal text-admin-ink/50"> · {e.category}</span> : null}
+                      {e.category ? <span className="font-normal text-admin-ink/65"> · {e.category}</span> : null}
                     </p>
-                    <p className="mt-0.5 text-xs text-admin-ink/55">
+                    <p className="mt-0.5 text-xs text-admin-ink/65">
                       {formatCompactDate(e.expense_date)}
                       {e.vendor ? ` · ${e.vendor}` : ""}
                       {e.note ? ` · ${e.note}` : ""}
@@ -220,7 +220,7 @@ export function FinanceManager({
               ))}
             </div>
           ) : (
-            <p className="p-5 text-sm text-admin-ink/55">No expenses recorded yet.</p>
+            <p className="p-5 text-sm text-admin-ink/65">No expenses recorded yet.</p>
           )}
         </div>
       </section>

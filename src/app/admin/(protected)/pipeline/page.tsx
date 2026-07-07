@@ -52,7 +52,7 @@ export default async function AdminPipelinePage() {
         {cards.length ? (
           <PipelineBoard cards={cards} />
         ) : (
-          <p className="rounded-md border border-dashed border-admin-ink/15 px-4 py-10 text-center text-sm text-admin-ink/50">
+          <p className="rounded-md border border-dashed border-admin-ink/15 px-4 py-10 text-center text-sm text-admin-ink/65">
             No bookings yet. Create one in Bookings and it will appear here.
           </p>
         )}

@@ -23,6 +23,8 @@ export type GalleryRecord = {
   cover_focal_y: number;
   /** Cover layout template: center | left | bottom | split. */
   cover_layout: string;
+  /** Font used for the public gallery cover title. */
+  cover_font: string;
   is_public: boolean;
   is_published: boolean;
   is_archived: boolean;
@@ -89,7 +91,7 @@ export type InquiryRecord = {
 };
 
 const GALLERY_COLUMNS =
-  "id,title,slug,client_name,client_email,event_date,description,location,cover_image_url,cover_image_alt,cover_photo_id,cover_focal_x,cover_focal_y,cover_layout,is_public,is_published,is_archived,download_enabled,download_quality,download_pin_hash,download_limit,download_count,watermark_enabled,invite_subject,invite_message,deposit_status,payment_notes,expires_at,password_hash,password_plain,created_at,updated_at";
+  "id,title,slug,client_name,client_email,event_date,description,location,cover_image_url,cover_image_alt,cover_photo_id,cover_focal_x,cover_focal_y,cover_layout,cover_font,is_public,is_published,is_archived,download_enabled,download_quality,download_pin_hash,download_limit,download_count,watermark_enabled,invite_subject,invite_message,deposit_status,payment_notes,expires_at,password_hash,password_plain,created_at,updated_at";
 
 export async function getAdminGalleries() {
   const supabase = await createSupabaseServerClient();
@@ -332,4 +334,3 @@ export async function getAdminDashboardCounts() {
     inquiries: inquiries.count ?? 0,
   };
 }
-

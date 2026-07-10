@@ -8,6 +8,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hashPassword } from "@/lib/password";
 import { slugify } from "@/lib/utils";
 import { galleryPresets } from "@/data/gallery-presets";
+import { GALLERY_COVER_FONT_VALUES } from "@/lib/gallery-cover-fonts";
 
 const gallerySchema = z.object({
   title: z.string().min(2, "Title is required."),
@@ -23,6 +24,7 @@ const gallerySchema = z.object({
   cover_focal_x: z.coerce.number().min(0).max(100).optional(),
   cover_focal_y: z.coerce.number().min(0).max(100).optional(),
   cover_layout: z.enum(["center", "left", "bottom", "split"]).optional(),
+  cover_font: z.enum(GALLERY_COVER_FONT_VALUES).optional(),
   expires_at: z.string().optional(),
   download_quality: z.enum(["web", "full"]),
   deposit_status: z.enum(["not_requested", "requested", "received", "balance_due", "paid"]).default("not_requested"),
@@ -64,6 +66,7 @@ function parseGalleryForm(formData: FormData) {
     cover_focal_x: formData.get("cover_focal_x") || undefined,
     cover_focal_y: formData.get("cover_focal_y") || undefined,
     cover_layout: formData.get("cover_layout") || undefined,
+    cover_font: formData.get("cover_font") || undefined,
     expires_at: formData.get("expires_at") || undefined,
     download_quality: formData.get("download_quality"),
     deposit_status: formData.get("deposit_status") || undefined,
@@ -90,6 +93,7 @@ function parseGalleryForm(formData: FormData) {
       cover_focal_x: Math.round(parsed.data.cover_focal_x ?? 50),
       cover_focal_y: Math.round(parsed.data.cover_focal_y ?? 50),
       cover_layout: parsed.data.cover_layout ?? "center",
+      cover_font: parsed.data.cover_font ?? "montserrat",
       expires_at: dateTimeToNull(parsed.data.expires_at),
       is_public: formData.get("is_public") === "on",
       is_published: formData.get("is_published") === "on",
@@ -158,6 +162,7 @@ const quickCreateSchema = z.object({
   client_email: z.string().email("Enter a valid client email.").optional().or(z.literal("")),
   event_date: z.string().optional(),
   preset_id: z.string().optional(),
+  cover_font: z.enum(GALLERY_COVER_FONT_VALUES).default("montserrat"),
 });
 
 /**
@@ -177,6 +182,7 @@ export async function createGalleryQuick(
     client_email: formData.get("client_email") || undefined,
     event_date: formData.get("event_date") || undefined,
     preset_id: formData.get("preset_id") || undefined,
+    cover_font: formData.get("cover_font") || undefined,
   });
 
   if (!parsed.success) {
@@ -201,6 +207,7 @@ export async function createGalleryQuick(
     client_email: emptyToNull(parsed.data.client_email),
     event_date: dateToNull(parsed.data.event_date),
     description: preset?.description ?? null,
+    cover_font: parsed.data.cover_font,
     download_enabled: preset?.download_enabled ?? false,
     download_quality: preset?.download_quality ?? "web",
     is_public: preset?.is_public ?? false,
@@ -420,4 +427,3 @@ export async function deleteGallery(formData: FormData) {
   revalidatePath("/galleries");
   redirect("/admin/galleries");
 }
-

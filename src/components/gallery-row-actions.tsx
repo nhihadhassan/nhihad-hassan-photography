@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Archive,
@@ -12,6 +13,7 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
+  Mail,
   MessageSquareText,
   MoreHorizontal,
   PenLine,
@@ -205,6 +207,16 @@ export function GalleryRowActions({
                 )}
                 {copied ? "Copied!" : "Copy gallery link"}
               </button>
+
+              {/* Open the invite composer, which supports multiple recipients. */}
+              <Link
+                href={`/admin/galleries/${id}/share#send-email`}
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-admin-ink hover:bg-admin-surface"
+              >
+                <Mail className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
+                Email gallery
+              </Link>
 
               {/* View in new tab */}
               <a

@@ -15,6 +15,7 @@ const REASON_LABEL: Record<string, string> = {
   unavailable_gallery: "Gallery unavailable",
   empty: "No photos",
   error: "Error",
+  rate_limited: "Rate limited",
   not_configured: "Not configured",
 };
 
@@ -68,8 +69,8 @@ export default async function DownloadLogsPage({ searchParams }: PageProps) {
           <p className="text-sm font-medium text-admin-accent">Security</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">Download logs</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
-            Every bulk-download attempt (whole gallery or selects). IPs are
-            stored as one-way hashes only.
+            Every download attempt, including individual photos and ZIPs. IPs
+            are stored as one-way hashes only.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-3 text-sm">
@@ -179,7 +180,7 @@ export default async function DownloadLogsPage({ searchParams }: PageProps) {
                       ) : (
                         <Download className="size-3" aria-hidden="true" />
                       )}
-                      {log.scope}
+                      {log.scope === "single" ? "Single photo" : log.scope}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-admin-ink/72">{log.photo_count}</td>

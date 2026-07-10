@@ -11,8 +11,8 @@ import {
 import { downloadFromR2 } from "@/lib/r2";
 import { getRequestIpHash, getRequestUserAgent } from "@/lib/access-log";
 import {
-  DOWNLOAD_RATE_LIMIT,
   countRecentDownloads,
+  getDownloadRateLimit,
   isDownloadRateLimited,
   recordDownloadAttempt,
   type DownloadScope,
@@ -49,15 +49,14 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const scopeRaw = String(formData.get("scope") ?? "").trim();
-  // A single-photo download behaves like a "selects" download (filtered by id,
-  // same gating + logging) but streams one image file instead of a ZIP.
-  const isSingle = scopeRaw === "single";
   const scope: DownloadScope =
     scopeRaw === "all"
       ? "all"
-      : scopeRaw === "selects" || isSingle
+      : scopeRaw === "selects"
         ? "selects"
-        : (null as never);
+        : scopeRaw === "single"
+          ? "single"
+          : (null as never);
   if (scope === null) return jsonError(400, "Unknown download scope.");
 
   const submittedIds = formData
@@ -65,7 +64,7 @@ export async function POST(request: Request, { params }: Params) {
     .map((v) => (typeof v === "string" ? v.trim() : ""))
     .filter((v) => v.length > 0);
 
-  if (isSingle && submittedIds.length !== 1) {
+  if (scope === "single" && submittedIds.length !== 1) {
     return jsonError(400, "Select exactly one photo.");
   }
   if (scope === "selects" && submittedIds.length === 0) {
@@ -93,8 +92,9 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   // Rate limit BEFORE any expensive work (R2 reads, ZIP streaming).
-  const recentCount = await countRecentDownloads(gallery.id, ipHash);
-  if (isDownloadRateLimited(recentCount)) {
+  const rateLimit = getDownloadRateLimit(scope);
+  const recentCount = await countRecentDownloads(gallery.id, ipHash, scope);
+  if (isDownloadRateLimited(recentCount, scope)) {
     await recordDownloadAttempt({
       galleryId: gallery.id,
       ipHash,
@@ -106,7 +106,7 @@ export async function POST(request: Request, { params }: Params) {
     });
     return jsonError(
       429,
-      `Too many download attempts. Please wait a few minutes (limit: ${DOWNLOAD_RATE_LIMIT.threshold} per ${DOWNLOAD_RATE_LIMIT.windowMinutes} minutes).`,
+      `Too many download attempts. Please wait a few minutes (limit: ${rateLimit.threshold} per ${rateLimit.windowMinutes} minutes).`,
     );
   }
 
@@ -253,7 +253,7 @@ export async function POST(request: Request, { params }: Params) {
   const quality = (gallery.download_quality as "web" | "full") ?? "web";
 
   // Single-photo download: stream the one image file directly (no ZIP).
-  if (isSingle) {
+  if (scope === "single") {
     const row = photoRows![0];
     const key =
       quality === "web"

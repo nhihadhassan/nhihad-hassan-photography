@@ -41,6 +41,7 @@ All 14 migrations must be applied to the **production** Supabase project before 
 | 0012_share_links | 🚨 `gallery_share_links` + `gallery_share_link_photos` tables | ☐ |
 | 0013_download_pin | 🚨 `download_pin_hash`, `download_limit`, `download_count` columns | ☐ |
 | 0014_watermark | 🚨 `watermark_enabled` column | ☐ |
+| 0035_download_rate_limit_scopes | `single` download scope + rate-limit index | ☐ |
 
 > **Note**: Migrations 0012–0014 were added in Phase 4D–4I. If the production DB was last updated for Phase 4C, apply these three via the Supabase SQL editor.
 

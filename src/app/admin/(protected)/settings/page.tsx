@@ -42,6 +42,27 @@ export default async function AdminSettingsPage() {
         within a minute.
       </p>
 
+      {/* Settings sections hub: the scattered admin areas gathered in one place. */}
+      <nav aria-label="Settings sections" className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {[
+          { href: "/admin/pricing", title: "Packages and pricing", detail: "Your rates and package tiers." },
+          { href: "/admin/reminders", title: "Reminder rules", detail: "Automated client nudges." },
+          { href: "/admin/booking-agreement", title: "Contract template", detail: "The wording clients sign." },
+          { href: "/admin/questionnaires", title: "Questionnaires", detail: "Pre-shoot questions." },
+          { href: "/admin/access-logs", title: "Access logs", detail: "Who opened which gallery." },
+          { href: "/admin/download-logs", title: "Download logs", detail: "Full-gallery downloads." },
+        ].map((s) => (
+          <a
+            key={s.href}
+            href={s.href}
+            className="rounded-xl border border-admin-ink/10 bg-admin-surface p-4 transition hover:border-admin-ink/25"
+          >
+            <p className="text-sm font-medium text-admin-ink">{s.title}</p>
+            <p className="mt-1 text-xs text-admin-ink/55">{s.detail}</p>
+          </a>
+        ))}
+      </nav>
+
       {/* Brand & contact */}
       <form
         action={updateSiteSettings}

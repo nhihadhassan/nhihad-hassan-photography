@@ -4,11 +4,13 @@ import { getAdminGalleries } from "@/lib/admin-data";
 import { getAdminBookings } from "@/lib/bookings";
 import { listPayments } from "@/lib/finance";
 import { sendReminderEmail } from "@/lib/notify-email";
+import { logBookingEvent } from "@/lib/events";
+import { getReminderRules, getMutedBookings, type ReminderKind } from "@/lib/reminder-rules";
 import { parseAmount, formatMoney } from "@/lib/utils";
 import { brandConfig } from "@/lib/config";
 import { siteUrl } from "@/lib/seo";
 
-export type ReminderKind = "deposit_due" | "balance_due" | "gallery_expiring" | "review_request";
+export type { ReminderKind } from "@/lib/reminder-rules";
 
 export type ReminderSummary = {
   enabled: boolean;
@@ -37,8 +39,12 @@ async function loadSettings(admin: ReturnType<typeof getServiceRoleSupabaseClien
 }
 
 /**
- * Send any due reminder emails, deduplicated via reminder_log. Best-effort per
- * email. Returns a summary. Does nothing unless reminders are enabled in Settings.
+ * Send any due reminder emails, deduplicated via reminder_log. Timing comes
+ * from the editable reminder_rules (with safe defaults when the table is
+ * absent). Best-effort per email. Does nothing unless reminders are enabled in
+ * Settings. The legacy dedup key (kind:entity) is kept for the first send of
+ * every kind, so applying the rules refactor never re-sends an already-sent
+ * reminder; escalation sends use a suffixed key.
  */
 export async function runReminders(): Promise<ReminderSummary> {
   const admin = getServiceRoleSupabaseClient();
@@ -52,11 +58,13 @@ export async function runReminders(): Promise<ReminderSummary> {
   const settings = await loadSettings(admin);
   if (!settings.reminders_enabled) return { enabled: false, sent: 0, byKind };
 
-  const [bookings, galleries, payments, logRes] = await Promise.all([
+  const [bookings, galleries, payments, logRes, rules, muted] = await Promise.all([
     getAdminBookings(),
     getAdminGalleries(),
     listPayments(),
     admin.from("reminder_log").select("kind,entity_id"),
+    getReminderRules(),
+    getMutedBookings(),
   ]);
 
   const sentSet = new Set((logRes.data ?? []).map((r) => `${r.kind}:${r.entity_id}`));
@@ -68,14 +76,29 @@ export async function runReminders(): Promise<ReminderSummary> {
   const now = Date.now();
   const base = origin();
 
-  async function fire(kind: ReminderKind, entityId: string, to: string, build: () => Parameters<typeof sendReminderEmail>[0]) {
-    if (sentSet.has(`${kind}:${entityId}`)) return;
+  // occurrence 0 keeps the legacy key so existing dedup still holds.
+  const keyFor = (kind: ReminderKind, entityId: string, occurrence: number) =>
+    occurrence === 0 ? `${kind}:${entityId}` : `${kind}:${entityId}:${occurrence}`;
+
+  async function fire(
+    kind: ReminderKind,
+    entityId: string,
+    occurrence: number,
+    to: string,
+    build: () => Parameters<typeof sendReminderEmail>[0],
+    bookingId?: string,
+  ) {
+    const logKey = keyFor(kind, entityId, occurrence);
+    if (sentSet.has(logKey)) return;
     const result = await sendReminderEmail(build());
     if (!result.ok) return;
-    const { error } = await admin.from("reminder_log").insert({ kind, entity_id: entityId, sent_to: to });
+    const { error } = await admin.from("reminder_log").insert({ kind, entity_id: logKey, sent_to: to });
     if (!error) {
-      sentSet.add(`${kind}:${entityId}`);
+      sentSet.add(logKey);
       byKind[kind] += 1;
+      if (bookingId) {
+        await logBookingEvent({ bookingId, type: "email", summary: `${labelFor(kind)} sent`, actor: "system" });
+      }
     }
   }
 
@@ -88,25 +111,51 @@ export async function runReminders(): Promise<ReminderSummary> {
     const first = b.client_name?.trim().split(/\s+/)[0];
     const greet = first ? `Hi ${first},` : "Hello,";
 
-    // Deposit due: booked, no payment recorded yet, shoot still upcoming.
-    if (b.stage === "booked" && paid === 0 && total && total > 0 && startMs && startMs > now) {
-      const dep = b.deposit ? (b.deposit.startsWith("$") ? b.deposit : `$${b.deposit}`) : formatMoney(Math.round(total * 0.25));
-      await fire("deposit_due", b.id, b.client_email, () => ({
-        to: b.client_email!,
-        subject: `A quick reminder to hold your date`,
-        eyebrow: "Deposit reminder",
-        heading: "Let's lock in your date.",
-        bodyText: `${greet}\n\nTo reserve your shoot date, please e-transfer the ${dep} deposit to ${brandConfig.contactEmail}. Your booking details are here: ${hubUrl}`,
-        bodyHtml: `<p style="margin:0 0 14px 0;">${greet}</p><p style="margin:0 0 14px 0;">To reserve your shoot date, please e-transfer the <strong>${dep}</strong> deposit to ${brandConfig.contactEmail}.</p>`,
-        ctaLabel: "View your booking",
-        ctaUrl: hubUrl,
-      }));
+    // Deposit due: booked, no payment yet, shoot upcoming. Escalates on a
+    // cadence up to the rule cap, measured from when the booking was created.
+    const depositRule = rules.deposit_due;
+    if (
+      depositRule.enabled &&
+      !muted.has(`deposit_due:${b.id}`) &&
+      b.stage === "booked" &&
+      paid === 0 &&
+      total &&
+      total > 0 &&
+      startMs &&
+      startMs > now
+    ) {
+      const daysSince = Math.floor((now - new Date(b.created_at).getTime()) / DAY);
+      if (daysSince >= depositRule.offset_days) {
+        const occurrence = Math.floor((daysSince - depositRule.offset_days) / depositRule.cadence_days);
+        if (occurrence < depositRule.max_sends) {
+          const dep = b.deposit ? (b.deposit.startsWith("$") ? b.deposit : `$${b.deposit}`) : formatMoney(Math.round(total * 0.25));
+          await fire("deposit_due", b.id, occurrence, b.client_email, () => ({
+            to: b.client_email!,
+            subject: `A quick reminder to hold your date`,
+            eyebrow: "Deposit reminder",
+            heading: "Let's lock in your date.",
+            bodyText: `${greet}\n\nTo reserve your shoot date, please e-transfer the ${dep} deposit to ${brandConfig.contactEmail}. Your booking details are here: ${hubUrl}`,
+            bodyHtml: `<p style="margin:0 0 14px 0;">${greet}</p><p style="margin:0 0 14px 0;">To reserve your shoot date, please e-transfer the <strong>${dep}</strong> deposit to ${brandConfig.contactEmail}.</p>`,
+            ctaLabel: "View your booking",
+            ctaUrl: hubUrl,
+          }), b.id);
+        }
+      }
     }
 
-    // Balance due: shoot within 4 days, money still outstanding.
-    if (startMs && startMs >= now && startMs <= now + 4 * DAY && total && total - paid > 0.5) {
+    // Balance due: shoot within the rule window, money still outstanding.
+    const balanceRule = rules.balance_due;
+    if (
+      balanceRule.enabled &&
+      !muted.has(`balance_due:${b.id}`) &&
+      startMs &&
+      startMs >= now &&
+      startMs <= now + balanceRule.offset_days * DAY &&
+      total &&
+      total - paid > 0.5
+    ) {
       const due = formatMoney(total - paid);
-      await fire("balance_due", b.id, b.client_email, () => ({
+      await fire("balance_due", b.id, 0, b.client_email, () => ({
         to: b.client_email!,
         subject: `Your shoot is coming up`,
         eyebrow: "Balance reminder",
@@ -115,13 +164,21 @@ export async function runReminders(): Promise<ReminderSummary> {
         bodyHtml: `<p style="margin:0 0 14px 0;">${greet}</p><p style="margin:0 0 14px 0;">Your shoot is coming up. The remaining balance of <strong>${due}</strong> is due on or before the shoot day, by e-transfer to ${brandConfig.contactEmail}.</p>`,
         ctaLabel: "View your booking",
         ctaUrl: hubUrl,
-      }));
+      }), b.id);
     }
 
-    // Review request: delivered, shoot was over a week ago, review link configured.
+    // Review request: delivered, shoot was over the rule window ago.
+    const reviewRule = rules.review_request;
     const reviewUrl = settings.google_review_url;
-    if (b.stage === "delivered" && startMs && startMs < now - 7 * DAY && reviewUrl) {
-      await fire("review_request", b.id, b.client_email, () => ({
+    if (
+      reviewRule.enabled &&
+      !muted.has(`review_request:${b.id}`) &&
+      b.stage === "delivered" &&
+      startMs &&
+      startMs < now - reviewRule.offset_days * DAY &&
+      reviewUrl
+    ) {
+      await fire("review_request", b.id, 0, b.client_email, () => ({
         to: b.client_email!,
         subject: `Hope you love your photos`,
         eyebrow: "A small favour",
@@ -130,30 +187,46 @@ export async function runReminders(): Promise<ReminderSummary> {
         bodyHtml: `<p style="margin:0 0 14px 0;">${greet}</p><p style="margin:0 0 14px 0;">I hope you love your gallery. If you have a minute, a Google review would mean a lot and helps future clients find me.</p>`,
         ctaLabel: "Leave a Google review",
         ctaUrl: reviewUrl,
+      }), b.id);
+    }
+  }
+
+  // Gallery expiring: published, expiry within the rule window.
+  const galleryRule = rules.gallery_expiring;
+  if (galleryRule.enabled) {
+    for (const g of galleries) {
+      if (!g.client_email || !g.is_published || !g.expires_at) continue;
+      const exp = new Date(g.expires_at).getTime();
+      if (exp < now || exp > now + galleryRule.offset_days * DAY) continue;
+      const galleryUrl = `${base}/galleries/${g.slug}`;
+      const first = g.client_name?.trim().split(/\s+/)[0];
+      const greet = first ? `Hi ${first},` : "Hello,";
+      await fire("gallery_expiring", g.id, 0, g.client_email, () => ({
+        to: g.client_email!,
+        subject: `Your gallery is expiring soon`,
+        eyebrow: "Gallery reminder",
+        heading: "Download before it expires.",
+        bodyText: `${greet}\n\nYour gallery "${g.title}" will expire soon. Please download your full-resolution photos before then: ${galleryUrl}`,
+        bodyHtml: `<p style="margin:0 0 14px 0;">${greet}</p><p style="margin:0 0 14px 0;">Your gallery <strong>${g.title}</strong> will expire soon. Please download your full-resolution photos before then.</p>`,
+        ctaLabel: "Open your gallery",
+        ctaUrl: galleryUrl,
       }));
     }
   }
 
-  // Gallery expiring: published, expiry within 7 days.
-  for (const g of galleries) {
-    if (!g.client_email || !g.is_published || !g.expires_at) continue;
-    const exp = new Date(g.expires_at).getTime();
-    if (exp < now || exp > now + 7 * DAY) continue;
-    const galleryUrl = `${base}/galleries/${g.slug}`;
-    const first = g.client_name?.trim().split(/\s+/)[0];
-    const greet = first ? `Hi ${first},` : "Hello,";
-    await fire("gallery_expiring", g.id, g.client_email, () => ({
-      to: g.client_email!,
-      subject: `Your gallery is expiring soon`,
-      eyebrow: "Gallery reminder",
-      heading: "Download before it expires.",
-      bodyText: `${greet}\n\nYour gallery "${g.title}" will expire soon. Please download your full-resolution photos before then: ${galleryUrl}`,
-      bodyHtml: `<p style="margin:0 0 14px 0;">${greet}</p><p style="margin:0 0 14px 0;">Your gallery <strong>${g.title}</strong> will expire soon. Please download your full-resolution photos before then.</p>`,
-      ctaLabel: "Open your gallery",
-      ctaUrl: galleryUrl,
-    }));
-  }
-
   const sent = Object.values(byKind).reduce((a, b) => a + b, 0);
   return { enabled: true, sent, byKind };
+}
+
+function labelFor(kind: ReminderKind): string {
+  switch (kind) {
+    case "deposit_due":
+      return "Deposit reminder";
+    case "balance_due":
+      return "Balance reminder";
+    case "gallery_expiring":
+      return "Gallery reminder";
+    case "review_request":
+      return "Review request";
+  }
 }

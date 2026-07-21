@@ -12,6 +12,7 @@ import {
 import { getAdminGallery } from "@/lib/admin-data";
 import { torontoLocalToUtc } from "@/lib/ics";
 import { sendBookingHubEmail } from "@/lib/notify-email";
+import { logBookingEvent } from "@/lib/events";
 import { siteUrl } from "@/lib/seo";
 
 export type BookingActionState = {
@@ -139,6 +140,20 @@ export async function emailBookingHubAction(id: string): Promise<{ ok: boolean; 
     url: hubUrlFor(booking.token),
   });
   return { ok: result.ok, message: result.message };
+}
+
+/** Add an internal note to a booking's activity timeline. */
+export async function addBookingNoteAction(
+  bookingId: string,
+  note: string,
+): Promise<{ ok: boolean; message: string }> {
+  await requireAdmin();
+  const text = note.trim();
+  if (!bookingId) return { ok: false, message: "Missing booking id." };
+  if (!text) return { ok: false, message: "Write a note first." };
+  await logBookingEvent({ bookingId, type: "note", summary: text, actor: "admin" });
+  revalidatePath(`/admin/bookings/${bookingId}`);
+  return { ok: true, message: "Note added." };
 }
 
 export async function deleteBookingAction(id: string): Promise<{ ok: boolean; message: string }> {

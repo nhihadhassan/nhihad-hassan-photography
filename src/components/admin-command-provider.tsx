@@ -2,14 +2,23 @@
 
 import { CommandPalette, type CommandItem } from "@/components/ui/command-palette";
 import { ToastProvider } from "@/components/ui/toast";
+import { AdminKeyboardLayer } from "@/components/admin-keyboard-layer";
 import { adminNavItems } from "@/lib/admin-nav";
 
+export type CommandRecord = { id: string; label: string; hint: string; href: string };
+
 /**
- * Mounts the toast/undo layer and the command palette across the admin. The
- * palette is seeded with navigation targets and create actions; record search
- * (clients, bookings) is layered on in the interaction-polish phase.
+ * Mounts the toast/undo layer, the command palette, and the keyboard layer
+ * across the admin. The palette is seeded with navigation targets, create
+ * actions, and a jump-to index of bookings and clients.
  */
-export function AdminCommandProvider({ children }: { children: React.ReactNode }) {
+export function AdminCommandProvider({
+  children,
+  records = [],
+}: {
+  children: React.ReactNode;
+  records?: CommandRecord[];
+}) {
   const items: CommandItem[] = [
     {
       id: "create-booking",
@@ -45,12 +54,20 @@ export function AdminCommandProvider({ children }: { children: React.ReactNode }
       group: "Go to",
       href: item.href,
     })),
+    ...records.map<CommandItem>((r) => ({
+      id: r.id,
+      label: r.label,
+      hint: r.hint,
+      group: "Jump to",
+      href: r.href,
+    })),
   ];
 
   return (
     <ToastProvider>
       {children}
       <CommandPalette items={items} />
+      <AdminKeyboardLayer />
     </ToastProvider>
   );
 }

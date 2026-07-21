@@ -59,6 +59,39 @@ export function formatCompactDate(date: string | null) {
   }).format(value);
 }
 
+/**
+ * Admin list date rule: relative within 7 days ("3 days ago", "in 2 days"),
+ * absolute beyond. Accepts a date-only or ISO string.
+ */
+export function formatRelativeDate(date: string | null): string {
+  if (!date) return "No date";
+  const value = date.includes("T") ? new Date(date) : new Date(`${date}T12:00:00`);
+  const ms = value.getTime();
+  if (!Number.isFinite(ms)) return "No date";
+  const diff = ms - Date.now();
+  const days = Math.round(diff / (24 * 60 * 60 * 1000));
+  if (Math.abs(days) <= 7) {
+    if (days === 0) return "Today";
+    if (days === 1) return "Tomorrow";
+    if (days === -1) return "Yesterday";
+    return days > 0 ? `in ${days} days` : `${Math.abs(days)} days ago`;
+  }
+  return formatCompactDate(date);
+}
+
+/** Compact "how long" label from a past timestamp, for attention/age markers. */
+export function formatAge(from: string | null): string {
+  if (!from) return "";
+  const start = new Date(from).getTime();
+  if (!Number.isFinite(start)) return "";
+  const mins = Math.floor((Date.now() - start) / 60000);
+  if (mins < 60) return `${Math.max(mins, 0)}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 48) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `${days}d`;
+}
+
 export function slugify(value: string) {
   return value
     .toLowerCase()

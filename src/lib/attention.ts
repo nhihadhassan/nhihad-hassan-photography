@@ -122,7 +122,7 @@ export async function getAttentionItems(): Promise<AttentionItem[]> {
     }
 
     // Gallery not delivered within 14 days of the shoot date.
-    if (startMs && startMs < now - 14 * DAY && b.stage !== "delivered" && b.stage !== "reviewed") {
+    if (startMs && startMs < now - 14 * DAY && b.stage !== "delivered" && b.stage !== "archived") {
       const galleryLive = b.gallery?.is_published;
       if (!galleryLive) {
         items.push({

@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
+import { advanceBookingStage } from "@/lib/bookings";
 import { hashPassword } from "@/lib/password";
 import { slugify } from "@/lib/utils";
 import { galleryPresets } from "@/data/gallery-presets";
@@ -398,10 +400,22 @@ export async function toggleGalleryPublished(formData: FormData) {
   const nextValue = formData.get("next") === "true";
   const supabase = await createSupabaseServerClient();
   await supabase.from("galleries").update({ is_published: nextValue }).eq("id", id);
+  if (nextValue) await advanceBookingForGallery(id);
   revalidatePath("/admin");
   revalidatePath("/admin/galleries");
   revalidatePath("/");
   revalidatePath("/galleries");
+}
+
+/** Publishing a gallery delivers the linked booking. Forward-only and best-effort. */
+async function advanceBookingForGallery(galleryId: string) {
+  const admin = getServiceRoleSupabaseClient();
+  const { data } = await admin
+    .from("bookings")
+    .select("id")
+    .eq("gallery_id", galleryId)
+    .maybeSingle();
+  if (data?.id) await advanceBookingStage(data.id as string, "delivered");
 }
 
 export async function toggleGalleryArchived(formData: FormData) {

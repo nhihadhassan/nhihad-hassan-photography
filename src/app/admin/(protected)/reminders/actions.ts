@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import { runReminders, type ReminderSummary } from "@/lib/reminders";
+import { updateReminderRule, type ReminderKind } from "@/lib/reminder-rules";
 
 export async function setRemindersEnabledAction(enabled: boolean): Promise<{ ok: boolean }> {
   await requireAdmin();
@@ -21,4 +22,18 @@ export async function setRemindersEnabledAction(enabled: boolean): Promise<{ ok:
 export async function runRemindersNowAction(): Promise<ReminderSummary> {
   await requireAdmin();
   return runReminders();
+}
+
+export async function updateReminderRuleAction(
+  kind: ReminderKind,
+  patch: { enabled?: boolean; offset_days?: number; cadence_days?: number; max_sends?: number },
+): Promise<{ ok: boolean }> {
+  await requireAdmin();
+  try {
+    await updateReminderRule(kind, patch);
+    revalidatePath("/admin/reminders");
+    return { ok: true };
+  } catch {
+    return { ok: false };
+  }
 }

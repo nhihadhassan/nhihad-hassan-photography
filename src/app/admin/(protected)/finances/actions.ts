@@ -9,6 +9,7 @@ import {
   deletePayment,
   type PaymentKind,
 } from "@/lib/finance";
+import { advanceBookingStage, getBookingById } from "@/lib/bookings";
 import { parseAmount } from "@/lib/utils";
 
 export type FinanceState = { status: "idle" | "success" | "error"; message: string };
@@ -32,15 +33,25 @@ export async function addPaymentAction(_prev: FinanceState, formData: FormData):
   const kindRaw = String(formData.get("kind") ?? "other");
   const kind: PaymentKind = (KINDS as string[]).includes(kindRaw) ? (kindRaw as PaymentKind) : "other";
 
+  const bookingId = clean(formData.get("booking_id"));
   try {
     await createPayment({
-      bookingId: clean(formData.get("booking_id")),
+      bookingId,
       amount,
       kind,
       paidOn: clean(formData.get("paid_on")),
       method: clean(formData.get("method")) ?? "interac",
       note: clean(formData.get("note")),
     });
+    // A recorded deposit moves a signed job to Booked. If the contract is not
+    // signed yet, the deposit is simply badged and the stage is left alone.
+    if (bookingId) {
+      const booking = await getBookingById(bookingId);
+      if (booking?.agreement?.signed_at) {
+        await advanceBookingStage(bookingId, "booked");
+      }
+      revalidatePath(`/admin/bookings/${bookingId}`);
+    }
     revalidate();
     return { status: "success", message: "Payment recorded." };
   } catch (error) {

@@ -1,9 +1,9 @@
-import { PenLine } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminGalleries } from "@/lib/admin-data";
 import { getAdminAgreementRequests } from "@/lib/agreements";
 import { siteUrl } from "@/lib/seo";
 import { AgreementAdmin } from "@/components/agreement-admin";
+import { ContractsTable, type ContractRow } from "@/components/tables/contracts-table";
 
 export const dynamic = "force-dynamic";
 
@@ -17,25 +17,38 @@ export default async function AdminAgreementsPage() {
 
   const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
 
+  const contractRows: ContractRow[] = requests.map((r) => ({
+    id: r.id,
+    client: r.client_name ?? r.client_email ?? "Client",
+    galleryTitle: r.gallery_title ?? "",
+    token: r.token,
+    sent_at: r.sent_at,
+    viewed_at: r.viewed_at,
+    signed_at: r.signed_at,
+    revoked_at: r.revoked_at,
+    created_at: r.created_at,
+  }));
+
   return (
     <div className="mx-auto max-w-6xl">
-      <div className="flex items-start gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-admin-copper/15">
-          <PenLine className="size-5 text-admin-accent" aria-hidden="true" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-admin-accent">Send to sign</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Sign requests</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
-            Send a client a link to review and sign your booking agreement online. Signed copies are
-            stored against the client and gallery. To change the contract wording itself, use{" "}
-            <strong>Contract template</strong>.
-          </p>
-        </div>
+      <div>
+        <p className="text-sm font-medium text-admin-accent">Contracts</p>
+        <h1 className="admin-display mt-1 text-3xl text-admin-ink">Contracts</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-muted">
+          Every sign request and its status at a glance. Send a new one below. To change the contract
+          wording itself, use Contract template.
+        </p>
       </div>
 
       <div className="mt-8">
-        <AgreementAdmin galleries={galleries} requests={requests} siteOrigin={siteOrigin} />
+        <ContractsTable rows={contractRows} />
+      </div>
+
+      <div className="mt-10 border-t border-admin-line pt-8">
+        <h2 className="admin-display text-xl text-admin-ink">Send to sign</h2>
+        <div className="mt-4">
+          <AgreementAdmin galleries={galleries} requests={requests} siteOrigin={siteOrigin} />
+        </div>
       </div>
     </div>
   );

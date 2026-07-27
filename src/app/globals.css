@@ -22,6 +22,28 @@
   --admin-danger-ink: #7a2e25;
   --admin-success: #3f6e4a;
   --admin-info: #2e5fa3;
+
+  /* Admin neutral ramp: hairlines, muted text, subtle fills.
+     Derived from --admin-ink so everything stays in the same warm family. */
+  --admin-line: rgba(23, 19, 15, 0.1);
+  --admin-line-strong: rgba(23, 19, 15, 0.16);
+  --admin-muted: rgba(23, 19, 15, 0.65);
+  --admin-subtle: rgba(23, 19, 15, 0.04);
+  --admin-raise: rgba(23, 19, 15, 0.06);
+
+  /* Reserved semantic status colours. These are the ONLY colours a status
+     chip may use; --admin-accent is for primary actions + focus, never status.
+     Each has a text ink and a tint fill so chips read on the light surface. */
+  --admin-status-positive: #3f6e4a; /* signed / paid */
+  --admin-status-positive-tint: #e6efe7;
+  --admin-status-waiting: #8a6a1f; /* sent / viewed / due soon */
+  --admin-status-waiting-tint: #f4ecd7;
+  --admin-status-danger: #8a2f24; /* overdue / stale */
+  --admin-status-danger-tint: #f4e2df;
+  --admin-status-neutral: #5c534a; /* draft / void */
+  --admin-status-neutral-tint: #ece7de;
+  --admin-status-info: #2e5fa3; /* in progress */
+  --admin-status-info-tint: #e0e8f4;
 }
 
 @theme inline {
@@ -43,6 +65,21 @@
   --color-admin-danger-ink: var(--admin-danger-ink);
   --color-admin-success: var(--admin-success);
   --color-admin-info: var(--admin-info);
+  --color-admin-line: var(--admin-line);
+  --color-admin-line-strong: var(--admin-line-strong);
+  --color-admin-muted: var(--admin-muted);
+  --color-admin-subtle: var(--admin-subtle);
+  --color-admin-raise: var(--admin-raise);
+  --color-admin-status-positive: var(--admin-status-positive);
+  --color-admin-status-positive-tint: var(--admin-status-positive-tint);
+  --color-admin-status-waiting: var(--admin-status-waiting);
+  --color-admin-status-waiting-tint: var(--admin-status-waiting-tint);
+  --color-admin-status-danger: var(--admin-status-danger);
+  --color-admin-status-danger-tint: var(--admin-status-danger-tint);
+  --color-admin-status-neutral: var(--admin-status-neutral);
+  --color-admin-status-neutral-tint: var(--admin-status-neutral-tint);
+  --color-admin-status-info: var(--admin-status-info);
+  --color-admin-status-info-tint: var(--admin-status-info-tint);
   --font-serif: var(--font-cormorant);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -100,6 +137,53 @@ button:focus-visible {
 
 .text-balance {
   text-wrap: balance;
+}
+
+/* Tabular numerals for money, counts, and any aligned figures in the admin. */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/*
+ * Admin display face. Page titles and the Today money row use the editorial
+ * serif so the personality lives in type, not colour. Kept to the admin only.
+ */
+.admin-display {
+  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+  letter-spacing: -0.01em;
+}
+
+/* Admin motion: purposeful only. Toast entry and side sheet / spine reveals. */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes spine-node-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .image-fade-mask {

@@ -1,30 +1,25 @@
-import { BellRing, Check, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
-import { hasGalleryInviteConfig } from "@/lib/env";
-import { env } from "@/lib/env";
+import { hasGalleryInviteConfig, env } from "@/lib/env";
+import { getReminderRules, REMINDER_KINDS } from "@/lib/reminder-rules";
 import { RemindersControl } from "@/components/reminders-control";
+import { RemindersRules } from "@/components/reminders-rules";
+import { formatCompactDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-const REMINDERS = [
-  { name: "Deposit reminder", detail: "A booked client with no recorded payment yet, while the shoot is still upcoming." },
-  { name: "Balance reminder", detail: "When a shoot is within four days and money is still outstanding." },
-  { name: "Gallery expiring", detail: "A published gallery whose link expires within seven days, so the client downloads in time." },
-  { name: "Review request", detail: "A delivered booking whose shoot was over a week ago (needs your Google review link set)." },
-];
 
 function StatusLine({ ok, label, hint }: { ok: boolean; label: string; hint: string }) {
   return (
     <li className="flex items-start gap-2 text-sm">
       {ok ? (
-        <Check className="mt-0.5 size-4 shrink-0 text-admin-success" aria-hidden="true" />
+        <Check className="mt-0.5 size-4 shrink-0 text-admin-status-positive" aria-hidden="true" />
       ) : (
-        <X className="mt-0.5 size-4 shrink-0 text-admin-danger" aria-hidden="true" />
+        <X className="mt-0.5 size-4 shrink-0 text-admin-status-danger" aria-hidden="true" />
       )}
       <span>
         <span className="font-medium text-admin-ink">{label}</span>
-        <span className="text-admin-ink/65"> {hint}</span>
+        <span className="text-admin-muted"> {hint}</span>
       </span>
     </li>
   );
@@ -33,46 +28,55 @@ function StatusLine({ ok, label, hint }: { ok: boolean; label: string; hint: str
 export default async function AdminRemindersPage() {
   await requireAdmin();
   const admin = getServiceRoleSupabaseClient();
-  const { data } = await admin.from("site_settings").select("reminders_enabled").limit(1).maybeSingle();
-  const enabled = Boolean(data?.reminders_enabled);
+  const [{ data: settingsRow }, rulesMap, { data: log }] = await Promise.all([
+    admin.from("site_settings").select("reminders_enabled").limit(1).maybeSingle(),
+    getReminderRules(),
+    admin.from("reminder_log").select("kind,sent_to,sent_at").order("sent_at", { ascending: false }).limit(8),
+  ]);
+  const enabled = Boolean(settingsRow?.reminders_enabled);
+  const rules = REMINDER_KINDS.map((k) => rulesMap[k]);
 
   const emailReady = hasGalleryInviteConfig();
   const cronReady = Boolean(env.CRON_SECRET);
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="flex items-start gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-admin-copper/15">
-          <BellRing className="size-5 text-admin-accent" aria-hidden="true" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-admin-accent">Reminders</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Automated reminders</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
-            Gentle emails sent on a daily schedule so you do not have to chase clients. Each client
-            gets any given reminder at most once.
-          </p>
-        </div>
+      <div>
+        <p className="text-sm font-medium text-admin-accent">Reminders</p>
+        <h1 className="admin-display mt-1 text-3xl text-admin-ink">Automated reminders</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-muted">
+          Gentle emails sent on a daily schedule so you do not have to chase clients. Edit the rules
+          in plain language. Each client gets any given reminder at most the number of times you set.
+        </p>
       </div>
 
       <div className="mt-8">
         <RemindersControl enabled={enabled} />
       </div>
 
-      <section className="mt-8 rounded-md border border-admin-ink/10 bg-admin-surface p-5">
-        <h2 className="text-base font-semibold tracking-tight">What gets sent</h2>
-        <ul className="mt-3 space-y-3">
-          {REMINDERS.map((r) => (
-            <li key={r.name} className="text-sm">
-              <p className="font-medium text-admin-ink">{r.name}</p>
-              <p className="mt-0.5 text-admin-ink/65">{r.detail}</p>
-            </li>
-          ))}
-        </ul>
+      <section className="mt-8">
+        <h2 className="admin-display text-xl text-admin-ink">Rules</h2>
+        <div className="mt-4">
+          <RemindersRules rules={rules} />
+        </div>
       </section>
 
-      <section className="mt-6 rounded-md border border-admin-ink/10 bg-admin-surface p-5">
-        <h2 className="text-base font-semibold tracking-tight">Setup status</h2>
+      {log && log.length > 0 ? (
+        <section className="mt-8 rounded-xl border border-admin-line bg-admin-surface p-5">
+          <h2 className="text-base font-semibold text-admin-ink">Recent sends</h2>
+          <ul className="mt-3 space-y-1.5 text-sm">
+            {log.map((entry, i) => (
+              <li key={i} className="flex justify-between gap-4 text-admin-muted">
+                <span>{String(entry.kind).split(":")[0].replace(/_/g, " ")}</span>
+                <span className="tabular-nums">{entry.sent_at ? formatCompactDate(String(entry.sent_at)) : ""}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <section className="mt-6 rounded-xl border border-admin-line bg-admin-surface p-5">
+        <h2 className="text-base font-semibold text-admin-ink">Setup status</h2>
         <ul className="mt-3 space-y-2.5">
           <StatusLine ok={emailReady} label="Email configured" hint={emailReady ? "Reminders can be delivered." : "Set RESEND_API_KEY and SELECTS_NOTIFICATION_FROM to send email."} />
           <StatusLine ok={cronReady} label="Daily schedule" hint={cronReady ? "The CRON_SECRET is set; the daily job is protected and will run." : "Set CRON_SECRET in Vercel so the daily job can run. You can still use Run now."} />

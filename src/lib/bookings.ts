@@ -2,7 +2,8 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import type { DepositStatus } from "@/lib/payment-constants";
-import { BOOKING_STAGES, type BookingStage } from "@/lib/booking-stages";
+import { BOOKING_STAGES, BOOKING_STAGE_LABELS, normalizeStage, type BookingStage } from "@/lib/booking-stages";
+import { logBookingEvent } from "@/lib/events";
 
 export { BOOKING_STAGES, BOOKING_STAGE_LABELS } from "@/lib/booking-stages";
 export type { BookingStage } from "@/lib/booking-stages";
@@ -74,7 +75,7 @@ function mapBooking(row: Record<string, unknown>): BookingWithLinks {
     balance: (row.balance as string | null) ?? null,
     notes: (row.notes as string | null) ?? null,
     internal_note: (row.internal_note as string | null) ?? null,
-    stage: ((row.stage as BookingStage) ?? "booked"),
+    stage: normalizeStage(row.stage as string | null),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
     gallery: gallery
@@ -180,6 +181,45 @@ export async function updateBookingStage(id: string, stage: BookingStage) {
     .update({ stage, updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) throw new Error(error.message);
+}
+
+/**
+ * Auto-advance a booking to `target` only if that is later in the pipeline than
+ * where it sits now. Never moves a job backward and is a no-op if already at or
+ * past the target, so wiring it into event mutations is safe and idempotent.
+ * Best-effort: a failure here never breaks the triggering mutation.
+ */
+export async function advanceBookingStage(
+  bookingId: string,
+  target: BookingStage,
+): Promise<void> {
+  try {
+    const admin = getServiceRoleSupabaseClient();
+    const { data } = await admin
+      .from("bookings")
+      .select("stage")
+      .eq("id", bookingId)
+      .maybeSingle();
+    if (!data) return;
+    const current = normalizeStage(data.stage as string | null);
+    const from = BOOKING_STAGES.indexOf(current);
+    const to = BOOKING_STAGES.indexOf(target);
+    if (to <= from) return;
+    const { error } = await admin
+      .from("bookings")
+      .update({ stage: target, updated_at: new Date().toISOString() })
+      .eq("id", bookingId);
+    if (error) return;
+    await logBookingEvent({
+      bookingId,
+      type: "stage",
+      summary: `Moved to ${BOOKING_STAGE_LABELS[target]}`,
+      actor: "system",
+      payload: { from: current, to: target },
+    });
+  } catch {
+    // swallow: stage automation is a convenience, not a system of record
+  }
 }
 
 export async function getBookingByToken(token: string): Promise<BookingWithLinks | null> {

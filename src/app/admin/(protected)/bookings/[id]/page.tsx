@@ -1,38 +1,251 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ExternalLink, Pencil } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
-import { getAdminGalleries } from "@/lib/admin-data";
-import { getAdminAgreementRequests } from "@/lib/agreements";
 import { getBookingById } from "@/lib/bookings";
-import { BookingForm } from "@/components/booking-form";
+import { BOOKING_STAGE_LABELS } from "@/lib/booking-stages";
+import { getAdminAgreementRequests } from "@/lib/agreements";
+import { getAdminGalleries } from "@/lib/admin-data";
+import { listPayments } from "@/lib/finance";
+import { getBookingTimeline } from "@/lib/timeline";
+import { parseAmount, formatMoney, formatCompactDate } from "@/lib/utils";
+import { StatusChip, statusForContract, statusForInvoice } from "@/components/ui/status-chip";
+import { CopyText } from "@/components/ui/copy-text";
+import { BookingTimeline } from "@/components/booking-timeline";
+import { BookingNoteComposer } from "@/components/booking-note-composer";
 
 export const dynamic = "force-dynamic";
 
-export default async function EditBookingPage({ params }: { params: Promise<{ id: string }> }) {
+const TZ = "America/Toronto";
+
+function shootWhen(iso: string | null) {
+  if (!iso) return "Date to be set";
+  return new Date(iso).toLocaleString("en-CA", {
+    timeZone: TZ,
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+export default async function BookingWorkspacePage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
   const { id } = await params;
-  const [booking, galleries, agreementRequests] = await Promise.all([
-    getBookingById(id),
-    getAdminGalleries(),
-    getAdminAgreementRequests(),
-  ]);
+
+  const booking = await getBookingById(id);
   if (!booking) notFound();
 
+  const [timeline, agreements, galleries, payments] = await Promise.all([
+    getBookingTimeline(booking),
+    getAdminAgreementRequests(),
+    getAdminGalleries(),
+    listPayments(),
+  ]);
+
+  const agreement = agreements.find((a) => a.id === booking.agreement_request_id) ?? null;
+  const gallery = booking.gallery_id ? galleries.find((g) => g.id === booking.gallery_id) ?? null : null;
+  const total = parseAmount(booking.total) ?? 0;
+  const paid = payments
+    .filter((p) => p.booking_id === booking.id)
+    .reduce((s, p) => s + p.amount, 0);
+  const balance = Math.max(0, total - paid);
+
+  const signed = Boolean(agreement?.signed_at);
+  const nextAction = suggestNextAction({
+    booking,
+    agreement,
+    gallery,
+    paid,
+    balance,
+    signed,
+  });
+
+  const clientName = booking.client_name ?? booking.shoot_type ?? "Booking";
+
   return (
-    <div className="mx-auto max-w-3xl">
-      <p className="text-sm font-medium text-admin-accent">Bookings</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">Edit booking</h1>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
-        Update the shoot details, link a gallery or signing request, or adjust the note your client
-        sees.
-      </p>
-      <div className="mt-8">
-        <BookingForm
-          mode="edit"
-          booking={booking}
-          galleries={galleries}
-          agreementRequests={agreementRequests}
-        />
+    <div className="mx-auto max-w-5xl">
+      <Link href="/admin/bookings" className="text-sm text-admin-muted hover:text-admin-ink">
+        Bookings
+      </Link>
+
+      {/* Header */}
+      <header className="mt-2 flex flex-col gap-4 border-b border-admin-line pb-6 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="admin-display text-3xl text-admin-ink">{clientName}</h1>
+            <span className="rounded-full bg-admin-raise px-2.5 py-0.5 text-xs font-medium text-admin-muted">
+              {BOOKING_STAGE_LABELS[booking.stage]}
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-admin-muted">
+            {booking.shoot_type ? `${booking.shoot_type} · ` : ""}
+            {shootWhen(booking.start_at)}
+            {booking.location ? ` · ${booking.location}` : ""}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link
+            href={`/admin/bookings/${booking.id}/edit`}
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-admin-line-strong bg-admin-surface px-3 text-sm font-medium text-admin-ink hover:bg-admin-raise"
+          >
+            <Pencil className="size-4 text-admin-muted" aria-hidden="true" />
+            Edit
+          </Link>
+          {nextAction ? (
+            <Link
+              href={nextAction.href}
+              className="inline-flex min-h-10 items-center rounded-lg bg-admin-ink px-4 text-sm font-medium text-admin-surface hover:bg-admin-ink/88"
+            >
+              {nextAction.label}
+            </Link>
+          ) : (
+            <span className="inline-flex min-h-10 items-center rounded-lg bg-admin-status-positive-tint px-4 text-sm font-medium text-admin-status-positive">
+              All caught up
+            </span>
+          )}
+        </div>
+      </header>
+
+      <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_20rem]">
+        {/* Left: activity timeline */}
+        <section aria-label="Activity">
+          <h2 className="admin-display mb-3 text-xl text-admin-ink">Activity</h2>
+          <BookingNoteComposer bookingId={booking.id} />
+          <div className="mt-5">
+            <BookingTimeline entries={timeline} />
+          </div>
+        </section>
+
+        {/* Right: facts rail */}
+        <aside aria-label="Details" className="space-y-5">
+          <RailBlock title="Contact">
+            <p className="text-sm font-medium text-admin-ink">{booking.client_name ?? "No name"}</p>
+            {booking.client_email ? <CopyText value={booking.client_email} /> : null}
+          </RailBlock>
+
+          <RailBlock title="Contract">
+            {agreement ? (
+              <div className="flex items-center justify-between gap-2">
+                <StatusChip status={statusForContract(agreement)} />
+                <a
+                  href={`/agreement/${agreement.token}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-admin-accent hover:text-admin-ink"
+                >
+                  View <ExternalLink className="size-3.5" aria-hidden="true" />
+                </a>
+              </div>
+            ) : (
+              <p className="text-sm text-admin-muted">No contract linked.</p>
+            )}
+          </RailBlock>
+
+          <RailBlock title="Invoice">
+            {total > 0 ? (
+              <div className="space-y-2">
+                <StatusChip
+                  status={statusForInvoice({ total, paid, dueAt: booking.start_at, sent: true })}
+                />
+                <dl className="space-y-1 text-sm">
+                  <Row label="Total" value={formatMoney(total)} />
+                  <Row label="Paid" value={formatMoney(paid)} />
+                  <Row label="Balance" value={formatMoney(balance)} strong />
+                </dl>
+                <a
+                  href={`/invoice/${booking.token}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-admin-accent hover:text-admin-ink"
+                >
+                  View invoice <ExternalLink className="size-3.5" aria-hidden="true" />
+                </a>
+              </div>
+            ) : (
+              <p className="text-sm text-admin-muted">No amount set.</p>
+            )}
+          </RailBlock>
+
+          {gallery ? (
+            <RailBlock title="Gallery">
+              <div className="flex items-center justify-between gap-2">
+                <Link href={`/admin/galleries/${gallery.id}`} className="truncate text-sm text-admin-ink hover:text-admin-accent">
+                  {gallery.title}
+                </Link>
+                {gallery.is_published ? (
+                  <a href={`/galleries/${gallery.slug}`} target="_blank" rel="noreferrer" className="shrink-0 text-admin-accent hover:text-admin-ink">
+                    <ExternalLink className="size-3.5" aria-hidden="true" />
+                  </a>
+                ) : null}
+              </div>
+              <p className="mt-1 text-xs text-admin-muted">
+                {gallery.is_published ? "Published" : "Not delivered"}
+              </p>
+            </RailBlock>
+          ) : null}
+
+          {booking.internal_note || gallery?.payment_notes ? (
+            <RailBlock title="Notes">
+              {booking.internal_note ? <p className="text-sm text-admin-ink">{booking.internal_note}</p> : null}
+              {gallery?.payment_notes ? (
+                <p className="mt-2 text-sm text-admin-muted">{gallery.payment_notes}</p>
+              ) : null}
+            </RailBlock>
+          ) : null}
+
+          <p className="text-xs text-admin-muted">
+            Created {formatCompactDate(booking.created_at)}
+          </p>
+        </aside>
       </div>
+    </div>
+  );
+}
+
+type NextActionInput = {
+  booking: Awaited<ReturnType<typeof getBookingById>>;
+  agreement: { sent_at: string | null; signed_at: string | null; revoked_at: string | null } | null;
+  gallery: { is_published: boolean } | null;
+  paid: number;
+  balance: number;
+  signed: boolean;
+};
+
+/** Derive the single suggested next action from booking state. Plain helper so
+ *  the time read stays out of the component render path. */
+function suggestNextAction({ booking, agreement, gallery, paid, balance, signed }: NextActionInput) {
+  if (!booking) return null;
+  const startMs = booking.start_at ? new Date(booking.start_at).getTime() : null;
+  const now = Date.now();
+  if (!agreement || !agreement.sent_at) return { label: "Send contract", href: "/admin/agreements" };
+  if (!signed && !agreement.revoked_at) return { label: "Nudge the contract", href: "/admin/agreements" };
+  if (signed && paid <= 0) return { label: "Record deposit", href: "/admin/finances" };
+  if (balance > 0.5 && startMs && startMs <= now + 7 * 24 * 60 * 60 * 1000)
+    return { label: "Send balance reminder", href: "/admin/finances" };
+  if (!gallery?.is_published && booking.stage !== "inquiry")
+    return {
+      label: "Deliver gallery",
+      href: booking.gallery_id ? `/admin/galleries/${booking.gallery_id}` : "/admin/galleries",
+    };
+  return null;
+}
+
+function RailBlock({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-admin-line bg-admin-surface p-4">
+      <p className="mb-2 text-xs uppercase tracking-wide text-admin-muted">{title}</p>
+      {children}
+    </div>
+  );
+}
+
+function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className="flex items-center justify-between">
+      <dt className="text-admin-muted">{label}</dt>
+      <dd className={`tabular-nums ${strong ? "font-semibold text-admin-ink" : "text-admin-ink"}`}>{value}</dd>
     </div>
   );
 }

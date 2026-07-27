@@ -1,180 +1,157 @@
 import Link from "next/link";
-import { CalendarClock, Inbox, PenLine, Plus, Wallet } from "lucide-react";
-import { EmptyState } from "@/components/empty-state";
+import { CalendarPlus, FilePlus2, ReceiptText, UserPlus } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
-import { getAdminDashboardCounts, getAdminGalleries, getAdminInquiries } from "@/lib/admin-data";
-import { getAdminBookings, type Booking } from "@/lib/bookings";
-import { getAdminAgreementRequests } from "@/lib/agreements";
-import { getFinanceSummary } from "@/lib/finance";
-import { formatCompactDate, formatMoney } from "@/lib/utils";
+import { getAttentionItems, getMoneyRow, type AttentionSeverity } from "@/lib/attention";
+import { formatAge, formatMoney } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
 
 const TZ = "America/Toronto";
 
-function shootDateTime(iso: string) {
-  return new Date(iso).toLocaleString("en-CA", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+const SEVERITY_DOT: Record<AttentionSeverity, string> = {
+  danger: "bg-admin-status-danger",
+  warning: "bg-admin-status-waiting",
+  info: "bg-admin-status-info",
+};
+
+function todayLabel() {
+  return new Intl.DateTimeFormat("en-CA", {
     timeZone: TZ,
-  });
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(new Date());
 }
 
-/** Future bookings, soonest first. Module-level so the render stays pure. */
-function upcomingShootsOf<T extends Booking>(bookings: T[]) {
-  const now = Date.now();
-  return bookings
-    .filter((b) => b.start_at && new Date(b.start_at).getTime() >= now)
-    .sort((a, b) => new Date(a.start_at!).getTime() - new Date(b.start_at!).getTime());
-}
-
-export default async function AdminDashboardPage() {
+export default async function TodayPage() {
   await requireAdmin();
 
-  const [counts, galleries, inquiries, bookings, agreements, finance] = await Promise.all([
-    getAdminDashboardCounts(),
-    getAdminGalleries(),
-    getAdminInquiries(),
-    getAdminBookings(),
-    getAdminAgreementRequests(),
-    getFinanceSummary(),
-  ]);
+  const [money, attention] = await Promise.all([getMoneyRow(), getAttentionItems()]);
 
-  const upcomingShoots = upcomingShootsOf(bookings);
-  const unsignedContracts = agreements.filter((a) => !a.signed_at && !a.revoked_at).length;
+  const moneyCards = [
+    {
+      label: "Collected this month",
+      value: formatMoney(money.collectedThisMonth),
+      sub: "Payments recorded",
+      href: "/admin/finances",
+    },
+    {
+      label: "Outstanding",
+      value: formatMoney(money.outstandingTotal),
+      sub: `${money.outstandingCount} ${money.outstandingCount === 1 ? "invoice" : "invoices"}`,
+      href: "/admin/finances",
+    },
+    {
+      label: "Booked ahead",
+      value: formatMoney(money.bookedAhead),
+      sub: "Confirmed future work",
+      href: "/admin/bookings",
+    },
+  ];
 
-  const cockpit = [
-    { label: "Income this month", value: formatMoney(finance.incomeThisMonth), href: "/admin/finances", icon: Wallet, attention: false },
-    { label: "Upcoming shoots", value: String(upcomingShoots.length), href: "/admin/bookings", icon: CalendarClock, attention: false },
-    { label: "Unsigned contracts", value: String(unsignedContracts), href: "/admin/agreements", icon: PenLine, attention: unsignedContracts > 0 },
-    { label: "Outstanding", value: formatMoney(finance.outstandingTotal), href: "/admin/finances", icon: Wallet, attention: finance.outstandingTotal > 0 },
-    { label: "New inquiries", value: String(counts.inquiries), href: "/admin/inquiries", icon: Inbox, attention: false },
+  const quickCreate = [
+    { label: "New booking", href: "/admin/bookings/new", icon: CalendarPlus },
+    { label: "New invoice", href: "/admin/finances", icon: ReceiptText },
+    { label: "New contract", href: "/admin/agreements", icon: FilePlus2 },
+    { label: "New client", href: "/admin/clients", icon: UserPlus },
   ];
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/65">
-            What needs your attention today, with quick links into bookings, contracts, and inquiries.
-          </p>
+    <div className="mx-auto max-w-5xl">
+      <header className="flex flex-col gap-1">
+        <p className="text-sm font-medium text-admin-accent">Today</p>
+        <h1 className="admin-display text-3xl text-admin-ink">{todayLabel()}</h1>
+      </header>
+
+      {/* Money row */}
+      <section aria-label="Money" className="mt-6 grid gap-4 sm:grid-cols-3">
+        {moneyCards.map((card) => (
+          <Link
+            key={card.label}
+            href={card.href}
+            className="group rounded-xl border border-admin-line bg-admin-surface p-5 transition hover:border-admin-line-strong"
+          >
+            <p className="text-sm text-admin-muted">{card.label}</p>
+            <p className="admin-display mt-3 text-4xl tabular-nums text-admin-ink">{card.value}</p>
+            <p className="mt-2 text-xs text-admin-muted">{card.sub}</p>
+          </Link>
+        ))}
+      </section>
+
+      {/* Needs attention */}
+      <section aria-label="Needs attention" className="mt-8">
+        <div className="flex items-baseline justify-between">
+          <h2 className="admin-display text-xl text-admin-ink">Needs attention</h2>
+          {attention.length > 0 ? (
+            <span className="text-sm text-admin-muted tabular-nums">{attention.length}</span>
+          ) : null}
         </div>
-        <Link
-          href="/admin/galleries/new"
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-admin-ink px-4 text-sm font-medium text-admin-surface transition hover:opacity-90"
-        >
-          <Plus className="size-4" aria-hidden="true" />
-          New collection
-        </Link>
-      </div>
 
-      {/* Action cockpit */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {cockpit.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Link
-              key={card.label}
-              href={card.href}
-              className={
-                "rounded-md border p-5 transition hover:border-admin-ink/25 " +
-                (card.attention
-                  ? "border-admin-accent/40 bg-admin-copper/10"
-                  : "border-admin-ink/10 bg-admin-surface")
-              }
-            >
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-admin-ink/65">{card.label}</p>
-                <Icon className={`size-4 ${card.attention ? "text-admin-accent" : "text-admin-ink/65"}`} aria-hidden="true" />
-              </div>
-              <p className="mt-5 text-3xl font-semibold tracking-tight">{card.value}</p>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Upcoming shoots detail */}
-      {upcomingShoots.length ? (
-        <section className="mt-6 rounded-md border border-admin-ink/10 bg-admin-surface p-6">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold tracking-tight">Upcoming shoots</h2>
-            <Link href="/admin/bookings" className="text-sm font-medium text-admin-accent hover:text-admin-ink">
-              All bookings
-            </Link>
+        {attention.length === 0 ? (
+          <div className="mt-4 rounded-xl border border-dashed border-admin-line-strong bg-admin-surface p-10 text-center">
+            <p className="admin-display text-2xl text-admin-ink">Nothing needs you.</p>
+            <p className="mt-1 text-sm text-admin-muted">Go shoot.</p>
           </div>
-          <div className="mt-4 divide-y divide-admin-ink/10">
-            {upcomingShoots.slice(0, 5).map((b) => (
-              <Link key={b.id} href={`/admin/bookings/${b.id}`} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm transition hover:text-admin-accent">
-                <span className="font-medium">{b.client_name ?? b.shoot_type ?? "Booking"}</span>
-                <span className="text-admin-ink/65">
-                  {shootDateTime(b.start_at!)}
-                  {b.location ? ` · ${b.location}` : ""}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
-        <section className="rounded-md border border-admin-ink/10 bg-admin-surface p-6">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold tracking-tight">Recent galleries</h2>
-            <Link href="/admin/galleries" className="text-sm font-medium text-admin-accent hover:text-admin-ink">
-              View all
-            </Link>
-          </div>
-          {galleries.length ? (
-            <div className="mt-5 divide-y divide-admin-ink/10">
-              {galleries.slice(0, 5).map((gallery) => (
-                <Link
-                  key={gallery.id}
-                  href={`/admin/galleries/${gallery.id}`}
-                  className="grid gap-1 py-4 text-sm transition hover:text-admin-accent"
-                >
-                  <span className="font-medium">{gallery.title}</span>
-                  <span className="text-admin-ink/65">
-                    {formatCompactDate(gallery.event_date)} · {gallery.is_published ? "Published" : "Draft"}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="mt-5">
-              <EmptyState
-                title="Create your first collection."
-                description="Give it a title and you will land on the upload screen."
-              />
-            </div>
-          )}
-        </section>
-        <section className="rounded-md border border-admin-ink/10 bg-admin-surface p-6">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold tracking-tight">Recent inquiries</h2>
-            <Link href="/admin/inquiries" className="text-sm font-medium text-admin-accent hover:text-admin-ink">
-              View all
-            </Link>
-          </div>
-          {inquiries.length ? (
-            <div className="mt-5 divide-y divide-admin-ink/10">
-              {inquiries.slice(0, 4).map((inquiry) => (
-                <div key={inquiry.id} className="py-4 text-sm">
-                  <p className="font-medium">{inquiry.name}</p>
-                  <p className="mt-1 text-admin-ink/65">
-                    {inquiry.event_type ?? "Inquiry"} · {formatCompactDate(inquiry.created_at)}
-                  </p>
+        ) : (
+          <ul className="mt-4 divide-y divide-admin-line overflow-hidden rounded-xl border border-admin-line bg-admin-surface">
+            {attention.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-center gap-4 px-4 py-3.5 transition hover:bg-admin-subtle"
+              >
+                <span
+                  aria-hidden="true"
+                  className={`mt-0.5 size-2 shrink-0 rounded-full ${SEVERITY_DOT[item.severity]}`}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-admin-ink">{item.client}</p>
+                  <p className="truncate text-sm text-admin-muted">{item.problem}</p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-5 text-sm leading-6 text-admin-ink/65">
-              New inquiries from the contact form will show up here.
-            </p>
-          )}
-        </section>
-      </div>
+                {item.since ? (
+                  <span className="hidden shrink-0 text-xs text-admin-muted tabular-nums sm:inline">
+                    {formatAge(item.since)}
+                  </span>
+                ) : null}
+                {item.action.external ? (
+                  <a
+                    href={item.action.href}
+                    className="shrink-0 rounded-lg border border-admin-line-strong bg-admin-surface px-3 py-1.5 text-xs font-medium text-admin-ink hover:bg-admin-raise"
+                  >
+                    {item.action.label}
+                  </a>
+                ) : (
+                  <Link
+                    href={item.action.href}
+                    className="shrink-0 rounded-lg border border-admin-line-strong bg-admin-surface px-3 py-1.5 text-xs font-medium text-admin-ink hover:bg-admin-raise"
+                  >
+                    {item.action.label}
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Quick create */}
+      <section aria-label="Quick create" className="mt-8">
+        <h2 className="text-sm font-medium text-admin-muted">Quick create</h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {quickCreate.map((action) => {
+            const Icon = action.icon;
+            return (
+              <Link
+                key={action.label}
+                href={action.href}
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-admin-line-strong bg-admin-surface px-4 text-sm font-medium text-admin-ink transition hover:bg-admin-raise"
+              >
+                <Icon className="size-4 text-admin-muted" aria-hidden="true" />
+                {action.label}
+              </Link>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

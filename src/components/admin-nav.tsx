@@ -2,168 +2,114 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  BellRing,
-  Calendar,
-  ClipboardList,
-  Download,
-  FileText,
-  FolderOpen,
-  Images,
-  Inbox,
-  LayoutDashboard,
-  LayoutTemplate,
-  MessageSquareText,
-  Newspaper,
-  PenLine,
-  Settings,
-  Shield,
-  Tag,
-  Users,
-  Wallet,
-  Workflow,
-} from "lucide-react";
-
-type NavItem = {
-  href: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
-
-type NavGroup = {
-  /** null = ungrouped items at the top (Dashboard). */
-  label: string | null;
-  items: NavItem[];
-};
+import { Camera, LogOut } from "lucide-react";
+import { logoutAdmin } from "@/app/admin/login/actions";
+import { brandConfig } from "@/lib/config";
+import { adminNavGroups, isActiveNav } from "@/lib/admin-nav";
+import { cn } from "@/lib/utils";
 
 /**
- * Sidebar structure, grouped by how the work actually flows: client work,
- * paperwork, money, the public site, then system. Icons live here (client
- * component) because component references cannot cross the server boundary.
+ * Admin sidebar + header + mobile nav. Full labels at lg, an icon-only rail
+ * between md and lg (the spec's "collapse to icons below 1024px"), and a
+ * horizontal scroll row below md.
  */
-const navGroups: NavGroup[] = [
-  {
-    label: null,
-    items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }],
-  },
-  {
-    label: "Client work",
-    items: [
-      { href: "/admin/inquiries", label: "Inquiries", icon: Inbox },
-      { href: "/admin/clients", label: "Clients", icon: Users },
-      { href: "/admin/pipeline", label: "Pipeline", icon: Workflow },
-      { href: "/admin/bookings", label: "Bookings", icon: Calendar },
-      { href: "/admin/galleries", label: "Galleries", icon: FolderOpen },
-      { href: "/admin/questionnaires", label: "Questionnaires", icon: ClipboardList },
-    ],
-  },
-  {
-    label: "Paperwork",
-    items: [
-      { href: "/admin/agreements", label: "Send to sign", icon: PenLine },
-      { href: "/admin/booking-agreement", label: "Contract template", icon: FileText },
-      { href: "/admin/reminders", label: "Reminders", icon: BellRing },
-    ],
-  },
-  {
-    label: "Money",
-    items: [
-      { href: "/admin/finances", label: "Finances", icon: Wallet },
-      { href: "/admin/pricing", label: "Pricing", icon: Tag },
-    ],
-  },
-  {
-    label: "Website",
-    items: [
-      { href: "/admin/portfolio", label: "Portfolio", icon: Images },
-      { href: "/admin/journal", label: "Journal", icon: Newspaper },
-      { href: "/admin/sections", label: "Sections", icon: LayoutTemplate },
-      { href: "/admin/reviews", label: "Reviews", icon: MessageSquareText },
-    ],
-  },
-  {
-    label: "System",
-    items: [
-      { href: "/admin/access-logs", label: "Access logs", icon: Shield },
-      { href: "/admin/download-logs", label: "Download logs", icon: Download },
-      { href: "/admin/settings", label: "Settings", icon: Settings },
-    ],
-  },
-];
-
-function useIsActive() {
+export function AdminNav({ adminEmail }: { adminEmail: string | null }) {
   const pathname = usePathname();
-  return (href: string) =>
-    href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(`${href}/`);
-}
 
-/** Grouped sidebar nav (desktop). */
-export function AdminSidebarNav() {
-  const isActive = useIsActive();
   return (
-    <nav className="mt-8 space-y-5" aria-label="Admin sections">
-      {navGroups.map((group) => (
-        <div key={group.label ?? "top"}>
-          {group.label ? (
-            <p className="px-3 pb-1 text-xs font-medium text-admin-ink/65">{group.label}</p>
-          ) : null}
-          <div className="space-y-0.5">
-            {group.items.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={active ? "page" : undefined}
-                  className={
-                    "flex min-h-10 items-center gap-3 rounded-md px-3 text-sm transition " +
-                    (active
-                      ? "bg-admin-ink/8 font-medium text-admin-ink"
-                      : "text-admin-ink/68 hover:bg-admin-ink/6 hover:text-admin-ink")
-                  }
-                >
-                  <Icon
-                    className={"size-4 " + (active ? "text-admin-ink" : "text-admin-ink/60")}
-                    aria-hidden="true"
-                  />
-                  {item.label}
-                </Link>
-              );
-            })}
+    <>
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-16 flex-col border-r border-admin-line bg-admin-surface p-2 md:flex lg:w-64 lg:p-5">
+        <Link href="/admin" className="flex items-center gap-3 px-1 lg:px-0" aria-label={`${brandConfig.shortName} Studio admin`}>
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-admin-ink text-admin-surface">
+            <Camera className="size-4" aria-hidden="true" />
+          </span>
+          <span className="hidden lg:block">
+            <span className="block text-sm font-semibold">{brandConfig.shortName} Studio</span>
+            <span className="block text-xs text-admin-muted">Admin workspace</span>
+          </span>
+        </Link>
+        <nav className="mt-8 flex-1 space-y-5 overflow-y-auto">
+          {adminNavGroups.map((group, gi) => (
+            <div key={group.label ?? `group-${gi}`} className="space-y-1">
+              {group.label ? (
+                <p className="hidden px-3 pb-1 text-[11px] uppercase tracking-wide text-admin-muted lg:block">
+                  {group.label}
+                </p>
+              ) : null}
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const active = isActiveNav(item.href, pathname);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={item.label}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm transition lg:justify-start",
+                      "justify-center lg:justify-start",
+                      active
+                        ? "bg-admin-ink text-admin-surface"
+                        : "text-admin-muted hover:bg-admin-raise hover:text-admin-ink",
+                    )}
+                  >
+                    <Icon className="size-4 shrink-0" aria-hidden="true" />
+                    <span className="hidden lg:inline">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+        <form action={logoutAdmin} className="pt-2">
+          <button className="flex min-h-10 w-full items-center justify-center gap-3 rounded-lg px-3 text-sm text-admin-muted transition hover:bg-admin-raise hover:text-admin-ink lg:justify-start">
+            <LogOut className="size-4 shrink-0" aria-hidden="true" />
+            <span className="hidden lg:inline">Sign out</span>
+          </button>
+        </form>
+      </aside>
+
+      <header className="sticky top-0 z-10 border-b border-admin-line bg-admin-surface/90 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-4">
+          <Link href="/" className="text-sm font-medium text-admin-muted hover:text-admin-ink">
+            Public site
+          </Link>
+          <div className="flex items-center gap-3 text-xs text-admin-muted">
+            <kbd className="hidden rounded border border-admin-line px-1.5 py-0.5 font-mono sm:inline">
+              {"⌘"}K
+            </kbd>
+            <span className="hidden sm:inline">{adminEmail}</span>
+            <form action={logoutAdmin} className="md:hidden">
+              <button className="inline-flex min-h-9 items-center gap-2 rounded-md border border-admin-line px-3 text-xs text-admin-muted">
+                <LogOut className="size-3.5" aria-hidden="true" />
+                Sign out
+              </button>
+            </form>
           </div>
         </div>
-      ))}
-    </nav>
-  );
-}
-
-/** Flat horizontal nav (mobile header), same order as the sidebar. */
-export function AdminMobileNav() {
-  const isActive = useIsActive();
-  const items = navGroups.flatMap((g) => g.items);
-  return (
-    <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:hidden" aria-label="Admin sections">
-      {items.map((item) => {
-        const Icon = item.icon;
-        const active = isActive(item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-current={active ? "page" : undefined}
-            className={
-              "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-md border px-3 text-xs transition " +
-              (active
-                ? "border-admin-ink/25 bg-admin-ink/8 font-medium text-admin-ink"
-                : "border-admin-ink/10 text-admin-ink/68")
-            }
-          >
-            <Icon className="size-3.5" aria-hidden="true" />
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
+        <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 md:hidden">
+          {adminNavGroups.flatMap((g) => g.items).map((item) => {
+            const Icon = item.icon;
+            const active = isActiveNav(item.href, pathname);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-md border px-3 text-xs",
+                  active
+                    ? "border-admin-ink bg-admin-ink text-admin-surface"
+                    : "border-admin-line text-admin-muted",
+                )}
+              >
+                <Icon className="size-3.5" aria-hidden="true" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </header>
+    </>
   );
 }

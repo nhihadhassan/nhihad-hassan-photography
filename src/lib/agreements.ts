@@ -2,6 +2,7 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import { getBookingAgreement } from "@/lib/booking-agreement";
+import { advanceBookingStage } from "@/lib/bookings";
 import { sendSignedAgreementEmails } from "@/lib/notify-email";
 import { brandConfig } from "@/lib/config";
 import { siteUrl } from "@/lib/seo";
@@ -247,6 +248,22 @@ export async function signAgreement(input: {
     .from("agreement_requests")
     .update({ signed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
     .eq("id", request.id);
+
+  // Auto-advance the linked booking. A signed contract moves the job to
+  // Booked when a deposit is already on file, otherwise to Contract out.
+  const { data: linkedBooking } = await admin
+    .from("bookings")
+    .select("id")
+    .eq("agreement_request_id", request.id)
+    .maybeSingle();
+  if (linkedBooking?.id) {
+    const bookingId = linkedBooking.id as string;
+    const { count } = await admin
+      .from("payments")
+      .select("id", { count: "exact", head: true })
+      .eq("booking_id", bookingId);
+    await advanceBookingStage(bookingId, (count ?? 0) > 0 ? "booked" : "contract_out");
+  }
 
   // Email a copy to the client and a notification to the photographer.
   const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;

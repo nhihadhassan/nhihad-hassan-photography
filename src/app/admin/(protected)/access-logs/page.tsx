@@ -67,22 +67,22 @@ export default async function AccessLogsPage({ searchParams }: PageProps) {
           <p className="text-sm font-medium text-admin-accent">Security</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">Access logs</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
-            Every password unlock attempt is recorded — successes, wrong passwords, and rate-limited
+            Every password unlock attempt is recorded: successes, wrong passwords, and rate-limited
             requests. IPs are stored as one-way hashes only; passwords are never logged.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-3 text-sm">
           <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-3">
             <span className="block text-xl font-semibold">{stats.total}</span>
-            <span className="text-xs text-admin-ink/55">Attempts · 24h</span>
+            <span className="text-xs text-admin-ink/65">Attempts · 24h</span>
           </div>
           <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-3">
             <span className="block text-xl font-semibold text-admin-success">{stats.success}</span>
-            <span className="text-xs text-admin-ink/55">Unlocked</span>
+            <span className="text-xs text-admin-ink/65">Unlocked</span>
           </div>
           <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-3">
             <span className="block text-xl font-semibold text-admin-danger">{stats.failure}</span>
-            <span className="text-xs text-admin-ink/55">Failed</span>
+            <span className="text-xs text-admin-ink/65">Failed</span>
           </div>
         </div>
       </div>
@@ -128,7 +128,7 @@ export default async function AccessLogsPage({ searchParams }: PageProps) {
         <div className="mt-8">
           <EmptyState
             title="No access attempts yet."
-            description="When a visitor enters a gallery password — successfully or not — it shows up here."
+            description="When a visitor enters a gallery password, right or wrong, it shows up here."
             action={
               <Link
                 href="/admin/galleries"
@@ -142,7 +142,7 @@ export default async function AccessLogsPage({ searchParams }: PageProps) {
       ) : (
         <div className="mt-6 overflow-hidden rounded-md border border-admin-ink/10 bg-admin-surface">
           <table className="w-full text-sm">
-            <thead className="bg-admin-bg text-xs uppercase tracking-wide text-admin-ink/55">
+            <thead className="bg-admin-bg text-xs uppercase tracking-wide text-admin-ink/65">
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Time</th>
                 <th className="px-4 py-3 text-left font-medium">Gallery</th>
@@ -166,9 +166,9 @@ export default async function AccessLogsPage({ searchParams }: PageProps) {
                         {log.gallery_title ?? log.gallery_slug}
                       </Link>
                     ) : (
-                      <span className="text-admin-ink/45">(deleted gallery)</span>
+                      <span className="text-admin-ink/65">(deleted gallery)</span>
                     )}
-                    <span className="ml-2 text-xs text-admin-ink/45">
+                    <span className="ml-2 text-xs text-admin-ink/65">
                       {log.gallery_slug ? `/galleries/${log.gallery_slug}` : ""}
                     </span>
                   </td>
@@ -183,11 +183,11 @@ export default async function AccessLogsPage({ searchParams }: PageProps) {
                       {REASON_LABEL[log.reason ?? ""] ?? log.reason ?? "Unknown"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-admin-ink/55">
+                  <td className="px-4 py-3 font-mono text-xs text-admin-ink/65">
                     {log.ip_hash ?? "—"}
                   </td>
                   <td
-                    className="max-w-xs px-4 py-3 text-xs text-admin-ink/55"
+                    className="max-w-xs px-4 py-3 text-xs text-admin-ink/65"
                     title={log.user_agent ?? undefined}
                   >
                     {summariseUserAgent(log.user_agent)}
@@ -197,7 +197,7 @@ export default async function AccessLogsPage({ searchParams }: PageProps) {
             </tbody>
           </table>
           {logs.length === 200 ? (
-            <div className="border-t border-admin-ink/10 px-4 py-3 text-xs text-admin-ink/55">
+            <div className="border-t border-admin-ink/10 px-4 py-3 text-xs text-admin-ink/65">
               Showing the most recent 200 attempts.
             </div>
           ) : null}

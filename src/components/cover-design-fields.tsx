@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { getGalleryCoverFont, GALLERY_COVER_FONTS } from "@/lib/gallery-cover-fonts";
 
 type CoverDesignFieldsProps = {
   coverImageUrl?: string | null;
   initialFocalX?: number;
   initialFocalY?: number;
   initialLayout?: string;
+  initialFont?: string;
 };
 
 const LAYOUTS = [
@@ -54,10 +56,12 @@ export function CoverDesignFields({
   initialFocalX = 50,
   initialFocalY = 50,
   initialLayout = "center",
+  initialFont = "montserrat",
 }: CoverDesignFieldsProps) {
   const [focalX, setFocalX] = useState(initialFocalX);
   const [focalY, setFocalY] = useState(initialFocalY);
   const [layout, setLayout] = useState(initialLayout);
+  const [font, setFont] = useState(() => getGalleryCoverFont(initialFont).value);
 
   const onPick = (e: React.MouseEvent<HTMLImageElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -72,6 +76,7 @@ export function CoverDesignFields({
       <input type="hidden" name="cover_focal_x" value={focalX} />
       <input type="hidden" name="cover_focal_y" value={focalY} />
       <input type="hidden" name="cover_layout" value={layout} />
+      <input type="hidden" name="cover_font" value={font} />
 
       {/* Layout template */}
       <div className="grid gap-2">
@@ -100,6 +105,52 @@ export function CoverDesignFields({
         </div>
       </div>
 
+      {/* Cover title font */}
+      <div className="grid gap-2">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <span className="text-sm font-medium">Cover title font</span>
+          <span className="text-xs text-admin-ink/60">
+            {getGalleryCoverFont(font).label}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          {GALLERY_COVER_FONTS.map((option) => {
+            const active = font === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setFont(option.value)}
+                aria-pressed={active}
+                aria-label={`Use ${option.label} for the cover title`}
+                className={
+                  "min-h-20 rounded-md border px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-copper/40 " +
+                  (active
+                    ? "border-admin-accent bg-admin-copper/10 text-admin-ink"
+                    : "border-admin-ink/12 bg-white/35 text-admin-ink/70 hover:border-admin-ink/30 hover:bg-white/70")
+                }
+              >
+                <span
+                  className="block truncate text-lg leading-none"
+                  style={{
+                    fontFamily: `var(${option.cssVariable}, ${option.familyFallback})`,
+                    fontWeight: option.weight,
+                  }}
+                >
+                  Gallery Title
+                </span>
+                <span className="mt-2 block truncate text-[0.65rem] font-medium tracking-wide text-admin-ink/60">
+                  {option.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <span className="text-xs text-admin-ink/65">
+          Previewed in title case. The public cover keeps the gallery title exactly as entered.
+        </span>
+      </div>
+
       {/* Focal point */}
       <div className="grid gap-2">
         <span className="text-sm font-medium">Cover focal point</span>
@@ -125,13 +176,13 @@ export function CoverDesignFields({
                 />
               </div>
             </div>
-            <span className="text-xs text-admin-ink/45">
+            <span className="text-xs text-admin-ink/65">
               Click the spot to keep in view (e.g. a face). The cover image shifts to favour it.
               Current: {focalX}% / {focalY}%.
             </span>
           </>
         ) : (
-          <p className="rounded-md border border-dashed border-admin-ink/15 bg-white/40 px-4 py-6 text-center text-xs text-admin-ink/50">
+          <p className="rounded-md border border-dashed border-admin-ink/15 bg-white/40 px-4 py-6 text-center text-xs text-admin-ink/65">
             Set a cover photo first (use Cover in the Photos tab, or a cover image URL above), then
             you can position the focal point here.
           </p>

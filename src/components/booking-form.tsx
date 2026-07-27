@@ -17,7 +17,7 @@ import { formatCompactDate } from "@/lib/utils";
 const initialState: BookingActionState = { status: "idle", message: "" };
 
 const inputClass =
-  "min-h-11 w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/35 focus:border-admin-copper";
+  "min-h-11 w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus:border-admin-copper";
 const labelClass = "grid gap-1.5 text-sm font-medium";
 
 const SESSION_OPTIONS = [
@@ -255,7 +255,7 @@ export function BookingForm({
 
         {/* Duration */}
         <label className={labelClass}>
-          Duration <span className="font-normal text-admin-ink/40">(sets the end time)</span>
+          Duration <span className="font-normal text-admin-ink/65">(sets the end time)</span>
           <select className={inputClass} value={duration} onChange={(e) => setDuration(e.target.value)}>
             {durationOptions.map((d) => (
               <option key={d.value || "none"} value={d.value}>
@@ -269,7 +269,7 @@ export function BookingForm({
       {startPreview ? (
         <p className="-mt-2 text-sm text-admin-ink/60">
           {startPreview}
-          {endPreview ? <span className="text-admin-ink/45"> to {endPreview}</span> : null}
+          {endPreview ? <span className="text-admin-ink/65"> to {endPreview}</span> : null}
         </p>
       ) : null}
 
@@ -300,7 +300,7 @@ export function BookingForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className={labelClass}>
-          Linked gallery <span className="font-normal text-admin-ink/40">(for deposit + gallery link)</span>
+          Linked gallery <span className="font-normal text-admin-ink/65">(for deposit + gallery link)</span>
           <select className={inputClass} name="gallery_id" defaultValue={v(booking?.gallery_id)}>
             <option value="">No gallery</option>
             {galleries.map((g) => (
@@ -311,7 +311,7 @@ export function BookingForm({
           </select>
         </label>
         <label className={labelClass}>
-          Linked signing request <span className="font-normal text-admin-ink/40">(contract status)</span>
+          Linked signing request <span className="font-normal text-admin-ink/65">(contract status)</span>
           <select className={inputClass} name="agreement_request_id" defaultValue={v(booking?.agreement_request_id)}>
             <option value="">None</option>
             {agreementRequests.map((r) => (
@@ -324,12 +324,12 @@ export function BookingForm({
       </div>
 
       <label className={labelClass}>
-        Note to client <span className="font-normal text-admin-ink/40">(shown on their booking page)</span>
+        Note to client <span className="font-normal text-admin-ink/65">(shown on their booking page)</span>
         <textarea className={`${inputClass} min-h-24 py-2`} name="notes" defaultValue={v(booking?.notes)} placeholder="Looking forward to your shoot!" />
       </label>
 
       <label className={labelClass}>
-        Internal note <span className="font-normal text-admin-ink/40">(admin only)</span>
+        Internal note <span className="font-normal text-admin-ink/65">(admin only)</span>
         <input className={inputClass} name="internal_note" defaultValue={v(booking?.internal_note)} placeholder="Paid deposit May 20" />
       </label>
 
@@ -340,7 +340,7 @@ export function BookingForm({
         >
           {mode === "create" ? "Create booking" : "Save booking"}
         </button>
-        <Link href="/admin/bookings" className="text-sm text-admin-ink/55 hover:text-admin-ink">
+        <Link href="/admin/bookings" className="text-sm text-admin-ink/65 hover:text-admin-ink">
           Back to bookings
         </Link>
         {state.message ? (
@@ -352,7 +352,7 @@ export function BookingForm({
 
       {state.hubUrl ? (
         <div className="rounded-md border border-admin-ink/10 bg-white/60 p-3">
-          <p className="font-mono text-xs text-admin-ink/50">{state.hubUrl}</p>
+          <p className="font-mono text-xs text-admin-ink/65">{state.hubUrl}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"

@@ -7,6 +7,7 @@ import {
 } from "@/app/admin/(protected)/galleries/actions";
 import { galleryPresets } from "@/data/gallery-presets";
 import { Button } from "@/components/ui/button";
+import { GALLERY_COVER_FONTS } from "@/lib/gallery-cover-fonts";
 
 const initialState: GalleryFormState = { status: "idle", message: "" };
 
@@ -51,6 +52,24 @@ export function NewCollectionForm() {
           <input className={inputClass} name="event_date" type="date" />
         </label>
       </div>
+
+      <label className="grid gap-1.5 sm:max-w-[50%]">
+        <span className="text-sm font-medium text-admin-ink">Cover title font</span>
+        <select
+          className={inputClass}
+          name="cover_font"
+          defaultValue="montserrat"
+        >
+          {GALLERY_COVER_FONTS.map((font) => (
+            <option key={font.value} value={font.value}>
+              {font.label}
+            </option>
+          ))}
+        </select>
+        <span className="text-xs text-admin-ink/65">
+          You can preview more title-case samples in the Cover section after creating the gallery.
+        </span>
+      </label>
 
       <div className="grid gap-2">
         <span className="text-sm font-medium text-admin-ink">Preset</span>

@@ -20,7 +20,7 @@ export default async function AdminInquiriesPage() {
       </div>
 
       <div className="mt-6 rounded-md border border-admin-accent/30 bg-admin-copper/8 px-5 py-4 text-sm leading-6 text-admin-ink/75">
-        <p className="font-medium text-admin-ink">Payment workflow — Interac e-Transfer</p>
+        <p className="font-medium text-admin-ink">Payment workflow: Interac e-Transfer</p>
         <ol className="mt-2 list-decimal pl-5 space-y-1">
           <li>Review inquiry and reply to confirm the booking date.</li>
           <li>
@@ -30,7 +30,7 @@ export default async function AdminInquiriesPage() {
           <li>Once the deposit is received, update the gallery&apos;s <strong>Deposit status</strong> field.</li>
           <li>After the event, request the remaining balance via e-Transfer and mark it <strong>Paid in full</strong> when received.</li>
         </ol>
-        <p className="mt-3 text-admin-ink/55 text-xs">
+        <p className="mt-3 text-admin-ink/65 text-xs">
           No payment is collected through this website. Deposit status is tracked per gallery under{" "}
           <strong>Admin → Galleries → [gallery] → Payment</strong>.
         </p>
@@ -42,34 +42,34 @@ export default async function AdminInquiriesPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold tracking-tight">{inquiry.name}</h2>
-                  <p className="mt-1 text-sm text-admin-ink/58">
+                  <p className="mt-1 text-sm text-admin-ink/65">
                     <a href={`mailto:${inquiry.email}`} className="hover:text-admin-accent">
                       {inquiry.email}
                     </a>
                     {inquiry.phone ? ` · ${inquiry.phone}` : ""}
                   </p>
                 </div>
-                <p className="text-sm text-admin-ink/48">{formatCompactDate(inquiry.created_at)}</p>
+                <p className="text-sm text-admin-ink/65">{formatCompactDate(inquiry.created_at)}</p>
               </div>
               <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-5">
                 <div>
-                  <dt className="text-admin-ink/45">Event type</dt>
+                  <dt className="text-admin-ink/65">Event type</dt>
                   <dd className="mt-1">{inquiry.event_type ?? "Not provided"}</dd>
                 </div>
                 <div>
-                  <dt className="text-admin-ink/45">Event date</dt>
+                  <dt className="text-admin-ink/65">Event date</dt>
                   <dd className="mt-1">{formatCompactDate(inquiry.event_date)}</dd>
                 </div>
                 <div>
-                  <dt className="text-admin-ink/45">Location</dt>
+                  <dt className="text-admin-ink/65">Location</dt>
                   <dd className="mt-1">{inquiry.location ?? "Not provided"}</dd>
                 </div>
                 <div>
-                  <dt className="text-admin-ink/45">Budget</dt>
+                  <dt className="text-admin-ink/65">Budget</dt>
                   <dd className="mt-1">{inquiry.budget ?? "Not provided"}</dd>
                 </div>
                 <div>
-                  <dt className="text-admin-ink/45">Referral</dt>
+                  <dt className="text-admin-ink/65">Referral</dt>
                   <dd className="mt-1">{inquiry.referral_source ?? "Not provided"}</dd>
                 </div>
               </dl>

@@ -28,7 +28,7 @@ export function ClientsTable({ clients }: { clients: ClientSummary[] }) {
   return (
     <div>
       <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-admin-ink/40" aria-hidden="true" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-admin-ink/65" aria-hidden="true" />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -55,7 +55,7 @@ export function ClientsTable({ clients }: { clients: ClientSummary[] }) {
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-0.5 text-sm text-admin-ink/55">
+                  <p className="mt-0.5 text-sm text-admin-ink/65">
                     {c.email ?? "No email on file"}
                     {c.lastActivity ? ` · Last activity ${formatCompactDate(c.lastActivity)}` : ""}
                   </p>
@@ -75,7 +75,7 @@ export function ClientsTable({ clients }: { clients: ClientSummary[] }) {
           </div>
         </div>
       ) : (
-        <p className="mt-6 rounded-md border border-dashed border-admin-ink/15 px-4 py-10 text-center text-sm text-admin-ink/50">
+        <p className="mt-6 rounded-md border border-dashed border-admin-ink/15 px-4 py-10 text-center text-sm text-admin-ink/65">
           {clients.length ? "No clients match your search." : "No clients yet. They appear here as inquiries, bookings, and galleries come in."}
         </p>
       )}

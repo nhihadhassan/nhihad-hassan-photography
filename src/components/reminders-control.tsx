@@ -46,7 +46,7 @@ export function RemindersControl({ enabled: initialEnabled }: { enabled: boolean
       <div className="flex items-center justify-between gap-4 rounded-md border border-admin-ink/10 bg-admin-surface p-5">
         <div>
           <p className="font-medium text-admin-ink">Automated reminders</p>
-          <p className="mt-0.5 text-sm text-admin-ink/55">
+          <p className="mt-0.5 text-sm text-admin-ink/65">
             When on, the daily job sends the reminders below. When off, nothing is sent.
           </p>
         </div>
@@ -67,7 +67,7 @@ export function RemindersControl({ enabled: initialEnabled }: { enabled: boolean
 
       <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-5">
         <p className="text-sm font-medium text-admin-ink">Send due reminders now</p>
-        <p className="mt-0.5 text-sm text-admin-ink/55">
+        <p className="mt-0.5 text-sm text-admin-ink/65">
           Runs the same job manually, so you can test it without waiting for the daily schedule.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">

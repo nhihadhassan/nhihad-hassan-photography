@@ -31,7 +31,7 @@ function clone(sections: AgreementSection[]): Section[] {
 }
 
 function iconBtn(extra = "") {
-  return `rounded p-1.5 text-admin-ink/55 transition hover:bg-admin-ink/6 disabled:opacity-30 ${extra}`;
+  return `rounded p-1.5 text-admin-ink/65 transition hover:bg-admin-ink/6 disabled:opacity-30 ${extra}`;
 }
 
 export function AgreementContentEditor({ content }: { content: BookingAgreementContent }) {
@@ -120,7 +120,7 @@ export function AgreementContentEditor({ content }: { content: BookingAgreementC
     <div className="space-y-6">
       {/* Sticky action bar */}
       <div className="sticky top-[57px] z-10 -mx-4 flex flex-wrap items-center justify-between gap-3 border-b border-admin-ink/10 bg-admin-bg/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-        <p className="text-sm text-admin-ink/55">
+        <p className="text-sm text-admin-ink/65">
           Live at{" "}
           <Link
             href="/booking-agreement"
@@ -173,7 +173,7 @@ export function AgreementContentEditor({ content }: { content: BookingAgreementC
         {sections.map((section, si) => (
           <div key={si} className="rounded-lg border border-admin-ink/12 bg-admin-surface p-4 sm:p-5">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium uppercase tracking-wide text-admin-ink/40">
+              <span className="text-xs font-medium uppercase tracking-wide text-admin-ink/65">
                 Section {si + 1}
               </span>
               <div className="ml-auto flex items-center gap-1">

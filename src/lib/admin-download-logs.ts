@@ -1,5 +1,6 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { DownloadScope } from "@/lib/download-log";
 
 export type DownloadLogRow = {
   id: string;
@@ -9,7 +10,7 @@ export type DownloadLogRow = {
   accessed_at: string;
   success: boolean | null;
   reason: string | null;
-  scope: string;
+  scope: DownloadScope;
   photo_count: number;
   ip_hash: string | null;
   user_agent: string | null;
@@ -21,7 +22,7 @@ type RawJoinRow = {
   accessed_at: string;
   success: boolean | null;
   reason: string | null;
-  scope: string;
+  scope: DownloadScope;
   photo_count: number;
   ip_hash: string | null;
   user_agent: string | null;

@@ -343,7 +343,7 @@ export function JournalEditor({ record, coverUrl: initialCoverUrl, portfolioPhot
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Post title"
-            className="w-full bg-transparent font-serif text-3xl font-medium tracking-tight text-admin-ink outline-none placeholder:text-admin-ink/30"
+            className="w-full bg-transparent font-serif text-3xl font-medium tracking-tight text-admin-ink outline-none placeholder:text-admin-ink/60"
           />
 
           {/* Settings */}
@@ -357,7 +357,7 @@ export function JournalEditor({ record, coverUrl: initialCoverUrl, portfolioPhot
                 <Settings2 className="size-4 text-admin-accent" aria-hidden="true" />
                 Post settings
               </span>
-              <span className="text-admin-ink/45">{showSettings ? "Hide" : "Show"}</span>
+              <span className="text-admin-ink/65">{showSettings ? "Hide" : "Show"}</span>
             </button>
             {showSettings ? (
               <div className="grid gap-4 border-t border-admin-ink/10 p-4 sm:grid-cols-2">
@@ -428,7 +428,7 @@ export function JournalEditor({ record, coverUrl: initialCoverUrl, portfolioPhot
                       aria-pressed={accentHex === ""}
                       className={
                         "min-h-7 rounded-full border px-3 text-xs transition " +
-                        (accentHex === "" ? "border-admin-ink text-admin-ink" : "border-admin-ink/20 text-admin-ink/55")
+                        (accentHex === "" ? "border-admin-ink text-admin-ink" : "border-admin-ink/20 text-admin-ink/65")
                       }
                     >
                       Default
@@ -522,7 +522,7 @@ export function JournalEditor({ record, coverUrl: initialCoverUrl, portfolioPhot
               />
             ))}
             {blocks.length === 0 ? (
-              <p className="rounded-md border border-dashed border-admin-ink/15 px-4 py-8 text-center text-sm text-admin-ink/45">
+              <p className="rounded-md border border-dashed border-admin-ink/15 px-4 py-8 text-center text-sm text-admin-ink/65">
                 Your post is empty. Add a block below to start writing.
               </p>
             ) : null}
@@ -530,7 +530,7 @@ export function JournalEditor({ record, coverUrl: initialCoverUrl, portfolioPhot
 
           {/* Add block */}
           <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-3">
-            <p className="mb-2 px-1 text-xs font-medium uppercase tracking-wide text-admin-ink/45">Add block</p>
+            <p className="mb-2 px-1 text-xs font-medium uppercase tracking-wide text-admin-ink/65">Add block</p>
             <div className="flex flex-wrap gap-2">
               {ADD_BUTTONS.map((b) => {
                 const Icon = b.icon;
@@ -552,7 +552,7 @@ export function JournalEditor({ record, coverUrl: initialCoverUrl, portfolioPhot
 
         {/* ── Live preview ──────────────────────────────────────────── */}
         <div className="lg:sticky lg:top-[120px] lg:self-start">
-          <p className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-admin-ink/45">
+          <p className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-admin-ink/65">
             <Plus className="size-3.5 rotate-45" aria-hidden="true" />
             Live preview
           </p>
@@ -601,7 +601,7 @@ function PortfolioPicker({
       <div className="flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-admin-ink/10 bg-admin-bg shadow-xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-admin-ink/10 px-5 py-3">
           <h2 className="text-sm font-semibold tracking-tight text-admin-ink">Choose from portfolio</h2>
-          <button type="button" onClick={onClose} className="rounded p-1 text-admin-ink/55 hover:bg-admin-ink/6" aria-label="Close">
+          <button type="button" onClick={onClose} className="rounded p-1 text-admin-ink/65 hover:bg-admin-ink/6" aria-label="Close">
             <X className="size-4" aria-hidden="true" />
           </button>
         </div>
@@ -658,7 +658,7 @@ function BlockCard({
   return (
     <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-admin-ink/45">
+        <span className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-admin-ink/65">
           <GripVertical className="size-3.5" aria-hidden="true" />
           {BLOCK_LABELS[block.type]}
         </span>
@@ -667,7 +667,7 @@ function BlockCard({
             type="button"
             onClick={() => onMove(block.id, "up")}
             disabled={first}
-            className="rounded p-1 text-admin-ink/55 hover:bg-admin-ink/6 disabled:opacity-30"
+            className="rounded p-1 text-admin-ink/65 hover:bg-admin-ink/6 disabled:opacity-30"
             aria-label="Move up"
           >
             <ArrowUp className="size-4" aria-hidden="true" />
@@ -676,7 +676,7 @@ function BlockCard({
             type="button"
             onClick={() => onMove(block.id, "down")}
             disabled={last}
-            className="rounded p-1 text-admin-ink/55 hover:bg-admin-ink/6 disabled:opacity-30"
+            className="rounded p-1 text-admin-ink/65 hover:bg-admin-ink/6 disabled:opacity-30"
             aria-label="Move down"
           >
             <ArrowDown className="size-4" aria-hidden="true" />
@@ -879,7 +879,7 @@ function ImageSlot({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt="" className="size-full object-cover" />
         ) : (
-          <span className="flex size-full flex-col items-center justify-center gap-1 text-admin-ink/40">
+          <span className="flex size-full flex-col items-center justify-center gap-1 text-admin-ink/65">
             {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Upload className="size-4" aria-hidden="true" />}
             <span className="text-[10px]">{optional ? "Optional" : "Upload"}</span>
           </span>

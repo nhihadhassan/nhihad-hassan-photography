@@ -116,13 +116,17 @@ export function GalleryShareEmail({
       <div className="grid gap-4">
         <label className="grid gap-1.5">
           <span className="text-sm font-medium text-admin-ink">To</span>
-          <input
+          <textarea
             className={inputClass}
-            type="email"
+            rows={2}
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
-            placeholder="client@example.com"
+            placeholder="client@example.com, partner@example.com"
           />
+          <span className="text-xs leading-5 text-admin-ink/65">
+            Add multiple addresses separated by commas, semicolons, or new lines. Each recipient
+            receives a private email, and duplicates are removed automatically.
+          </span>
         </label>
 
         <label className="grid gap-1.5">

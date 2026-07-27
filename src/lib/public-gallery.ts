@@ -38,6 +38,7 @@ export type PublicGallery = {
   coverFocalX: number;
   coverFocalY: number;
   coverLayout: "center" | "left" | "bottom" | "split";
+  coverFont: string;
   isPublic: boolean;
   downloadEnabled: boolean;
   downloadQuality: "web" | "full";
@@ -167,6 +168,7 @@ export async function getPublishedGalleryBySlug(slug: string): Promise<PublicGal
           coverFocalX: 50,
           coverFocalY: 50,
           coverLayout: "center",
+          coverFont: "montserrat",
           isPublic: true,
           downloadEnabled: false,
           downloadQuality: "web",
@@ -203,6 +205,7 @@ export async function getPublishedGalleryBySlug(slug: string): Promise<PublicGal
     cover_focal_x: number | null;
     cover_focal_y: number | null;
     cover_layout: string | null;
+    cover_font: string | null;
     is_public: boolean;
     download_enabled: boolean;
     download_quality: "web" | "full";
@@ -272,6 +275,7 @@ export async function getPublishedGalleryBySlug(slug: string): Promise<PublicGal
     coverLayout: (["center", "left", "bottom", "split"].includes(gallery.cover_layout ?? "")
       ? gallery.cover_layout
       : "center") as PublicGallery["coverLayout"],
+    coverFont: gallery.cover_font ?? "montserrat",
     isPublic: gallery.is_public,
     downloadEnabled: gallery.download_enabled,
     downloadQuality: gallery.download_quality,

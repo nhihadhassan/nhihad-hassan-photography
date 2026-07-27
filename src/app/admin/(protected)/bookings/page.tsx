@@ -28,7 +28,7 @@ function Chip({ children, tone }: { children: string; tone: "ok" | "muted" | "in
       ? "border-admin-success/30 bg-admin-success/10 text-admin-success"
       : tone === "info"
         ? "border-admin-info/30 bg-admin-info/10 text-admin-info"
-        : "border-admin-ink/15 text-admin-ink/50";
+        : "border-admin-ink/15 text-admin-ink/65";
   return <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs ${cls}`}>{children}</span>;
 }
 
@@ -81,7 +81,7 @@ export default async function AdminBookingsPage() {
                       {b.agreement?.signed_at ? <Chip tone="ok">Signed</Chip> : null}
                       {b.gallery?.is_published ? <Chip tone="info">Gallery live</Chip> : null}
                     </div>
-                    <p className="mt-1 text-sm text-admin-ink/55">
+                    <p className="mt-1 text-sm text-admin-ink/65">
                       {b.shoot_type ? `${b.shoot_type} · ` : ""}
                       {formatStart(b.start_at)}
                       {b.location ? ` · ${b.location}` : ""}
@@ -100,7 +100,7 @@ export default async function AdminBookingsPage() {
           })}
         </div>
       ) : (
-        <p className="mt-8 rounded-md border border-dashed border-admin-ink/15 px-4 py-10 text-center text-sm text-admin-ink/50">
+        <p className="mt-8 rounded-md border border-dashed border-admin-ink/15 px-4 py-10 text-center text-sm text-admin-ink/65">
           No bookings yet. Click “New booking” to create one.
         </p>
       )}

@@ -15,7 +15,7 @@ import { formatCompactDate } from "@/lib/utils";
 const initial: QuestionnaireActionState = { status: "idle", message: "" };
 
 const inputClass =
-  "min-h-11 rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/35 focus:border-admin-copper";
+  "min-h-11 rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus:border-admin-copper";
 
 type BookingOption = { id: string; label: string };
 
@@ -46,18 +46,18 @@ function CreateForm({ bookings }: { bookings: BookingOption[] }) {
   return (
     <form action={action} className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
       <h2 className="text-base font-semibold tracking-tight">Create a questionnaire link</h2>
-      <p className="mt-1 text-sm leading-6 text-admin-ink/55">Send a client the link before their shoot. They can fill it in over time.</p>
+      <p className="mt-1 text-sm leading-6 text-admin-ink/65">Send a client the link before their shoot. They can fill it in over time.</p>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <label className="grid gap-1.5 text-sm font-medium">
           Client name
           <input className={inputClass} name="client_name" placeholder="Jane Doe" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
-          Client email <span className="font-normal text-admin-ink/40">(optional)</span>
+          Client email <span className="font-normal text-admin-ink/65">(optional)</span>
           <input className={inputClass} type="email" name="client_email" placeholder="client@example.com" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
-          Linked booking <span className="font-normal text-admin-ink/40">(optional)</span>
+          Linked booking <span className="font-normal text-admin-ink/65">(optional)</span>
           <select className={inputClass} name="booking_id" defaultValue="">
             <option value="">No booking</option>
             {bookings.map((b) => (
@@ -80,7 +80,7 @@ function CreateForm({ bookings }: { bookings: BookingOption[] }) {
       </div>
       {state.url ? (
         <div className="mt-4 rounded-md border border-admin-ink/10 bg-white/60 p-3">
-          <p className="font-mono text-xs text-admin-ink/50">{state.url}</p>
+          <p className="font-mono text-xs text-admin-ink/65">{state.url}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <CopyLink value={state.url} />
             <a href={state.url} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-ink/12 px-3 text-xs font-medium text-admin-ink/70 hover:bg-admin-ink/6">
@@ -98,7 +98,7 @@ function statusOf(q: Questionnaire): { label: string; cls: string } {
   if (q.revoked_at) return { label: "Revoked", cls: "bg-admin-danger/10 text-admin-danger" };
   if (q.submitted_at) return { label: "Submitted", cls: "bg-admin-success/10 text-admin-success" };
   if (q.viewed_at) return { label: "Viewed", cls: "bg-admin-info/10 text-admin-info" };
-  return { label: "Sent", cls: "bg-admin-ink/8 text-admin-ink/55" };
+  return { label: "Sent", cls: "bg-admin-ink/8 text-admin-ink/65" };
 }
 
 function Row({ q, siteOrigin }: { q: Questionnaire; siteOrigin: string }) {
@@ -117,7 +117,7 @@ function Row({ q, siteOrigin }: { q: Questionnaire; siteOrigin: string }) {
             <p className="font-medium">{q.client_name ?? q.gallery_title ?? "Questionnaire"}</p>
             <span className={`rounded-full px-2 py-0.5 text-xs ${status.cls}`}>{status.label}</span>
           </div>
-          <p className="mt-1 text-sm text-admin-ink/55">Created {formatCompactDate(q.created_at)}{q.submitted_at ? ` · Submitted ${formatCompactDate(q.submitted_at)}` : ""}</p>
+          <p className="mt-1 text-sm text-admin-ink/65">Created {formatCompactDate(q.created_at)}{q.submitted_at ? ` · Submitted ${formatCompactDate(q.submitted_at)}` : ""}</p>
           <p className="mt-1 font-mono text-xs text-admin-ink/35">{url}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -149,7 +149,7 @@ function Row({ q, siteOrigin }: { q: Questionnaire; siteOrigin: string }) {
         <dl className="mt-4 space-y-3 border-t border-admin-ink/10 pt-4">
           {QUESTIONNAIRE_QUESTIONS.map((question) => (
             <div key={question.id}>
-              <dt className="text-xs font-medium uppercase tracking-wide text-admin-ink/45">{question.label}</dt>
+              <dt className="text-xs font-medium uppercase tracking-wide text-admin-ink/65">{question.label}</dt>
               <dd className="mt-0.5 whitespace-pre-line text-sm text-admin-ink/80">{q.responses[question.id] || <span className="text-admin-ink/35">Not answered</span>}</dd>
             </div>
           ))}
@@ -177,7 +177,7 @@ export function QuestionnaireAdmin({
           {questionnaires.length ? (
             questionnaires.map((q) => <Row key={q.id} q={q} siteOrigin={siteOrigin} />)
           ) : (
-            <p className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 text-sm text-admin-ink/55">No questionnaires yet.</p>
+            <p className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 text-sm text-admin-ink/65">No questionnaires yet.</p>
           )}
         </div>
       </section>

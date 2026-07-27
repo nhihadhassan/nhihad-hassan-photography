@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 function SummaryCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className={"rounded-md border p-5 " + (accent ? "border-admin-accent/40 bg-admin-copper/10" : "border-admin-ink/10 bg-admin-surface")}>
-      <p className="text-sm text-admin-ink/58">{label}</p>
+      <p className="text-sm text-admin-ink/65">{label}</p>
       <p className="mt-3 text-2xl font-semibold tracking-tight">{value}</p>
     </div>
   );
@@ -61,14 +61,14 @@ export default async function AdminFinancesPage() {
       {outstanding.length ? (
         <section className="mt-8 rounded-md border border-admin-ink/10 bg-admin-surface p-5">
           <h2 className="text-lg font-semibold tracking-tight">Outstanding balances</h2>
-          <p className="mt-1 text-sm text-admin-ink/55">
+          <p className="mt-1 text-sm text-admin-ink/65">
             Booking total minus recorded payments. Link payments to a booking to keep this accurate.
           </p>
           <div className="mt-4 divide-y divide-admin-ink/10">
             {outstanding.map((o) => (
               <Link key={o.bookingId} href={`/admin/bookings/${o.bookingId}`} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm transition hover:text-admin-accent">
                 <span className="font-medium">{o.clientName ?? o.shootType ?? "Booking"}</span>
-                <span className="text-admin-ink/55">
+                <span className="text-admin-ink/65">
                   {formatMoney(o.paid)} paid of {formatMoney(o.total)} ·{" "}
                   <span className="font-medium text-admin-accent">{formatMoney(o.outstanding)} due</span>
                 </span>

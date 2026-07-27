@@ -16,7 +16,7 @@ export type InviteActionResult = {
 
 /** Compose overrides from the Share screen. All optional. */
 export type SendInviteInput = {
-  /** Recipient override. Falls back to the gallery's stored client_email. */
+  /** One or more recipient emails, separated by commas, semicolons, or new lines. */
   recipient?: string;
   /** Subject override. Falls back to the saved/default subject. */
   subject?: string;
@@ -28,6 +28,34 @@ export type SendInviteInput = {
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+const MAX_RECIPIENTS = 20;
+
+function parseRecipients(value: string): { recipients: string[] } | { error: string } {
+  const recipients = [...new Set(
+    value
+      .split(/[,;\n]+/)
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean),
+  )];
+
+  if (!recipients.length) {
+    return { error: "No recipient email. Add a client email or type one in the Send to client box." };
+  }
+
+  if (recipients.length > MAX_RECIPIENTS) {
+    return { error: `You can send to a maximum of ${MAX_RECIPIENTS} recipients at once.` };
+  }
+
+  const invalid = recipients.filter((email) => !isValidEmail(email));
+  if (invalid.length) {
+    return {
+      error: `These email addresses are not valid: ${invalid.join(", ")}.`,
+    };
+  }
+
+  return { recipients };
 }
 
 /**
@@ -59,16 +87,12 @@ export async function sendGalleryInvite(
     return { ok: false, message: "Gallery not found." };
   }
 
-  const recipient = (input.recipient ?? gallery.client_email ?? "").trim();
-  if (!recipient) {
-    return {
-      ok: false,
-      message: "No recipient email. Add a client email or type one in the Send to client box.",
-    };
+  const recipientInput = (input.recipient ?? gallery.client_email ?? "").trim();
+  const parsedRecipients = parseRecipients(recipientInput);
+  if ("error" in parsedRecipients) {
+    return { ok: false, message: parsedRecipients.error };
   }
-  if (!isValidEmail(recipient)) {
-    return { ok: false, message: `"${recipient}" is not a valid email address.` };
-  }
+  const recipients = parsedRecipients.recipients;
 
   const subject = input.subject?.trim() || null;
   const message = input.message?.trim() || null;
@@ -89,30 +113,49 @@ export async function sendGalleryInvite(
   });
 
   const supabase = await createSupabaseServerClient();
-  let resendMessageId: string | null = null;
+  const apiKey = cfg.apiKey;
+  const from = cfg.from;
+  const client = new Resend(apiKey);
+  const sendResults = await Promise.all(
+    recipients.map(async (recipient) => {
+      try {
+        const result = await client.emails.send({
+          from,
+          to: recipient,
+          replyTo: brandConfig.contactEmail,
+          subject: email.subject,
+          text: email.text,
+          html: email.html,
+        });
 
-  try {
-    const client = new Resend(cfg.apiKey);
-    const result = await client.emails.send({
-      from: cfg.from,
-      to: recipient,
-      replyTo: brandConfig.contactEmail,
-      subject: email.subject,
-      text: email.text,
-      html: email.html,
-    });
+        if (result.error) {
+          return {
+            recipient,
+            ok: false,
+            messageId: null,
+            error: result.error.message ?? result.error.name ?? "unknown error",
+          };
+        }
 
-    if (result.error) {
-      return {
-        ok: false,
-        message: `Send failed: ${result.error.message ?? result.error.name ?? "unknown error"}`,
-      };
-    }
+        return { recipient, ok: true, messageId: result.data?.id ?? null };
+      } catch (err) {
+        return {
+          recipient,
+          ok: false,
+          messageId: null,
+          error: err instanceof Error ? err.message : "unknown error",
+        };
+      }
+    }),
+  );
 
-    resendMessageId = result.data?.id ?? null;
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "unknown error";
-    return { ok: false, message: `Send threw: ${message}` };
+  const sent = sendResults.filter((result) => result.ok);
+  const failed = sendResults.filter((result) => !result.ok);
+  if (sent.length === 0) {
+    return {
+      ok: false,
+      message: `Send failed: ${failed.map((result) => `${result.recipient} (${result.error})`).join(", ")}`,
+    };
   }
 
   // Persist the composed wording so a resend keeps it. Non-fatal if it fails.
@@ -126,18 +169,33 @@ export async function sendGalleryInvite(
   }
 
   // Log the send — non-fatal if it fails.
-  try {
-    await supabase.from("gallery_invite_log").insert({
-      gallery_id: galleryId,
-      sent_to: recipient,
-      resend_message_id: resendMessageId,
-    });
-  } catch (logErr) {
-    console.warn("[gallery-invite] log insert failed:", logErr);
+  for (const result of sent) {
+    try {
+      await supabase.from("gallery_invite_log").insert({
+        gallery_id: galleryId,
+        sent_to: result.recipient,
+        resend_message_id: result.messageId,
+      });
+    } catch (logErr) {
+      console.warn("[gallery-invite] log insert failed:", logErr);
+    }
   }
 
   revalidatePath(`/admin/galleries/${galleryId}/share`);
   revalidatePath(`/admin/galleries/${galleryId}`);
 
-  return { ok: true, message: `Invite sent to ${recipient}.` };
+  if (failed.length) {
+    return {
+      ok: false,
+      message: `Sent to ${sent.length} recipient${sent.length === 1 ? "" : "s"}. Failed for ${failed.map((result) => result.recipient).join(", ")}.`,
+    };
+  }
+
+  return {
+    ok: true,
+    message:
+      sent.length === 1
+        ? `Invite sent to ${sent[0].recipient}.`
+        : `Invite sent to ${sent.length} recipients.`,
+  };
 }

@@ -5,6 +5,7 @@ import type { PublicGallery } from "@/lib/public-gallery";
 import { brandConfig } from "@/lib/config";
 import { formatCoverDate } from "@/lib/utils";
 import { GalleryPasswordGate } from "@/components/gallery-password-gate";
+import { getGalleryCoverFont } from "@/lib/gallery-cover-fonts";
 
 const TITLE_SHADOW =
   "[text-shadow:0_2px_18px_rgba(0,0,0,0.85),0_1px_3px_rgba(0,0,0,0.7)]";
@@ -16,12 +17,17 @@ export function GalleryCover({ gallery }: { gallery: PublicGallery }) {
   const layout = gallery.coverLayout;
   const focal = `${gallery.coverFocalX}% ${gallery.coverFocalY}%`;
   const isSplit = layout === "split";
+  const coverFont = getGalleryCoverFont(gallery.coverFont);
 
   const title = (
     <h1
-      className={`font-display font-extrabold uppercase leading-[0.95] tracking-[-0.01em] text-3xl text-soft-white sm:text-5xl lg:text-6xl ${
+      className={`leading-[0.95] tracking-[-0.01em] text-3xl text-soft-white sm:text-5xl lg:text-6xl ${
         isSplit ? "" : TITLE_SHADOW
       }`}
+      style={{
+        fontFamily: `var(${coverFont.cssVariable}, ${coverFont.familyFallback})`,
+        fontWeight: coverFont.weight,
+      }}
     >
       {gallery.title}
     </h1>

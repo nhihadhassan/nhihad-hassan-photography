@@ -210,7 +210,7 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
               </option>
             ))}
           </select>
-          <span className="text-xs text-admin-ink/50">You can change a photo&apos;s category after upload.</span>
+          <span className="text-xs text-admin-ink/65">You can change a photo&apos;s category after upload.</span>
         </div>
         <div
           onDragEnter={(e) => {
@@ -258,7 +258,7 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
               browse
             </button>
           </p>
-          <p className="mt-1 text-xs text-admin-ink/55">JPG, PNG, or WebP · up to 50 MB each</p>
+          <p className="mt-1 text-xs text-admin-ink/65">JPG, PNG, or WebP · up to 50 MB each</p>
         </div>
 
         {uploads.length > 0 && (
@@ -279,9 +279,9 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                 {u.status === "error" ? (
                   <span className="text-admin-danger">{u.error}</span>
                 ) : u.status === "uploading" ? (
-                  <span className="text-admin-ink/55">{u.progress}%</span>
+                  <span className="text-admin-ink/65">{u.progress}%</span>
                 ) : u.status === "success" ? (
-                  <span className="text-admin-ink/55">Done</span>
+                  <span className="text-admin-ink/65">Done</span>
                 ) : null}
               </li>
             ))}
@@ -293,13 +293,13 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
       <div>
         <h2 className="text-lg font-semibold tracking-tight">
           Photos
-          <span className="ml-2 text-sm font-normal text-admin-ink/45">{items.length}</span>
+          <span className="ml-2 text-sm font-normal text-admin-ink/65">{items.length}</span>
         </h2>
 
         {items.length === 0 ? (
           <div className="mt-5 rounded-md border border-dashed border-admin-ink/15 bg-admin-surface p-12 text-center">
-            <ImageOff className="mx-auto size-6 text-admin-ink/40" aria-hidden="true" />
-            <p className="mt-3 text-sm text-admin-ink/55">No portfolio photos yet. Upload above to begin.</p>
+            <ImageOff className="mx-auto size-6 text-admin-ink/65" aria-hidden="true" />
+            <p className="mt-3 text-sm text-admin-ink/65">No portfolio photos yet. Upload above to begin.</p>
           </div>
         ) : (
           <ul className="mt-5 space-y-3">
@@ -342,7 +342,7 @@ export function PortfolioManager({ initialItems }: { initialItems: PortfolioItem
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 text-xs text-admin-ink/55">
+                    <p className="mt-1 text-xs text-admin-ink/65">
                       {categoryLabels[item.category]}
                       {item.event_date ? ` · ${item.event_date}` : ""}
                       {item.location ? ` · ${item.location}` : ""}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Archive,
@@ -12,6 +13,7 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
+  Mail,
   MessageSquareText,
   MoreHorizontal,
   PenLine,
@@ -182,9 +184,9 @@ export function GalleryRowActions({
                     className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-admin-ink hover:bg-admin-surface disabled:opacity-50"
                   >
                     {isPublished ? (
-                      <EyeOff className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                      <EyeOff className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
                     ) : (
-                      <Eye className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                      <Eye className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
                     )}
                     {isPublished ? "Unpublish" : "Publish"}
                   </button>
@@ -201,10 +203,20 @@ export function GalleryRowActions({
                 {copied ? (
                   <Check className="size-4 shrink-0 text-admin-success" aria-hidden="true" />
                 ) : (
-                  <Copy className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                  <Copy className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
                 )}
                 {copied ? "Copied!" : "Copy gallery link"}
               </button>
+
+              {/* Open the invite composer, which supports multiple recipients. */}
+              <Link
+                href={`/admin/galleries/${id}/share#send-email`}
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-admin-ink hover:bg-admin-surface"
+              >
+                <Mail className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
+                Email gallery
+              </Link>
 
               {/* View in new tab */}
               <a
@@ -214,7 +226,7 @@ export function GalleryRowActions({
                 onClick={() => setOpen(false)}
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-admin-ink hover:bg-admin-surface"
               >
-                <ExternalLink className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                <ExternalLink className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
                 View public gallery
               </a>
 
@@ -227,7 +239,7 @@ export function GalleryRowActions({
                 {reviewCopied ? (
                   <Check className="size-4 shrink-0 text-admin-success" aria-hidden="true" />
                 ) : (
-                  <MessageSquareText className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                  <MessageSquareText className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
                 )}
                 {reviewCopied ? "Review link copied" : "Copy review request"}
               </button>
@@ -241,7 +253,7 @@ export function GalleryRowActions({
                 {agreementCopied ? (
                   <Check className="size-4 shrink-0 text-admin-success" aria-hidden="true" />
                 ) : (
-                  <PenLine className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                  <PenLine className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
                 )}
                 {agreementCopied ? "Signing link copied" : "Copy agreement to sign"}
               </button>
@@ -252,7 +264,7 @@ export function GalleryRowActions({
                 onClick={createBooking}
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-admin-ink hover:bg-admin-surface disabled:opacity-50"
               >
-                <CalendarPlus className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                <CalendarPlus className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
                 Create booking hub
               </button>
 
@@ -272,9 +284,9 @@ export function GalleryRowActions({
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-admin-ink hover:bg-admin-surface disabled:opacity-50"
               >
                 {isArchived ? (
-                  <ArchiveRestore className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                  <ArchiveRestore className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
                 ) : (
-                  <Archive className="size-4 shrink-0 text-admin-ink/45" aria-hidden="true" />
+                  <Archive className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
                 )}
                 {isArchived ? "Unarchive" : "Archive"}
               </button>

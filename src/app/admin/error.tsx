@@ -15,7 +15,7 @@ export default function AdminError({ error, reset }: ErrorProps) {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
       <p className="text-sm font-medium text-admin-danger">Something went wrong</p>
-      <p className="mt-2 max-w-sm text-sm text-admin-ink/58">{error.message}</p>
+      <p className="mt-2 max-w-sm text-sm text-admin-ink/65">{error.message}</p>
       <button
         type="button"
         onClick={reset}

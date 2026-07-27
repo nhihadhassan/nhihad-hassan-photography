@@ -1,5 +1,20 @@
 import type { Metadata } from "next";
-import { Bodoni_Moda, Cormorant_Garamond, Geist, Geist_Mono, Montserrat } from "next/font/google";
+import {
+  Abril_Fatface,
+  Bodoni_Moda,
+  Cormorant_Garamond,
+  DM_Serif_Display,
+  Geist,
+  Geist_Mono,
+  Libre_Baskerville,
+  Lora,
+  Montserrat,
+  Newsreader,
+  Oswald,
+  Playfair_Display,
+  Plus_Jakarta_Sans,
+  Space_Grotesk,
+} from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { getSiteSettings } from "@/lib/site-settings";
@@ -32,6 +47,71 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
   weight: ["500", "600", "700", "800"],
+});
+
+// Cover fonts are opt-in per gallery, so they are available to the cover
+// renderer without preloading every optional face on every page.
+const playfair = Playfair_Display({
+  variable: "--font-cover-playfair",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  preload: false,
+});
+
+const dmSerif = DM_Serif_Display({
+  variable: "--font-cover-dm-serif",
+  subsets: ["latin"],
+  weight: "400",
+  preload: false,
+});
+
+const libreBaskerville = Libre_Baskerville({
+  variable: "--font-cover-libre-baskerville",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  preload: false,
+});
+
+const lora = Lora({
+  variable: "--font-cover-lora",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  preload: false,
+});
+
+const newsreader = Newsreader({
+  variable: "--font-cover-newsreader",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  preload: false,
+});
+
+const oswald = Oswald({
+  variable: "--font-cover-oswald",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  preload: false,
+});
+
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-cover-space-grotesk",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  preload: false,
+});
+
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-cover-plus-jakarta",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  preload: false,
+});
+
+const abrilFatface = Abril_Fatface({
+  variable: "--font-cover-abril-fatface",
+  subsets: ["latin"],
+  weight: "400",
+  preload: false,
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -132,7 +212,7 @@ export default async function RootLayout({
     <html
       lang="en"
       style={themeStyle as React.CSSProperties}
-      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${bodoni.variable} ${montserrat.variable} h-full scroll-smooth antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${bodoni.variable} ${montserrat.variable} ${playfair.variable} ${dmSerif.variable} ${libreBaskerville.variable} ${lora.variable} ${newsreader.variable} ${oswald.variable} ${spaceGrotesk.variable} ${plusJakarta.variable} ${abrilFatface.variable} h-full scroll-smooth antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <script

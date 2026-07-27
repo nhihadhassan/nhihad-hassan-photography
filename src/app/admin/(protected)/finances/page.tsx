@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 function SummaryCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className={"rounded-md border p-5 " + (accent ? "border-admin-accent/40 bg-admin-copper/10" : "border-admin-ink/10 bg-admin-surface")}>
-      <p className="text-sm text-admin-ink/58">{label}</p>
+      <p className="text-sm text-admin-ink/65">{label}</p>
       <p className="mt-3 text-2xl font-semibold tracking-tight">{value}</p>
     </div>
   );

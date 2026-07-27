@@ -529,7 +529,7 @@ significantly higher throughput.
 ### Schema (migration 0007)
 New table `public.gallery_download_logs` mirroring the access-logs design:
 - `id`, `gallery_id` (FK, `on delete cascade`)
-- `scope text check (scope in ('all', 'selects'))`
+- `scope text check (scope in ('all', 'selects', 'single'))`
 - `photo_count integer`
 - `ip_hash text` — HMAC-SHA-256(IP, `GALLERY_ACCESS_SECRET`), 16 hex chars
 - `user_agent text` — capped at 256 chars
@@ -541,7 +541,7 @@ New table `public.gallery_download_logs` mirroring the access-logs design:
 **`POST /api/galleries/[slug]/download`**
 - `runtime = "nodejs"`, `maxDuration = 300`
 - Body (`multipart/form-data`):
-  - `scope`: `all` | `selects` (required)
+  - `scope`: `all` | `selects` | `single` (required)
   - `photo_ids`: required when `scope=selects`, repeatable form field, max 500
 - Behavior:
   1. Validates env (service-role + R2 configured) → 503 if not
@@ -570,7 +570,7 @@ New table `public.gallery_download_logs` mirroring the access-logs design:
 ### Admin view
 **`/admin/download-logs`** (linked from the sidebar) — same shape as access
 logs: 24-hour rollup chips, gallery filter, table with timestamp · gallery ·
-scope (all/selects) · photo count · outcome · IP-hash · client.
+scope (all/selects/single) · photo count · outcome · IP-hash · client.
 
 ### Public UI
 - **Toolbar "Download all (N)"** appears in `/galleries/[slug]/view` toolbar
@@ -581,9 +581,10 @@ scope (all/selects) · photo count · outcome · IP-hash · client.
   so the visitor can download without sending the selects to the photographer.
 
 ### Known limitations
-- **No rate limit on downloads** — a script could trigger many full
-  downloads. Logging captures this; add a Cloudflare/Vercel rate-limit
-  middleware before going to production.
+- **Download rate limiting is storage-backed** — ZIP downloads allow 10
+  attempts per 10 minutes per gallery/IP/scope; individual-photo downloads
+  allow 60. A future edge-level limit could still reduce abusive traffic
+  before it reaches the function.
 - **Vercel function timeout** caps ZIP duration (10s hobby, 60s pro,
   300s pro+). Galleries with hundreds of full-resolution photos may exceed.
   For very large galleries, recommend the photographer use a presigned-URL
@@ -604,7 +605,8 @@ storage-backed so they work correctly across serverless instances.
 
 | Endpoint | Limit | Window | What counts | Why this number |
 |---|---|---|---|---|
-| `POST /api/galleries/[slug]/download` | **10** | 10 min | All download attempts (success + failure) by (gallery_id, ip_hash) | A successful 5 GB download is the abuse case here, not failed ones; legit re-downloads happen, so we're a bit more lenient than unlock |
+| `POST /api/galleries/[slug]/download` (`all` / `selects`) | **10** | 10 min | All ZIP download attempts (success + failure) by (gallery_id, ip_hash, scope) | A successful 5 GB download is the abuse case here, not failed ones |
+| `POST /api/galleries/[slug]/download` (`single`) | **60** | 10 min | All individual-photo attempts (success + failure) by (gallery_id, ip_hash, scope) | Clients can reasonably download a larger set from the lightbox |
 | `submitFavorites` server action | **5** | 10 min | All submission attempts (success + failure) by (gallery_id, ip_hash) | Matches the unlock limit; favorites are a deliberate action so 5 is plenty for a real visitor |
 | Password unlock (Phase 3F) | 5 | 10 min | Failed attempts only | Brute-force = many fails; successes are fine |
 
@@ -618,7 +620,8 @@ storage-backed so they work correctly across serverless instances.
 
 ### Behavior on hit
 - **Downloads**: route returns `429` + an `application/json` body with the
-  cap message. A `rate_limited` row is logged.
+  cap message. A `rate_limited` row is logged. ZIP and individual-photo
+  downloads use separate buckets.
 - **Favorites**: server action returns `{ status: "error", message: "..." }`
   with the cap message. A `rate_limited` row is logged.
 - Both errors are calm and informative: *"Too many … attempts. Please wait a

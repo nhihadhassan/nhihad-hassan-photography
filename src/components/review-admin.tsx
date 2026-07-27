@@ -17,9 +17,9 @@ import { formatCompactDate } from "@/lib/utils";
 const initialState: ReviewActionState = { status: "idle", message: "" };
 
 const inputClass =
-  "min-h-11 rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/35 focus:border-admin-copper";
+  "min-h-11 rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus:border-admin-copper";
 const textareaClass =
-  "min-h-28 rounded-md border border-admin-ink/12 bg-white/70 px-3 py-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/35 focus:border-admin-copper";
+  "min-h-28 rounded-md border border-admin-ink/12 bg-white/70 px-3 py-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus:border-admin-copper";
 
 function StatusMessage({ state }: { state: ReviewActionState }) {
   if (!state.message) return null;
@@ -78,7 +78,7 @@ function ReviewRequestForm({ galleries }: { galleries: GalleryRecord[] }) {
   return (
     <form action={formAction} className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
       <h2 className="text-base font-semibold tracking-tight">Create review request</h2>
-      <p className="mt-1 text-sm leading-6 text-admin-ink/55">
+      <p className="mt-1 text-sm leading-6 text-admin-ink/65">
         Send every client to the same neutral Google-first request. No rating gate, no incentives.
       </p>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -98,7 +98,7 @@ function ReviewRequestForm({ galleries }: { galleries: GalleryRecord[] }) {
           <input className={inputClass} name="client_name" placeholder="Jane & Mark" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
-          Client email <span className="font-normal text-admin-ink/40">(optional)</span>
+          Client email <span className="font-normal text-admin-ink/65">(optional)</span>
           <input className={inputClass} name="client_email" type="email" placeholder="client@example.com" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
@@ -118,7 +118,7 @@ function ReviewRequestForm({ galleries }: { galleries: GalleryRecord[] }) {
       </div>
       {state.reviewUrl ? (
         <div className="mt-4 rounded-md border border-admin-ink/10 bg-white/60 p-3">
-          <p className="font-mono text-xs text-admin-ink/50">{state.reviewUrl}</p>
+          <p className="font-mono text-xs text-admin-ink/65">{state.reviewUrl}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <CopyLink value={state.reviewUrl} />
             <a
@@ -148,7 +148,7 @@ function GoogleReviewImportForm({
   return (
     <form action={formAction} className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
       <h2 className="text-base font-semibold tracking-tight">Import Google review</h2>
-      <p className="mt-1 text-sm leading-6 text-admin-ink/55">
+      <p className="mt-1 text-sm leading-6 text-admin-ink/65">
         Paste only real Google reviews. Imported reviews stay hidden unless approved.
       </p>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -197,11 +197,11 @@ function GoogleReviewImportForm({
           </select>
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
-          Google review ID <span className="font-normal text-admin-ink/40">(future API sync)</span>
+          Google review ID <span className="font-normal text-admin-ink/65">(future API sync)</span>
           <input className={inputClass} name="google_review_id" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
-          Google create time <span className="font-normal text-admin-ink/40">(future API sync)</span>
+          Google create time <span className="font-normal text-admin-ink/65">(future API sync)</span>
           <input className={inputClass} name="google_create_time" type="datetime-local" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
@@ -237,11 +237,11 @@ function RequestRow({ request, siteOrigin }: { request: ReviewRequest; siteOrigi
               {revoked ? "Revoked" : "Active"}
             </span>
           </div>
-          <p className="mt-1 text-sm text-admin-ink/55">
+          <p className="mt-1 text-sm text-admin-ink/65">
             {request.gallery_title ?? "No gallery"} · Created {formatCompactDate(request.created_at)}
           </p>
           <p className="mt-1 font-mono text-xs text-admin-ink/35">{url}</p>
-          <div className="mt-2 flex flex-wrap gap-3 text-xs text-admin-ink/45">
+          <div className="mt-2 flex flex-wrap gap-3 text-xs text-admin-ink/65">
             <span>Viewed: {request.viewed_at ? formatCompactDate(request.viewed_at) : "No"}</span>
             <span>Google clicked: {request.google_clicked_at ? formatCompactDate(request.google_clicked_at) : "No"}</span>
           </div>
@@ -285,12 +285,12 @@ function ReviewRow({ review }: { review: ClientReview }) {
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-medium">{review.reviewer_name}</p>
             <RatingStars rating={review.rating} />
-            <span className={`rounded-full px-2 py-0.5 text-xs ${approved ? "bg-admin-success/10 text-admin-success" : "bg-admin-ink/8 text-admin-ink/50"}`}>
+            <span className={`rounded-full px-2 py-0.5 text-xs ${approved ? "bg-admin-success/10 text-admin-success" : "bg-admin-ink/8 text-admin-ink/65"}`}>
               {approved ? "Public" : "Hidden"}
             </span>
           </div>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-admin-ink/70">“{review.review_text}”</p>
-          <p className="mt-2 text-xs text-admin-ink/45">
+          <p className="mt-2 text-xs text-admin-ink/65">
             Google · {formatCompactDate(review.review_date)}{review.gallery_title ? ` · ${review.gallery_title}` : ""}
           </p>
         </div>
@@ -364,7 +364,7 @@ export function ReviewAdmin({
         <h2 className="text-lg font-semibold tracking-tight">Imported reviews</h2>
         <div className="mt-4 grid gap-3">
           {reviews.length ? reviews.map((review) => <ReviewRow key={review.id} review={review} />) : (
-            <p className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 text-sm text-admin-ink/55">
+            <p className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 text-sm text-admin-ink/65">
               No Google reviews imported yet.
             </p>
           )}
@@ -377,7 +377,7 @@ export function ReviewAdmin({
           {requests.length ? requests.map((request) => (
             <RequestRow key={request.id} request={request} siteOrigin={siteOrigin} />
           )) : (
-            <p className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 text-sm text-admin-ink/55">
+            <p className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 text-sm text-admin-ink/65">
               No review requests yet.
             </p>
           )}

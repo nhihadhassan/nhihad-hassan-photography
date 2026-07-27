@@ -151,7 +151,7 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
               className={inputClass}
               name="title"
               defaultValue={gallery?.title}
-              placeholder="MOOVE @ AH"
+              placeholder="Moove At Ah"
             />
             <FieldError errors={state.fieldErrors?.title} />
           </label>
@@ -262,6 +262,7 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
             initialFocalX={gallery?.cover_focal_x ?? 50}
             initialFocalY={gallery?.cover_focal_y ?? 50}
             initialLayout={gallery?.cover_layout ?? "center"}
+            initialFont={gallery?.cover_font ?? "montserrat"}
           />
         </div>
       </Section>

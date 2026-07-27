@@ -27,7 +27,7 @@ export function ImportLegacyPortfolioButton() {
         const remaining = data.remaining ?? 0;
         setResult(
           `Imported ${data.imported ?? 0}, skipped ${data.skipped ?? 0}, failed ${data.failed ?? 0}.` +
-            (remaining > 0 ? ` ${remaining} remaining — click again to continue.` : " All done."),
+            (remaining > 0 ? ` ${remaining} remaining. Click again to continue.` : " All done."),
         );
         router.refresh();
       }

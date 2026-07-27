@@ -582,7 +582,7 @@ export function PhotoManager({
             <div className="flex flex-wrap items-center gap-2">
               {/* Sort dropdown */}
               <div className="flex items-center gap-1.5 rounded-md border border-admin-ink/12 bg-white/60 px-2 py-1">
-                <ArrowUpDown className="size-3.5 shrink-0 text-admin-ink/50" aria-hidden="true" />
+                <ArrowUpDown className="size-3.5 shrink-0 text-admin-ink/65" aria-hidden="true" />
                 <select
                   value={sortMode}
                   onChange={(e) => {
@@ -852,7 +852,7 @@ export function PhotoManager({
                       return (
                         <span
                           className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-admin-copper px-2 py-0.5 text-[10px] font-medium text-white"
-                          title="Web/thumbnail variants missing — click Generate missing variants"
+                          title="Web/thumbnail variants missing. Click Generate missing variants."
                         >
                           <TriangleAlert className="size-3" aria-hidden="true" />
                           Original only

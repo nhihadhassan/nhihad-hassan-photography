@@ -88,13 +88,13 @@ export default async function AdminJournalPage() {
                         "inline-flex rounded-full border px-2.5 py-0.5 text-xs " +
                         (record.published
                           ? "border-admin-success/30 bg-admin-success/10 text-admin-success"
-                          : "border-admin-ink/15 text-admin-ink/50")
+                          : "border-admin-ink/15 text-admin-ink/65")
                       }
                     >
                       {record.published ? "Published" : "Draft"}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-admin-ink/55">
+                  <p className="mt-1 text-sm text-admin-ink/65">
                     {formatDate(record.post_date)}
                     {record.tag && TAG_LABELS[record.tag] ? ` · ${TAG_LABELS[record.tag]}` : ""}
                     {` · /journal/${record.slug}`}
@@ -107,7 +107,7 @@ export default async function AdminJournalPage() {
                     <button
                       type="submit"
                       disabled={i === 0}
-                      className="rounded p-2 text-admin-ink/55 hover:bg-admin-ink/6 disabled:opacity-30"
+                      className="rounded p-2 text-admin-ink/65 hover:bg-admin-ink/6 disabled:opacity-30"
                       aria-label="Move up"
                     >
                       <ArrowUp className="size-4" aria-hidden="true" />
@@ -119,7 +119,7 @@ export default async function AdminJournalPage() {
                     <button
                       type="submit"
                       disabled={i === posts.length - 1}
-                      className="rounded p-2 text-admin-ink/55 hover:bg-admin-ink/6 disabled:opacity-30"
+                      className="rounded p-2 text-admin-ink/65 hover:bg-admin-ink/6 disabled:opacity-30"
                       aria-label="Move down"
                     >
                       <ArrowDown className="size-4" aria-hidden="true" />
@@ -158,7 +158,7 @@ export default async function AdminJournalPage() {
           </div>
         </div>
       ) : (
-        <p className="mt-8 rounded-md border border-dashed border-admin-ink/15 px-4 py-10 text-center text-sm text-admin-ink/50">
+        <p className="mt-8 rounded-md border border-dashed border-admin-ink/15 px-4 py-10 text-center text-sm text-admin-ink/65">
           No posts yet. Click “New post” to write your first one.
         </p>
       )}

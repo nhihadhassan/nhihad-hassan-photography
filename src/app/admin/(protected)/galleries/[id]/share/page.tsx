@@ -52,14 +52,17 @@ export default async function GallerySharePage({ params }: Props) {
       <div className="mt-5">
         <h1 className="text-2xl font-semibold tracking-tight">Share {gallery.title}</h1>
         <p className="mt-1 text-sm leading-6 text-admin-ink/60">
-          Email the gallery to your client, copy the link to send yourself, or build a curated
-          link for vendors and partners.
+          Email the gallery to your client or other recipients, copy the link to send yourself, or
+          build a curated link for vendors and partners.
         </p>
       </div>
 
       {/* Send to client */}
-      <section className="mt-7 rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
-        <h2 className="text-base font-semibold tracking-tight">Send to client</h2>
+      <section
+        id="send-email"
+        className="mt-7 scroll-mt-6 rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6"
+      >
+        <h2 className="text-base font-semibold tracking-tight">Send gallery email</h2>
         <p className="mt-1 text-sm text-admin-ink/65">
           Edit the subject and message, then send. The preview shows exactly what your client
           receives.

@@ -51,7 +51,7 @@ function summary(block: PageBlock): string {
   const heading = typeof c.heading === "string" ? c.heading : "";
   const eyebrow = typeof c.eyebrow === "string" ? c.eyebrow : "";
   const imageUrl = typeof c.imageUrl === "string" ? c.imageUrl : "";
-  return heading || eyebrow || imageUrl || "Empty — click Edit to add content";
+  return heading || eyebrow || imageUrl || "Empty. Click Edit to add content.";
 }
 
 export function SectionsManager({
@@ -110,8 +110,8 @@ export function SectionsManager({
       </div>
 
       {blocks.length === 0 ? (
-        <p className="rounded-md border border-dashed border-admin-ink/15 bg-admin-surface p-8 text-center text-sm text-admin-ink/55">
-          No custom sections yet. Add one above — it appears near the bottom of the homepage.
+        <p className="rounded-md border border-dashed border-admin-ink/15 bg-admin-surface p-8 text-center text-sm text-admin-ink/65">
+          No custom sections yet. Add one above and it appears near the bottom of the homepage.
         </p>
       ) : (
         <ul className="space-y-3">
@@ -208,7 +208,7 @@ export function SectionsManager({
                     );
                   })}
                   {block.block_type === "gallery_strip" && (
-                    <p className="text-xs text-admin-ink/50">
+                    <p className="text-xs text-admin-ink/65">
                       Shows up to 6 of your featured portfolio photos. Mark photos as featured in the
                       Portfolio manager.
                     </p>

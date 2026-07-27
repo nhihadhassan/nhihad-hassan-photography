@@ -27,7 +27,7 @@
      Derived from --admin-ink so everything stays in the same warm family. */
   --admin-line: rgba(23, 19, 15, 0.1);
   --admin-line-strong: rgba(23, 19, 15, 0.16);
-  --admin-muted: rgba(23, 19, 15, 0.56);
+  --admin-muted: rgba(23, 19, 15, 0.65);
   --admin-subtle: rgba(23, 19, 15, 0.04);
   --admin-raise: rgba(23, 19, 15, 0.06);
 

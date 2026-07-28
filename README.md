@@ -463,7 +463,8 @@ admin selects page.
 
 ### Provider
 [Resend](https://resend.com) — free tier covers a single photographer's
-volume (3k emails/month). Single dep: `resend`. No webhook handling required.
+volume (3k emails/month). Single dep: `resend`. Selects notifications do not
+need webhook handling; invoice delivery tracking uses the webhook setup below.
 
 ### Setup
 1. Create a free Resend account → https://resend.com/signup
@@ -479,6 +480,27 @@ volume (3k emails/month). Single dep: `resend`. No webhook handling required.
    For a verified domain: replace the from address with `you@nhihad.com` (or
    similar) — the display name in `"Display <addr>"` format is supported.
 5. Restart the dev server.
+
+### Invoice delivery tracking
+
+Invoice emails are sent separately from the booking-hub email. Each send
+includes a PDF attachment and a live invoice link, and is recorded in
+`invoice_deliveries`. To update that record from accepted to delivered,
+opened, clicked, delayed, or failed:
+
+1. Apply `supabase/migrations/20260728024230_invoice_deliveries.sql`.
+2. In Resend, add a webhook for
+   `https://<your-domain>/api/webhooks/resend` and subscribe to all email
+   events.
+3. Copy the webhook signing secret into the deployment environment:
+   ```
+   RESEND_WEBHOOK_SECRET=whsec_xxxxxxxxxxxx
+   ```
+4. Redeploy after adding the environment variable.
+
+The webhook verifies the raw request signature before writing through the
+service-role Supabase client. Duplicate webhook deliveries are ignored by
+their `svix-id`.
 
 If **any** of the three env vars is missing, the submission flow still
 succeeds — a console warning explains why no email was sent.

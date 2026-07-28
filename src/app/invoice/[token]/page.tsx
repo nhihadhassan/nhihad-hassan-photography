@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { PrintButton } from "@/components/print-button";
 import { getBookingByToken, getOrAssignInvoiceNumber } from "@/lib/bookings";
 import { brandConfig } from "@/lib/config";
+import { listPaymentsForBooking } from "@/lib/finance";
+import { calculateInvoicePaymentState } from "@/lib/invoice-state";
+import { formatMoney } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -13,18 +16,6 @@ export const metadata: Metadata = {
 };
 
 const TZ = "America/Toronto";
-
-function money(value: string | null): string | null {
-  if (!value) return null;
-  const trimmed = value.trim();
-  return trimmed.startsWith("$") ? trimmed : `$${trimmed}`;
-}
-
-function amount(value: string | null): number | null {
-  if (!value) return null;
-  const n = Number(value.replace(/[^0-9.]/g, ""));
-  return Number.isFinite(n) ? n : null;
-}
 
 function formatDate(iso: string | null) {
   if (!iso) return null;
@@ -67,17 +58,20 @@ export default async function InvoicePage({
     );
   }
 
-  const total = money(booking.total);
-  const deposit = money(booking.deposit);
-  const balance = money(booking.balance);
-  const totalNum = amount(booking.total);
+  const [assignedNumber, payments] = await Promise.all([
+    getOrAssignInvoiceNumber(booking.id),
+    listPaymentsForBooking(booking.id),
+  ]);
+  const payment = calculateInvoicePaymentState({
+    total: booking.total,
+    deposit: booking.deposit,
+    paid: payments.reduce((sum, item) => sum + item.amount, 0),
+  });
   const number =
-    (await getOrAssignInvoiceNumber(booking.id)) ??
+    assignedNumber ??
     invoiceNumber(booking.created_at, booking.token);
   const issued = formatDate(booking.created_at);
   const shootDate = formatDate(booking.start_at);
-  const depositSettled =
-    booking.gallery?.deposit_status === "paid" || booking.gallery?.deposit_status === "received";
 
   return (
     <div className="min-h-[100dvh] bg-[#f3eee5] px-5 py-12 text-ink print:bg-white print:py-0">
@@ -90,7 +84,16 @@ export default async function InvoicePage({
             <ArrowLeft className="size-4" aria-hidden="true" />
             Back to site
           </Link>
-          <PrintButton />
+          <div className="flex items-center gap-3">
+            <a
+              href={`/api/invoice/${booking.token}/pdf`}
+              className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-ink/60 transition hover:text-ink"
+            >
+              <Download className="size-4" aria-hidden="true" />
+              PDF
+            </a>
+            <PrintButton />
+          </div>
         </div>
 
         <article className="rounded-xl border border-ink/12 bg-white p-8 shadow-[0_1px_0_rgba(0,0,0,0.02)] sm:p-10 print:border-0 print:shadow-none print:p-0">
@@ -139,48 +142,59 @@ export default async function InvoicePage({
                   {booking.shoot_type ?? "Photography services"}
                   {booking.location ? <span className="block text-xs text-ink/50">{booking.location}</span> : null}
                 </td>
-                <td className="py-3 text-right text-ink/85">{total ?? "Quoted"}</td>
+                <td className="py-3 text-right text-ink/85">
+                  {payment.total > 0 ? formatMoney(payment.total) : "Quoted"}
+                </td>
               </tr>
             </tbody>
           </table>
 
           {/* Summary */}
           <dl className="mt-6 ml-auto max-w-xs">
-            {total ? <SummaryRow label="Subtotal" value={total} /> : null}
-            {deposit ? (
-              <SummaryRow
-                label={depositSettled ? "Deposit (paid)" : "Deposit (25%)"}
-                value={deposit}
-              />
+            {payment.total > 0 ? <SummaryRow label="Subtotal" value={formatMoney(payment.total)} /> : null}
+            {payment.paid > 0 ? (
+              <SummaryRow label="Payments received" value={`-${formatMoney(payment.paid)}`} />
             ) : null}
             <SummaryRow
-              label={depositSettled ? "Balance due" : "Total due"}
-              value={depositSettled ? (balance ?? total ?? "Quoted") : (total ?? "Quoted")}
+              label={payment.paidInFull ? "Paid in full" : "Balance due"}
+              value={payment.total > 0 ? formatMoney(payment.balance) : "Quoted"}
               strong
             />
           </dl>
 
           {/* Payment */}
           <div className="mt-8 rounded-md border border-[#8b6444]/25 bg-[#8b6444]/[0.06] px-4 py-3 text-sm leading-6 text-ink/75">
-            {depositSettled ? (
+            {payment.paidInFull ? (
               <>
-                Deposit received, thank you.{" "}
-                {balance
-                  ? `Please e-transfer the remaining ${balance} to `
-                  : "Any balance can be e-transferred to "}
+                Payment received in full. Thank you.
+              </>
+            ) : payment.deposit > 0 && payment.depositPaid ? (
+              <>
+                Deposit received, thank you. Please e-transfer the remaining{" "}
+                <strong className="text-ink">{formatMoney(payment.balance)}</strong> to{" "}
                 <span className="font-medium text-ink">{brandConfig.contactEmail}</span> on or before
                 the shoot day.
+              </>
+            ) : payment.paid > 0 ? (
+              <>
+                Payment received, thank you. Please e-transfer the remaining{" "}
+                <strong className="text-ink">{formatMoney(payment.balance)}</strong> to{" "}
+                <span className="font-medium text-ink">{brandConfig.contactEmail}</span>.
               </>
             ) : (
               <>
                 Payment by Interac e-Transfer to{" "}
                 <span className="font-medium text-ink">{brandConfig.contactEmail}</span>.
-                {deposit ? ` A ${deposit} deposit reserves your date; the balance is due on or before the shoot day.` : ""}
+                {payment.deposit > 0
+                  ? ` A ${formatMoney(payment.deposit)} deposit reserves your date; the current balance is ${formatMoney(payment.balance)}.`
+                  : payment.total > 0
+                    ? ` The current balance is ${formatMoney(payment.balance)}.`
+                    : ""}
               </>
             )}
           </div>
 
-          {totalNum !== null ? (
+          {payment.total > 0 ? (
             <p className="mt-6 text-xs text-ink/45">Amounts in Canadian dollars.</p>
           ) : null}
         </article>

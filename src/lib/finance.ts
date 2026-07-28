@@ -75,6 +75,18 @@ export async function listPayments(): Promise<Payment[]> {
   return (data ?? []).map((r) => ({ ...r, amount: num(r.amount) })) as Payment[];
 }
 
+export async function listPaymentsForBooking(bookingId: string): Promise<Payment[]> {
+  const admin = getServiceRoleSupabaseClient();
+  const { data, error } = await admin
+    .from("payments")
+    .select("*")
+    .eq("booking_id", bookingId)
+    .order("paid_on", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => ({ ...r, amount: num(r.amount) })) as Payment[];
+}
+
 export async function listExpenses(): Promise<Expense[]> {
   const admin = getServiceRoleSupabaseClient();
   const { data, error } = await admin

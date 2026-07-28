@@ -5,7 +5,7 @@ import { env } from "@/lib/env";
 import { brandConfig } from "@/lib/config";
 import { emailShell, escapeHtml } from "@/lib/emails/shell";
 
-type SendResult = { ok: boolean; message: string };
+export type SendResult = { ok: boolean; message: string; messageId?: string };
 
 /** Core send. Best-effort: returns ok:false (never throws) when unconfigured. */
 async function sendMail(opts: {
@@ -14,6 +14,8 @@ async function sendMail(opts: {
   html: string;
   text: string;
   replyTo?: string;
+  attachments?: Array<{ filename: string; content: Buffer | string }>;
+  tags?: Array<{ name: string; value: string }>;
 }): Promise<SendResult> {
   if (!hasGalleryInviteConfig()) {
     return {
@@ -33,11 +35,17 @@ async function sendMail(opts: {
       subject: opts.subject,
       text: opts.text,
       html: opts.html,
+      attachments: opts.attachments,
+      tags: opts.tags,
     });
     if (result.error) {
       return { ok: false, message: result.error.message ?? result.error.name ?? "Send failed." };
     }
-    return { ok: true, message: `Email sent to ${opts.to}.` };
+    return {
+      ok: true,
+      message: `Email sent to ${opts.to}.`,
+      messageId: result.data?.id,
+    };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Send threw." };
   }
@@ -200,5 +208,46 @@ export async function sendBookingHubEmail(input: {
       ctaLabel: "Open your booking page",
       ctaUrl: input.url,
     }),
+  });
+}
+
+/** Send a standalone invoice email with a direct link and PDF attachment. */
+export async function sendInvoiceEmail(input: {
+  to: string;
+  clientName: string | null;
+  invoiceNumber: string;
+  amountDue: string;
+  invoiceUrl: string;
+  pdf: Uint8Array;
+}): Promise<SendResult> {
+  const first = input.clientName?.trim().split(/\s+/)[0];
+  const greeting = first ? `Hi ${escapeHtml(first)},` : "Hello,";
+  const bodyHtml = `
+    <p style="margin:0 0 14px 0;">${greeting}</p>
+    <p style="margin:0 0 14px 0;">Your invoice <strong>${escapeHtml(input.invoiceNumber)}</strong> is ready. The current balance is <strong>${escapeHtml(input.amountDue)}</strong>.</p>
+    <p style="margin:0 0 14px 0;">A PDF copy is attached. You can also use the button below to view the live invoice, which will reflect payments as they are recorded.</p>
+    <p style="margin:0;">Payment can be sent by Interac e-Transfer to ${escapeHtml(brandConfig.contactEmail)}.</p>`;
+  return sendMail({
+    to: input.to,
+    replyTo: brandConfig.contactEmail,
+    subject: `Invoice ${input.invoiceNumber} · ${brandConfig.name}`,
+    text: `${first ? `Hi ${first},` : "Hello,"}\n\nYour invoice ${input.invoiceNumber} is ready. The current balance is ${input.amountDue}.\n\nA PDF copy is attached. You can also view the live invoice here:\n${input.invoiceUrl}\n\nPayment can be sent by Interac e-Transfer to ${brandConfig.contactEmail}.`,
+    html: emailShell({
+      eyebrow: "Invoice",
+      heading: `Your invoice is ready.`,
+      bodyHtml,
+      ctaLabel: "View live invoice",
+      ctaUrl: input.invoiceUrl,
+    }),
+    attachments: [
+      {
+        filename: `${input.invoiceNumber}.pdf`,
+        content: Buffer.from(input.pdf),
+      },
+    ],
+    tags: [
+      { name: "category", value: "invoice" },
+      { name: "invoice_number", value: input.invoiceNumber.replace(/[^A-Za-z0-9_-]/g, "_") },
+    ],
   });
 }

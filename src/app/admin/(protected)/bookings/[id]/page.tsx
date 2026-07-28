@@ -13,6 +13,11 @@ import { StatusChip, statusForContract, statusForInvoice } from "@/components/ui
 import { CopyText } from "@/components/ui/copy-text";
 import { BookingTimeline } from "@/components/booking-timeline";
 import { BookingNoteComposer } from "@/components/booking-note-composer";
+import { InvoiceSendButton } from "@/components/invoice-send-button";
+import {
+  listInvoiceDeliveriesForBooking,
+  successfulInvoiceDelivery,
+} from "@/lib/invoice-deliveries";
 
 export const dynamic = "force-dynamic";
 
@@ -37,11 +42,12 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
   const booking = await getBookingById(id);
   if (!booking) notFound();
 
-  const [timeline, agreements, galleries, payments] = await Promise.all([
+  const [timeline, agreements, galleries, payments, invoiceDeliveries] = await Promise.all([
     getBookingTimeline(booking),
     getAdminAgreementRequests(),
     getAdminGalleries(),
     listPayments(),
+    listInvoiceDeliveriesForBooking(booking.id),
   ]);
 
   const agreement = agreements.find((a) => a.id === booking.agreement_request_id) ?? null;
@@ -51,6 +57,8 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
     .filter((p) => p.booking_id === booking.id)
     .reduce((s, p) => s + p.amount, 0);
   const balance = Math.max(0, total - paid);
+  const latestInvoiceDelivery = invoiceDeliveries[0] ?? null;
+  const invoiceSent = invoiceDeliveries.some(successfulInvoiceDelivery);
 
   const signed = Boolean(agreement?.signed_at);
   const nextAction = suggestNextAction({
@@ -60,6 +68,7 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
     paid,
     balance,
     signed,
+    invoiceSent,
   });
 
   const clientName = booking.client_name ?? booking.shoot_type ?? "Booking";
@@ -147,21 +156,39 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
             {total > 0 ? (
               <div className="space-y-2">
                 <StatusChip
-                  status={statusForInvoice({ total, paid, dueAt: booking.start_at, sent: true })}
+                  status={statusForInvoice({ total, paid, dueAt: booking.start_at, sent: invoiceSent })}
                 />
                 <dl className="space-y-1 text-sm">
                   <Row label="Total" value={formatMoney(total)} />
                   <Row label="Paid" value={formatMoney(paid)} />
                   <Row label="Balance" value={formatMoney(balance)} strong />
                 </dl>
-                <a
-                  href={`/invoice/${booking.token}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-admin-accent hover:text-admin-ink"
-                >
-                  View invoice <ExternalLink className="size-3.5" aria-hidden="true" />
-                </a>
+                {latestInvoiceDelivery ? (
+                  <p className="text-xs text-admin-muted">
+                    Latest: {latestInvoiceDelivery.status.replaceAll("_", " ")}{" "}
+                    {formatCompactDate(latestInvoiceDelivery.last_event_at ?? latestInvoiceDelivery.created_at)}
+                    <br />
+                    {latestInvoiceDelivery.sent_to}
+                  </p>
+                ) : (
+                  <p className="text-xs text-admin-muted">This invoice has not been sent.</p>
+                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href={`/invoice/${booking.token}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-sm text-admin-accent hover:text-admin-ink"
+                  >
+                    View <ExternalLink className="size-3.5" aria-hidden="true" />
+                  </a>
+                  <InvoiceSendButton
+                    bookingId={booking.id}
+                    sentBefore={invoiceSent}
+                    disabled={!booking.client_email}
+                    compact
+                  />
+                </div>
               </div>
             ) : (
               <p className="text-sm text-admin-muted">No amount set.</p>
@@ -211,16 +238,26 @@ type NextActionInput = {
   paid: number;
   balance: number;
   signed: boolean;
+  invoiceSent: boolean;
 };
 
 /** Derive the single suggested next action from booking state. Plain helper so
  *  the time read stays out of the component render path. */
-function suggestNextAction({ booking, agreement, gallery, paid, balance, signed }: NextActionInput) {
+function suggestNextAction({
+  booking,
+  agreement,
+  gallery,
+  paid,
+  balance,
+  signed,
+  invoiceSent,
+}: NextActionInput) {
   if (!booking) return null;
   const startMs = booking.start_at ? new Date(booking.start_at).getTime() : null;
   const now = Date.now();
   if (!agreement || !agreement.sent_at) return { label: "Send contract", href: "/admin/agreements" };
   if (!signed && !agreement.revoked_at) return { label: "Nudge the contract", href: "/admin/agreements" };
+  if (signed && balance > 0.5 && !invoiceSent) return { label: "Send invoice", href: "/admin/finances" };
   if (signed && paid <= 0) return { label: "Record deposit", href: "/admin/finances" };
   if (balance > 0.5 && startMs && startMs <= now + 7 * 24 * 60 * 60 * 1000)
     return { label: "Send balance reminder", href: "/admin/finances" };

@@ -5,6 +5,10 @@ import { FinanceManager } from "@/components/finance-manager";
 import { InvoicesTable, type InvoiceRow } from "@/components/tables/invoices-table";
 import { formatCompactDate, formatMoney, parseAmount } from "@/lib/utils";
 import { siteUrl } from "@/lib/seo";
+import {
+  listInvoiceDeliveries,
+  successfulInvoiceDelivery,
+} from "@/lib/invoice-deliveries";
 
 export const dynamic = "force-dynamic";
 
@@ -19,11 +23,12 @@ function SummaryCard({ label, value, accent }: { label: string; value: string; a
 
 export default async function AdminFinancesPage() {
   await requireAdmin();
-  const [summary, payments, expenses, bookings] = await Promise.all([
+  const [summary, payments, expenses, bookings, deliveries] = await Promise.all([
     getFinanceSummary(),
     listPayments(),
     listExpenses(),
     getAdminBookings(),
+    listInvoiceDeliveries(),
   ]);
 
   const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
@@ -31,11 +36,20 @@ export default async function AdminFinancesPage() {
   for (const p of payments) {
     if (p.booking_id) paidByBooking.set(p.booking_id, (paidByBooking.get(p.booking_id) ?? 0) + p.amount);
   }
+  const latestDeliveryByBooking = new Map<string, (typeof deliveries)[number]>();
+  const sentBookings = new Set<string>();
+  for (const delivery of deliveries) {
+    if (!latestDeliveryByBooking.has(delivery.booking_id)) {
+      latestDeliveryByBooking.set(delivery.booking_id, delivery);
+    }
+    if (successfulInvoiceDelivery(delivery)) sentBookings.add(delivery.booking_id);
+  }
 
   const invoiceRows: InvoiceRow[] = bookings
     .map((b) => {
       const total = parseAmount(b.total) ?? 0;
       const paid = paidByBooking.get(b.id) ?? 0;
+      const delivery = latestDeliveryByBooking.get(b.id);
       return {
         id: b.id,
         client: b.client_name ?? b.shoot_type ?? "Booking",
@@ -44,6 +58,10 @@ export default async function AdminFinancesPage() {
         balance: Math.max(0, total - paid),
         dueIso: b.start_at,
         invoiceUrl: `${origin}/invoice/${b.token}`,
+        hasEmail: Boolean(b.client_email),
+        sent: sentBookings.has(b.id),
+        deliveryStatus: delivery?.status ?? null,
+        deliveryAt: delivery?.last_event_at ?? delivery?.created_at ?? null,
       };
     })
     .filter((r) => r.total > 0);

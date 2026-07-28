@@ -13,6 +13,9 @@ import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { getBookingByToken } from "@/lib/bookings";
 import { brandConfig } from "@/lib/config";
+import { listPaymentsForBooking } from "@/lib/finance";
+import { calculateInvoicePaymentState } from "@/lib/invoice-state";
+import { formatMoney } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -22,12 +25,6 @@ export const metadata: Metadata = {
 };
 
 const TZ = "America/Toronto";
-
-function money(value: string | null) {
-  if (!value) return null;
-  const trimmed = value.trim();
-  return trimmed.startsWith("$") ? trimmed : `$${trimmed}`;
-}
 
 function formatShoot(startIso: string, endIso: string | null) {
   const start = new Date(startIso);
@@ -131,13 +128,14 @@ export default async function BookingHubPage({
   const booking = await getBookingByToken(token);
   if (!booking) return <Unavailable />;
 
+  const payments = await listPaymentsForBooking(booking.id);
+  const payment = calculateInvoicePaymentState({
+    total: booking.total,
+    deposit: booking.deposit,
+    paid: payments.reduce((sum, item) => sum + item.amount, 0),
+  });
   const shoot = booking.start_at ? formatShoot(booking.start_at, booking.end_at) : null;
-  const total = money(booking.total);
-  const deposit = money(booking.deposit);
-  const balance = money(booking.balance);
-  const hasMoney = Boolean(total || deposit || balance);
-  const depositSettled =
-    booking.gallery?.deposit_status === "paid" || booking.gallery?.deposit_status === "received";
+  const hasMoney = payment.total > 0 || payment.deposit > 0;
 
   const agreement = booking.agreement && !booking.agreement.revoked_at ? booking.agreement : null;
   const galleryReady = booking.gallery?.is_published && booking.gallery.slug;
@@ -203,45 +201,64 @@ export default async function BookingHubPage({
           {hasMoney ? (
             <Card title="Payment" delay={0.15} icon={<Wallet className="size-5" aria-hidden="true" />}>
               <dl className="divide-y divide-ink/8">
-                {deposit ? (
+                {payment.deposit > 0 && !payment.depositPaid ? (
                   <div className="flex items-baseline justify-between gap-4 py-3 first:pt-0">
                     <dt className="text-sm text-ink/65">
-                      Owed now <span className="text-ink/40">(deposit, 25%)</span>
+                      Deposit to reserve
                     </dt>
-                    <dd className="font-serif text-xl text-ink">{deposit}</dd>
+                    <dd className="font-serif text-xl text-ink">{formatMoney(payment.deposit)}</dd>
                   </div>
                 ) : null}
-                {balance ? (
+                {payment.paid > 0 ? (
                   <div className="flex items-baseline justify-between gap-4 py-3">
-                    <dt className="text-sm text-ink/65">Owed after the shoot</dt>
-                    <dd className="font-serif text-xl text-ink">{balance}</dd>
+                    <dt className="text-sm text-ink/65">Payments received</dt>
+                    <dd className="font-serif text-xl text-ink">{formatMoney(payment.paid)}</dd>
                   </div>
                 ) : null}
-                {total ? (
+                {payment.total > 0 ? (
                   <div className="flex items-baseline justify-between gap-4 py-3 last:pb-0">
-                    <dt className="text-sm font-medium text-ink/80">Grand total</dt>
-                    <dd className="font-serif text-2xl text-ink">{total}</dd>
+                    <dt className="text-sm font-medium text-ink/80">
+                      {payment.paidInFull ? "Paid in full" : "Current balance"}
+                    </dt>
+                    <dd className="font-serif text-2xl text-ink">{formatMoney(payment.balance)}</dd>
                   </div>
                 ) : null}
               </dl>
 
-              {depositSettled ? (
+              {payment.paidInFull ? (
                 <p className="mt-5 inline-flex items-center gap-2 rounded-md bg-[#5f7a52]/10 px-4 py-3 text-sm leading-6 text-[#48603e]">
                   <Check className="size-4 shrink-0" aria-hidden="true" />
-                  Deposit received, thank you.
-                  {balance ? ` The ${balance} balance is due on or before the shoot day.` : ""}
+                  Payment received in full. Thank you.
                 </p>
-              ) : deposit ? (
+              ) : payment.depositPaid ? (
+                <p className="mt-5 inline-flex items-center gap-2 rounded-md bg-[#5f7a52]/10 px-4 py-3 text-sm leading-6 text-[#48603e]">
+                  <Check className="size-4 shrink-0" aria-hidden="true" />
+                  Deposit received. The remaining {formatMoney(payment.balance)} is due on or before
+                  the shoot day.
+                </p>
+              ) : payment.deposit > 0 ? (
                 <p className="mt-5 rounded-md border border-[#8b6444]/25 bg-[#8b6444]/[0.06] px-4 py-3 text-sm leading-6 text-ink/75">
                   To reserve your date, please e-transfer the deposit of{" "}
-                  <strong className="text-ink">{deposit}</strong> to{" "}
+                  <strong className="text-ink">{formatMoney(payment.deposit)}</strong> to{" "}
                   <a
                     href={`mailto:${brandConfig.contactEmail}`}
                     className="font-medium text-ink underline underline-offset-2 hover:text-[#8b6444]"
                   >
                     {brandConfig.contactEmail}
                   </a>
-                  .{balance ? ` The remaining ${balance} is due on or before the shoot day.` : ""}
+                  . The current balance is {formatMoney(payment.balance)}.
+                </p>
+              ) : payment.total > 0 ? (
+                <p className="mt-5 rounded-md border border-[#8b6444]/25 bg-[#8b6444]/[0.06] px-4 py-3 text-sm leading-6 text-ink/75">
+                  Please e-transfer the current balance of{" "}
+                  <strong className="text-ink">{formatMoney(payment.balance)}</strong> to{" "}
+                  <a
+                    href={`mailto:${brandConfig.contactEmail}`}
+                    className="font-medium text-ink underline underline-offset-2 hover:text-[#8b6444]"
+                  >
+                    {brandConfig.contactEmail}
+                  </a>
+                  .
                 </p>
               ) : null}
               <Link

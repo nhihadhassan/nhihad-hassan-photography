@@ -25,6 +25,12 @@ export type Booking = {
   notes: string | null;
   internal_note: string | null;
   stage: BookingStage;
+  /** Flat amount off the invoice subtotal. Only applies to itemised invoices. */
+  invoice_discount: string | null;
+  invoice_due_date: string | null;
+  invoice_po_number: string | null;
+  /** Notes / terms printed at the foot of the invoice. */
+  invoice_notes: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -76,6 +82,10 @@ function mapBooking(row: Record<string, unknown>): BookingWithLinks {
     notes: (row.notes as string | null) ?? null,
     internal_note: (row.internal_note as string | null) ?? null,
     stage: normalizeStage(row.stage as string | null),
+    invoice_discount: (row.invoice_discount as string | null) ?? null,
+    invoice_due_date: (row.invoice_due_date as string | null) ?? null,
+    invoice_po_number: (row.invoice_po_number as string | null) ?? null,
+    invoice_notes: (row.invoice_notes as string | null) ?? null,
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
     gallery: gallery

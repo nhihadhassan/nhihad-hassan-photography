@@ -3,12 +3,12 @@ import { notFound } from "next/navigation";
 import { ExternalLink, Pencil } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getBookingById } from "@/lib/bookings";
+import { getInvoiceView } from "@/lib/invoice-data";
 import { BOOKING_STAGE_LABELS } from "@/lib/booking-stages";
 import { getAdminAgreementRequests } from "@/lib/agreements";
 import { getAdminGalleries } from "@/lib/admin-data";
-import { listPayments } from "@/lib/finance";
 import { getBookingTimeline } from "@/lib/timeline";
-import { parseAmount, formatMoney, formatCompactDate } from "@/lib/utils";
+import { formatMoney, formatCompactDate } from "@/lib/utils";
 import { StatusChip, statusForContract, statusForInvoice } from "@/components/ui/status-chip";
 import { CopyText } from "@/components/ui/copy-text";
 import { BookingTimeline } from "@/components/booking-timeline";
@@ -42,21 +42,19 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
   const booking = await getBookingById(id);
   if (!booking) notFound();
 
-  const [timeline, agreements, galleries, payments, invoiceDeliveries] = await Promise.all([
+  const [timeline, agreements, galleries, invoiceDeliveries, invoice] = await Promise.all([
     getBookingTimeline(booking),
     getAdminAgreementRequests(),
     getAdminGalleries(),
-    listPayments(),
     listInvoiceDeliveriesForBooking(booking.id),
+    getInvoiceView(booking),
   ]);
 
   const agreement = agreements.find((a) => a.id === booking.agreement_request_id) ?? null;
   const gallery = booking.gallery_id ? galleries.find((g) => g.id === booking.gallery_id) ?? null : null;
-  const total = parseAmount(booking.total) ?? 0;
-  const paid = payments
-    .filter((p) => p.booking_id === booking.id)
-    .reduce((s, p) => s + p.amount, 0);
-  const balance = Math.max(0, total - paid);
+  // Totals come from the shared invoice view so line items and the legacy
+  // single-total bookings both report the same figures here.
+  const { total, paid, balance } = invoice;
   const latestInvoiceDelivery = invoiceDeliveries[0] ?? null;
   const invoiceSent = invoiceDeliveries.some(successfulInvoiceDelivery);
 
@@ -174,6 +172,12 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
                   <p className="text-xs text-admin-muted">This invoice has not been sent.</p>
                 )}
                 <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    href={`/admin/bookings/${booking.id}/invoice`}
+                    className="text-sm text-admin-accent hover:text-admin-ink"
+                  >
+                    Edit items
+                  </Link>
                   <a
                     href={`/invoice/${booking.token}`}
                     target="_blank"
@@ -191,7 +195,15 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-admin-muted">No amount set.</p>
+              <div className="space-y-2">
+                <p className="text-sm text-admin-muted">No amount set.</p>
+                <Link
+                  href={`/admin/bookings/${booking.id}/invoice`}
+                  className="text-sm text-admin-accent hover:text-admin-ink"
+                >
+                  Build the invoice
+                </Link>
+              </div>
             )}
           </RailBlock>
 

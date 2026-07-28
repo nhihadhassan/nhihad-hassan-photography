@@ -2,9 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
-import { getBookingById, getOrAssignInvoiceNumber } from "@/lib/bookings";
-import { listPaymentsForBooking } from "@/lib/finance";
-import { calculateInvoicePaymentState } from "@/lib/invoice-state";
+import { getBookingById } from "@/lib/bookings";
+import { getInvoiceView } from "@/lib/invoice-data";
 import { buildInvoicePdf } from "@/lib/invoice-pdf";
 import {
   createInvoiceDeliveryAttempt,
@@ -27,35 +26,19 @@ export async function sendInvoiceAction(
     return { ok: false, message: "This booking has no client email. Add one first." };
   }
 
-  const [payments, assignedNumber] = await Promise.all([
-    listPaymentsForBooking(booking.id),
-    getOrAssignInvoiceNumber(booking.id),
-  ]);
-  const payment = calculateInvoicePaymentState({
-    total: booking.total,
-    deposit: booking.deposit,
-    paid: payments.reduce((sum, item) => sum + item.amount, 0),
-  });
-  if (payment.total <= 0) {
-    return { ok: false, message: "Add a booking total before sending an invoice." };
+  const view = await getInvoiceView(booking);
+  if (view.total <= 0) {
+    return {
+      ok: false,
+      message: "Add at least one line item or a booking total before sending an invoice.",
+    };
   }
 
-  const invoiceNumber =
-    assignedNumber ??
-    `NHP-${booking.token.slice(0, 8).toUpperCase()}`;
+  const { invoiceNumber } = view;
   const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
   const invoiceUrl = `${origin}/invoice/${booking.token}`;
   const subject = `Invoice ${invoiceNumber} · ${brandConfig.name}`;
-  const pdf = await buildInvoicePdf({
-    invoiceNumber,
-    issuedAt: booking.created_at,
-    clientName: booking.client_name ?? "Client",
-    clientEmail: booking.client_email,
-    shootType: booking.shoot_type ?? "Photography services",
-    shootDate: booking.start_at,
-    location: booking.location,
-    ...payment,
-  });
+  const pdf = await buildInvoicePdf({ ...view, lines: view.items });
 
   let deliveryId: string;
   try {
@@ -75,7 +58,7 @@ export async function sendInvoiceAction(
     to: booking.client_email,
     clientName: booking.client_name,
     invoiceNumber,
-    amountDue: formatMoney(payment.balance),
+    amountDue: formatMoney(view.balance),
     invoiceUrl,
     pdf,
   });
@@ -106,7 +89,7 @@ export async function sendInvoiceAction(
     payload: {
       deliveryId,
       resendMessageId: result.messageId,
-      amountDue: payment.balance,
+      amountDue: view.balance,
     },
   });
   revalidatePath("/admin/finances");

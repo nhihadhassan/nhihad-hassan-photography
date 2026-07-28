@@ -78,9 +78,6 @@ function ReviewRequestForm({ galleries }: { galleries: GalleryRecord[] }) {
   return (
     <form action={formAction} className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
       <h2 className="text-base font-semibold tracking-tight">Create review request</h2>
-      <p className="mt-1 text-sm leading-6 text-admin-ink/65">
-        Send every client to the same neutral Google-first request. No rating gate, no incentives.
-      </p>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <label className="grid gap-1.5 text-sm font-medium">
           Linked gallery

@@ -79,11 +79,6 @@ export default async function ReviewRequestPage({
               is like to work with Nhihad Hassan Photography. Please write only what reflects your
               genuine experience, in your own words.
             </p>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/55">
-              There is no incentive for leaving a review, and this request is not asking for a
-              specific rating or specific wording.
-            </p>
-
             <div className="mt-9 flex flex-wrap items-center gap-3">
               {request.googleReviewUrl ? (
                 <a

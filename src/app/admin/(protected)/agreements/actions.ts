@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import {
   createAgreementRequest,
+  getAgreementRequestById,
   revokeAgreementRequest,
   type AgreementDetails,
 } from "@/lib/agreements";
+import { sendAgreementRequestEmail } from "@/lib/agreement-deliveries";
 import { getAdminGallery } from "@/lib/admin-data";
 import { siteUrl } from "@/lib/seo";
 
@@ -45,16 +47,47 @@ export async function createAgreementRequestAction(
 ): Promise<AgreementActionState> {
   await requireAdmin();
   try {
-    const { token } = await createAgreementRequest({
+    const clientName = clean(formData.get("client_name"));
+    const clientEmail = clean(formData.get("client_email"));
+    const emailNow = formData.get("mark_sent") === "on";
+    const { id, token } = await createAgreementRequest({
       galleryId: clean(formData.get("gallery_id")),
-      clientName: clean(formData.get("client_name")),
-      clientEmail: clean(formData.get("client_email")),
+      clientName,
+      clientEmail,
       message: clean(formData.get("message")),
       details: detailsFromForm(formData),
-      markSent: formData.get("mark_sent") === "on",
     });
+    const signUrl = signUrlFor(token);
+
+    if (emailNow) {
+      if (!clientEmail) {
+        revalidatePath("/admin/agreements");
+        return {
+          status: "error",
+          message: "Signing link created, but no email was sent because the client email is missing.",
+          signUrl,
+        };
+      }
+      const delivery = await sendAgreementRequestEmail({
+        agreementRequestId: id,
+        clientEmail,
+        clientName,
+        agreementUrl: signUrl,
+      });
+      revalidatePath("/admin/agreements");
+      return {
+        status: delivery.ok ? "success" : "error",
+        message: delivery.message,
+        signUrl,
+      };
+    }
+
     revalidatePath("/admin/agreements");
-    return { status: "success", message: "Signing link created.", signUrl: signUrlFor(token) };
+    return {
+      status: "success",
+      message: "Signing link created as a draft. No email was sent.",
+      signUrl,
+    };
   } catch (error) {
     return {
       status: "error",
@@ -71,7 +104,7 @@ export async function createGalleryAgreementRequestAction(
   if (!gallery) return { ok: false, message: "Gallery not found." };
 
   try {
-    const { token } = await createAgreementRequest({
+    const { id, token } = await createAgreementRequest({
       galleryId,
       clientName: gallery.client_name,
       clientEmail: gallery.client_email,
@@ -80,15 +113,59 @@ export async function createGalleryAgreementRequestAction(
         type: gallery.title,
         date: gallery.event_date ?? undefined,
       },
-      markSent: true,
+    });
+    const signUrl = signUrlFor(token);
+    if (!gallery.client_email) {
+      revalidatePath("/admin/agreements");
+      revalidatePath("/admin/galleries");
+      return {
+        ok: true,
+        message: "Signing link created, but this gallery has no client email, so no email was sent.",
+        signUrl,
+      };
+    }
+    const delivery = await sendAgreementRequestEmail({
+      agreementRequestId: id,
+      clientEmail: gallery.client_email,
+      clientName: gallery.client_name,
+      agreementUrl: signUrl,
     });
     revalidatePath("/admin/agreements");
     revalidatePath("/admin/galleries");
-    return { ok: true, message: "Signing link created.", signUrl: signUrlFor(token) };
+    return { ok: delivery.ok, message: delivery.message, signUrl };
   } catch (error) {
     return {
       ok: false,
       message: error instanceof Error ? error.message : "Could not create signing link.",
+    };
+  }
+}
+
+export async function sendAgreementRequestEmailAction(
+  id: string,
+): Promise<{ ok: boolean; message: string }> {
+  await requireAdmin();
+  try {
+    const request = await getAgreementRequestById(id);
+    if (!request) return { ok: false, message: "Agreement request not found." };
+    if (request.revoked_at) return { ok: false, message: "This signing link has been revoked." };
+    if (request.signed_at) return { ok: false, message: "This agreement is already signed." };
+    if (!request.client_email) {
+      return { ok: false, message: "This agreement has no client email. Add one before sending." };
+    }
+
+    const result = await sendAgreementRequestEmail({
+      agreementRequestId: request.id,
+      clientEmail: request.client_email,
+      clientName: request.client_name,
+      agreementUrl: signUrlFor(request.token),
+    });
+    revalidatePath("/admin/agreements");
+    return { ok: result.ok, message: result.message };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Could not email the agreement.",
     };
   }
 }

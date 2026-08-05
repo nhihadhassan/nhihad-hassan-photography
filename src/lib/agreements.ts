@@ -6,6 +6,10 @@ import { advanceBookingStage } from "@/lib/bookings";
 import { sendSignedAgreementEmails } from "@/lib/notify-email";
 import { brandConfig } from "@/lib/config";
 import { siteUrl } from "@/lib/seo";
+import {
+  listAgreementDeliveries,
+  type AgreementDelivery,
+} from "@/lib/agreement-deliveries";
 
 /** Per-client shoot details captured at request time and shown on the contract. */
 export type AgreementDetails = {
@@ -33,6 +37,7 @@ export type AgreementRequest = {
   created_at: string;
   updated_at: string;
   gallery_title?: string | null;
+  latest_delivery: AgreementDelivery | null;
 };
 
 export type SignedAgreement = {
@@ -97,6 +102,7 @@ function mapRequest(row: Record<string, unknown>): AgreementRequest {
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
     gallery_title: gallery?.title ?? null,
+    latest_delivery: null,
   };
 }
 
@@ -124,7 +130,6 @@ export async function createAgreementRequest(input: {
   clientEmail?: string | null;
   details?: AgreementDetails;
   message?: string | null;
-  markSent?: boolean;
 }) {
   const admin = getServiceRoleSupabaseClient();
   const token = generateToken();
@@ -137,7 +142,7 @@ export async function createAgreementRequest(input: {
       client_email: input.clientEmail ?? null,
       details: input.details ?? {},
       message: input.message ?? null,
-      sent_at: input.markSent ? new Date().toISOString() : null,
+      sent_at: null,
     })
     .select("id,token")
     .single();
@@ -147,12 +152,36 @@ export async function createAgreementRequest(input: {
 
 export async function getAdminAgreementRequests(): Promise<AgreementRequest[]> {
   const admin = getServiceRoleSupabaseClient();
+  const [{ data, error }, deliveries] = await Promise.all([
+    admin
+      .from("agreement_requests")
+      .select("*,galleries(title)")
+      .order("created_at", { ascending: false }),
+    listAgreementDeliveries(),
+  ]);
+  if (error) throw new Error(error.message);
+  const latestByRequest = new Map<string, AgreementDelivery>();
+  for (const delivery of deliveries) {
+    if (!latestByRequest.has(delivery.agreement_request_id)) {
+      latestByRequest.set(delivery.agreement_request_id, delivery);
+    }
+  }
+  return ((data ?? []) as Record<string, unknown>[]).map((row) => {
+    const request = mapRequest(row);
+    request.latest_delivery = latestByRequest.get(request.id) ?? null;
+    return request;
+  });
+}
+
+export async function getAgreementRequestById(id: string): Promise<AgreementRequest | null> {
+  const admin = getServiceRoleSupabaseClient();
   const { data, error } = await admin
     .from("agreement_requests")
     .select("*,galleries(title)")
-    .order("created_at", { ascending: false });
+    .eq("id", id)
+    .maybeSingle();
   if (error) throw new Error(error.message);
-  return ((data ?? []) as Record<string, unknown>[]).map(mapRequest);
+  return data ? mapRequest(data as Record<string, unknown>) : null;
 }
 
 export async function getAgreementRequestByToken(token: string): Promise<AgreementRequest | null> {

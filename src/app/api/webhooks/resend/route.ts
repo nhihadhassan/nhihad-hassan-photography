@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { env } from "@/lib/env";
 import { recordInvoiceDeliveryEvent } from "@/lib/invoice-deliveries";
+import { recordAgreementDeliveryEvent } from "@/lib/agreement-deliveries";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,13 +53,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, result: "ignored" });
     }
 
-    const result = await recordInvoiceDeliveryEvent({
+    const deliveryEvent = {
       eventId: id,
       resendMessageId: event.data.email_id,
       eventType: event.type,
       occurredAt: event.created_at,
       failureReason: failureReason(event),
-    });
+    };
+    const invoiceResult = await recordInvoiceDeliveryEvent(deliveryEvent);
+    const result = invoiceResult === "ignored"
+      ? await recordAgreementDeliveryEvent(deliveryEvent)
+      : invoiceResult;
     return NextResponse.json({ ok: true, result });
   } catch {
     return NextResponse.json({ error: "Webhook processing failed." }, { status: 500 });

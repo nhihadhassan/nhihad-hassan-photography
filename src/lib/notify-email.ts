@@ -16,6 +16,7 @@ async function sendMail(opts: {
   replyTo?: string;
   attachments?: Array<{ filename: string; content: Buffer | string }>;
   tags?: Array<{ name: string; value: string }>;
+  idempotencyKey?: string;
 }): Promise<SendResult> {
   if (!hasGalleryInviteConfig()) {
     return {
@@ -28,16 +29,21 @@ async function sendMail(opts: {
 
   try {
     const client = new Resend(cfg.apiKey);
-    const result = await client.emails.send({
-      from: cfg.from,
-      to: opts.to,
-      replyTo: opts.replyTo,
-      subject: opts.subject,
-      text: opts.text,
-      html: opts.html,
-      attachments: opts.attachments,
-      tags: opts.tags,
-    });
+    const result = await client.emails.send(
+      {
+        from: cfg.from,
+        to: opts.to,
+        replyTo: opts.replyTo,
+        subject: opts.subject,
+        text: opts.text,
+        html: opts.html,
+        attachments: opts.attachments,
+        tags: opts.tags,
+      },
+      opts.idempotencyKey
+        ? { headers: { "Idempotency-Key": opts.idempotencyKey } }
+        : undefined,
+    );
     if (result.error) {
       return { ok: false, message: result.error.message ?? result.error.name ?? "Send failed." };
     }
@@ -182,6 +188,36 @@ export async function sendSignedAgreementEmails(input: {
   );
 
   await Promise.allSettled(tasks);
+}
+
+/** Send a client their standalone agreement link for review and signature. */
+export async function sendAgreementEmail(input: {
+  to: string;
+  clientName: string | null;
+  agreementUrl: string;
+  idempotencyKey: string;
+}): Promise<SendResult> {
+  const first = input.clientName?.trim().split(/\s+/)[0];
+  const greeting = first ? `Hi ${escapeHtml(first)},` : "Hello,";
+  const bodyHtml = `
+    <p style="margin:0 0 14px 0;">${greeting}</p>
+    <p style="margin:0 0 14px 0;">Your photography agreement with ${escapeHtml(brandConfig.name)} is ready to review and sign.</p>
+    <p style="margin:0;">Please read the agreement carefully, confirm the booking details, and use the signature form at the bottom when you are ready.</p>`;
+  return sendMail({
+    to: input.to,
+    replyTo: brandConfig.contactEmail,
+    subject: `Your photography agreement · ${brandConfig.name}`,
+    text: `${first ? `Hi ${first},` : "Hello,"}\n\nYour photography agreement with ${brandConfig.name} is ready to review and sign:\n\n${input.agreementUrl}\n\nPlease read the agreement carefully and confirm the booking details before signing.`,
+    html: emailShell({
+      eyebrow: "Photography agreement",
+      heading: "Your agreement is ready.",
+      bodyHtml,
+      ctaLabel: "Review and sign agreement",
+      ctaUrl: input.agreementUrl,
+    }),
+    tags: [{ name: "category", value: "agreement" }],
+    idempotencyKey: input.idempotencyKey,
+  });
 }
 
 /** Send a client their booking hub link (date, calendar invite, contract, invoice, gallery). */

@@ -28,6 +28,7 @@ export type ClientSummary = {
   inquiryCount: number;
   bookingCount: number;
   galleryCount: number;
+  agreementCount: number;
   lastActivity: string | null;
   nextShootAt: string | null;
   outstandingBalance: number;
@@ -193,6 +194,7 @@ export async function getClientList(): Promise<ClientSummary[]> {
       inquiryCount: p.inquiries.length,
       bookingCount: p.bookings.length,
       galleryCount: p.galleries.length,
+      agreementCount: p.agreements.length,
       lastActivity: p.lastActivity,
       nextShootAt: p.nextShootAt,
       outstandingBalance: p.outstandingBalance,

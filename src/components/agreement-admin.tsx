@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useMemo, useState, useTransition } from "react";
-import { Check, Copy, ExternalLink, Loader2, Sparkles, X } from "lucide-react";
+import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { Check, ChevronDown, Copy, ExternalLink, Loader2, Search, Sparkles, X } from "lucide-react";
 import type { GalleryRecord } from "@/lib/admin-data";
 import type { AgreementRequest } from "@/lib/agreements";
 import type { ClientSummary } from "@/lib/clients";
@@ -74,6 +74,137 @@ function statusFor(request: AgreementRequest): { label: string; className: strin
   return { label: "Sent", className: "bg-admin-ink/8 text-admin-ink/65" };
 }
 
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+function ClientPicker({
+  clients,
+  selectedKey,
+  onSelect,
+}: {
+  clients: ClientSummary[];
+  selectedKey: string;
+  onSelect: (key: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const selected = clients.find((client) => client.key === selectedKey);
+  const matches = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return clients;
+    return clients.filter((client) =>
+      `${client.name} ${client.email ?? ""}`.toLowerCase().includes(term),
+    );
+  }, [clients, query]);
+
+  useEffect(() => {
+    if (!open) return;
+    searchRef.current?.focus();
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className="grid gap-1.5 sm:col-span-2">
+      <span className="text-sm font-medium">Saved client</span>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="saved-client-picker"
+        onClick={() => setOpen((value) => !value)}
+        className={`${inputClass} flex w-full items-center justify-between gap-3 text-left hover:border-admin-ink/25`}
+      >
+        <span className={selected ? "min-w-0" : "text-admin-ink/60"}>
+          {selected ? (
+            <span className="flex min-w-0 items-center gap-3">
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-admin-accent/12 text-[10px] font-semibold text-admin-accent">
+                {initials(selected.name)}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate font-medium">{selected.name}</span>
+                {selected.email ? <span className="block truncate text-xs text-admin-ink/55">{selected.email}</span> : null}
+              </span>
+            </span>
+          ) : (
+            "Choose an onboarded client"
+          )}
+        </span>
+        <ChevronDown className={`size-4 shrink-0 text-admin-ink/45 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+      </button>
+
+      {open ? (
+        <div id="saved-client-picker" className="rounded-md border border-admin-ink/12 bg-white/80 p-3 shadow-[0_12px_30px_rgba(43,35,28,0.08)]">
+          <label className="relative block">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-admin-ink/40" aria-hidden="true" />
+            <span className="sr-only">Search onboarded clients</span>
+            <input
+              ref={searchRef}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search by name or email"
+              className={`${inputClass} w-full pl-9`}
+            />
+          </label>
+          <div className="mt-3 grid max-h-72 gap-2 overflow-y-auto sm:grid-cols-2" role="listbox" aria-label="Onboarded clients">
+            {matches.map((client) => {
+              const isSelected = client.key === selectedKey;
+              return (
+                <button
+                  key={client.key}
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => {
+                    onSelect(client.key);
+                    setOpen(false);
+                    setQuery("");
+                  }}
+                  className={`flex min-h-16 items-center gap-3 rounded-md border px-3 py-2.5 text-left transition active:translate-y-px ${
+                    isSelected
+                      ? "border-admin-accent/35 bg-admin-accent/8"
+                      : "border-admin-ink/10 bg-admin-surface hover:border-admin-ink/20 hover:bg-admin-ink/[0.025]"
+                  }`}
+                >
+                  <span className="grid size-9 shrink-0 place-items-center rounded-full bg-admin-ink/7 text-xs font-semibold text-admin-ink/65">
+                    {initials(client.name)}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-admin-ink">{client.name}</span>
+                    <span className="block truncate text-xs text-admin-ink/50">{client.email ?? "No email saved"}</span>
+                  </span>
+                  {isSelected ? <Check className="size-4 shrink-0 text-admin-accent" aria-hidden="true" /> : null}
+                </button>
+              );
+            })}
+          </div>
+          {!matches.length ? (
+            <p className="px-2 py-6 text-center text-sm text-admin-ink/55">No onboarded clients match that search.</p>
+          ) : null}
+        </div>
+      ) : null}
+      <span className="text-xs font-normal text-admin-ink/55">Only clients with a booking, gallery, or contract appear here.</span>
+    </div>
+  );
+}
+
 function CreateForm({
   galleries,
   clients,
@@ -92,10 +223,6 @@ function CreateForm({
   const [location, setLocation] = useState("");
   const [total, setTotal] = useState("");
 
-  const recentClients = useMemo(
-    () => clients.filter((client) => client.email).slice(0, 4),
-    [clients],
-  );
   const deposit = moneyPart(total, 0.25);
   const balance = moneyPart(total, 0.75);
 
@@ -137,38 +264,8 @@ function CreateForm({
           </p>
         </div>
       </div>
-      {recentClients.length ? (
-        <div className="mt-5 flex flex-wrap items-center gap-2" aria-label="Recent clients">
-          <span className="mr-1 text-xs font-medium text-admin-ink/55">Recent</span>
-          {recentClients.map((client) => (
-            <button
-              key={client.key}
-              type="button"
-              onClick={() => chooseClient(client.key)}
-              className="min-h-9 rounded-full border border-admin-ink/12 bg-white/55 px-3 text-xs font-medium text-admin-ink/75 transition hover:border-admin-accent/35 hover:bg-admin-accent/8 active:translate-y-px"
-            >
-              {client.name}
-            </button>
-          ))}
-        </div>
-      ) : null}
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
-          Saved client
-          <select
-            className={inputClass}
-            value={selectedClientKey}
-            onChange={(event) => chooseClient(event.target.value)}
-          >
-            <option value="">Search or choose a client</option>
-            {clients.map((client) => (
-              <option key={client.key} value={client.key}>
-                {client.name}{client.email ? ` · ${client.email}` : ""}
-              </option>
-            ))}
-          </select>
-          <span className="text-xs font-normal text-admin-ink/55">Choosing a client fills their saved email. You can still edit either field.</span>
-        </label>
+        <ClientPicker clients={clients} selectedKey={selectedClientKey} onSelect={chooseClient} />
         <label className="grid gap-1.5 text-sm font-medium">
           Linked gallery
           <select className={inputClass} name="gallery_id" onChange={(event) => chooseGallery(event.target.value)}>

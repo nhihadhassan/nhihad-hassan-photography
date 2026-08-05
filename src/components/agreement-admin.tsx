@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { Check, ChevronDown, Copy, ExternalLink, Loader2, Search, Sparkles, X } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, ExternalLink, Loader2, Search, Sparkles, X } from "lucide-react";
 import type { GalleryRecord } from "@/lib/admin-data";
 import type { AgreementRequest } from "@/lib/agreements";
 import type { ClientSummary } from "@/lib/clients";
@@ -11,7 +11,7 @@ import {
   revokeAgreementRequestAction,
   type AgreementActionState,
 } from "@/app/admin/(protected)/agreements/actions";
-import { formatCompactDate, formatDisplayDate } from "@/lib/utils";
+import { formatCompactDate } from "@/lib/utils";
 
 const initialState: AgreementActionState = { status: "idle", message: "" };
 
@@ -205,6 +205,219 @@ function ClientPicker({
   );
 }
 
+const timeOptions = Array.from({ length: 33 }, (_, index) => {
+  const totalMinutes = 7 * 60 + index * 30;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const value = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  const label = new Intl.DateTimeFormat("en-CA", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(2026, 0, 1, hours, minutes));
+  return { value, label };
+});
+
+function dateKey(date: Date): string {
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
+}
+
+function displayDate(value: string): string {
+  if (!value) return "Choose date";
+  return new Intl.DateTimeFormat("en-CA", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(`${value}T12:00:00`));
+}
+
+function displayTime(value: string): string {
+  if (!value) return "Choose time";
+  const [hours, minutes] = value.split(":").map(Number);
+  return new Intl.DateTimeFormat("en-CA", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(2026, 0, 1, hours, minutes));
+}
+
+function contractDateTime(date: string, time: string): string {
+  if (!date) return "";
+  const longDate = new Intl.DateTimeFormat("en-CA", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(`${date}T12:00:00`));
+  return time ? `${longDate} at ${displayTime(time)}` : longDate;
+}
+
+function ShootSchedulePicker({
+  date,
+  time,
+  onDateChange,
+  onTimeChange,
+}: {
+  date: string;
+  time: string;
+  onDateChange: (value: string) => void;
+  onTimeChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    const initial = date ? new Date(`${date}T12:00:00`) : new Date();
+    return new Date(initial.getFullYear(), initial.getMonth(), 1);
+  });
+  const today = new Date();
+  const todayKey = dateKey(today);
+  const selected = date ? new Date(`${date}T12:00:00`) : null;
+  const monthLabel = new Intl.DateTimeFormat("en-CA", { month: "long", year: "numeric" }).format(visibleMonth);
+  const firstWeekday = visibleMonth.getDay();
+  const daysInMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0).getDate();
+
+  return (
+    <div className="grid gap-1.5 sm:col-span-2">
+      <span className="text-sm font-medium">Shoot date and time</span>
+      <input type="hidden" name="date" value={contractDateTime(date, time)} />
+      <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-admin-ink/12 bg-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex min-h-14 items-center gap-3 border-r border-admin-ink/10 px-4 text-left transition hover:bg-admin-ink/[0.025] active:bg-admin-ink/[0.045]"
+        >
+          <CalendarDays className="size-4 shrink-0 text-admin-accent" aria-hidden="true" />
+          <span className="min-w-0">
+            <span className="block text-[11px] font-medium uppercase tracking-[0.08em] text-admin-ink/45">Date</span>
+            <span className={`block truncate text-sm font-medium ${date ? "text-admin-ink" : "text-admin-ink/55"}`}>{displayDate(date)}</span>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex min-h-14 items-center gap-3 px-4 text-left transition hover:bg-admin-ink/[0.025] active:bg-admin-ink/[0.045]"
+        >
+          <Clock3 className="size-4 shrink-0 text-admin-accent" aria-hidden="true" />
+          <span className="min-w-0">
+            <span className="block text-[11px] font-medium uppercase tracking-[0.08em] text-admin-ink/45">Start time</span>
+            <span className={`block truncate text-sm font-medium ${time ? "text-admin-ink" : "text-admin-ink/55"}`}>{displayTime(time)}</span>
+          </span>
+        </button>
+      </div>
+
+      {open ? (
+        <div className="overflow-hidden rounded-xl border border-admin-ink/12 bg-white/85 shadow-[0_18px_45px_rgba(43,35,28,0.10)]">
+          <div className="grid lg:grid-cols-[minmax(0,1fr)_15rem]">
+            <div className="p-4 sm:p-5">
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  aria-label="Previous month"
+                  onClick={() => setVisibleMonth((month) => new Date(month.getFullYear(), month.getMonth() - 1, 1))}
+                  className="grid size-9 place-items-center rounded-full text-admin-ink/60 transition hover:bg-admin-ink/6 active:scale-95"
+                >
+                  <ChevronLeft className="size-4" aria-hidden="true" />
+                </button>
+                <p className="text-sm font-semibold tracking-tight">{monthLabel}</p>
+                <button
+                  type="button"
+                  aria-label="Next month"
+                  onClick={() => setVisibleMonth((month) => new Date(month.getFullYear(), month.getMonth() + 1, 1))}
+                  className="grid size-9 place-items-center rounded-full text-admin-ink/60 transition hover:bg-admin-ink/6 active:scale-95"
+                >
+                  <ChevronRight className="size-4" aria-hidden="true" />
+                </button>
+              </div>
+              <div className="mt-3 grid grid-cols-7 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-admin-ink/35">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((weekday) => <span key={weekday} className="py-2">{weekday.slice(0, 1)}</span>)}
+              </div>
+              <div className="grid grid-cols-7 gap-y-1" role="grid" aria-label={monthLabel}>
+                {Array.from({ length: 42 }, (_, index) => {
+                  const day = index - firstWeekday + 1;
+                  if (day < 1 || day > daysInMonth) return <span key={index} className="aspect-square" />;
+                  const candidate = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), day);
+                  const key = dateKey(candidate);
+                  const isSelected = key === date;
+                  const isToday = key === todayKey;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      role="gridcell"
+                      aria-selected={isSelected}
+                      aria-label={displayDate(key)}
+                      onClick={() => onDateChange(key)}
+                      className={`mx-auto grid size-9 place-items-center rounded-full text-sm transition active:scale-95 ${
+                        isSelected
+                          ? "bg-admin-ink font-semibold text-admin-surface shadow-[0_4px_12px_rgba(24,20,16,0.18)]"
+                          : isToday
+                            ? "font-semibold text-admin-accent ring-1 ring-inset ring-admin-accent/30 hover:bg-admin-accent/8"
+                            : "text-admin-ink/75 hover:bg-admin-ink/6"
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  onDateChange(todayKey);
+                  setVisibleMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+                }}
+                className="mt-3 text-xs font-medium text-admin-accent hover:text-admin-ink"
+              >
+                Today
+              </button>
+            </div>
+
+            <div className="border-t border-admin-ink/10 bg-admin-ink/[0.018] p-4 lg:border-l lg:border-t-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-admin-ink/45">Start time</p>
+              <div className="mt-3 grid max-h-64 grid-cols-2 gap-1.5 overflow-y-auto pr-1 lg:grid-cols-1">
+                {timeOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => onTimeChange(option.value)}
+                    className={`min-h-9 rounded-lg px-3 text-sm font-medium transition active:scale-[0.98] ${
+                      time === option.value
+                        ? "bg-admin-ink text-admin-surface shadow-[0_3px_10px_rgba(24,20,16,0.14)]"
+                        : "text-admin-ink/65 hover:bg-admin-ink/6"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between border-t border-admin-ink/10 px-4 py-3 sm:px-5">
+            <button
+              type="button"
+              onClick={() => {
+                onDateChange("");
+                onTimeChange("");
+              }}
+              className="text-xs font-medium text-admin-ink/50 hover:text-admin-ink"
+            >
+              Clear
+            </button>
+            <div className="flex items-center gap-3">
+              <span className="hidden text-xs text-admin-ink/45 sm:inline">{date ? `${displayDate(date)}${time ? `, ${displayTime(time)}` : ""}` : "Choose a date"}</span>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="min-h-9 rounded-lg bg-admin-ink px-4 text-xs font-semibold text-admin-surface transition active:scale-[0.98]"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {selected ? <span className="text-xs text-admin-ink/50">The contract will show {contractDateTime(date, time)}.</span> : null}
+    </div>
+  );
+}
+
 function CreateForm({
   galleries,
   clients,
@@ -220,6 +433,7 @@ function CreateForm({
   const [clientEmail, setClientEmail] = useState("");
   const [shootType, setShootType] = useState("");
   const [shootDate, setShootDate] = useState("");
+  const [shootTime, setShootTime] = useState("");
   const [location, setLocation] = useState("");
   const [total, setTotal] = useState("");
 
@@ -239,7 +453,11 @@ function CreateForm({
     if (!gallery) return;
     if (gallery.client_name) setClientName(gallery.client_name);
     if (gallery.client_email) setClientEmail(gallery.client_email);
-    if (gallery.event_date) setShootDate(formatDisplayDate(gallery.event_date));
+    if (gallery.event_date) {
+      setShootDate(gallery.event_date.slice(0, 10));
+      const timePart = gallery.event_date.includes("T") ? gallery.event_date.slice(11, 16) : "";
+      if (timePart && timePart !== "00:00") setShootTime(timePart);
+    }
     if (gallery.location) setLocation(gallery.location);
   };
 
@@ -301,10 +519,12 @@ function CreateForm({
             <option value="Custom photography coverage">Custom photography coverage</option>
           </select>
         </label>
-        <label className="grid gap-1.5 text-sm font-medium">
-          Shoot date(s) and time
-          <input className={inputClass} name="date" value={shootDate} onChange={(event) => setShootDate(event.target.value)} placeholder="Month DD, YYYY at 0:00 PM" />
-        </label>
+        <ShootSchedulePicker
+          date={shootDate}
+          time={shootTime}
+          onDateChange={setShootDate}
+          onTimeChange={setShootTime}
+        />
         <label className="grid gap-1.5 text-sm font-medium">
           Location(s)
           <input className={inputClass} name="location" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Venue, city" />

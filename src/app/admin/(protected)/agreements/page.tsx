@@ -20,6 +20,9 @@ export default async function AdminAgreementsPage() {
   ]);
 
   const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
+  const onboardedClients = clients.filter(
+    (client) => client.bookingCount > 0 || client.galleryCount > 0 || client.agreementCount > 0,
+  );
 
   const contractRows: ContractRow[] = requests.map((r) => ({
     id: r.id,
@@ -54,7 +57,7 @@ export default async function AdminAgreementsPage() {
           <AgreementAdmin
             galleries={galleries}
             requests={requests}
-            clients={clients}
+            clients={onboardedClients}
             pricing={pricing}
             siteOrigin={siteOrigin}
           />

@@ -1,6 +1,8 @@
 import { requireAdmin } from "@/lib/auth";
 import { getAdminGalleries } from "@/lib/admin-data";
 import { getAdminAgreementRequests } from "@/lib/agreements";
+import { getClientList } from "@/lib/clients";
+import { getPricing } from "@/lib/pricing";
 import { siteUrl } from "@/lib/seo";
 import { AgreementAdmin } from "@/components/agreement-admin";
 import { ContractsTable, type ContractRow } from "@/components/tables/contracts-table";
@@ -10,9 +12,11 @@ export const dynamic = "force-dynamic";
 export default async function AdminAgreementsPage() {
   await requireAdmin();
 
-  const [galleries, requests] = await Promise.all([
+  const [galleries, requests, clients, pricing] = await Promise.all([
     getAdminGalleries(),
     getAdminAgreementRequests(),
+    getClientList(),
+    getPricing(),
   ]);
 
   const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
@@ -47,7 +51,13 @@ export default async function AdminAgreementsPage() {
       <div className="mt-10 border-t border-admin-line pt-8">
         <h2 className="admin-display text-xl text-admin-ink">Send to sign</h2>
         <div className="mt-4">
-          <AgreementAdmin galleries={galleries} requests={requests} siteOrigin={siteOrigin} />
+          <AgreementAdmin
+            galleries={galleries}
+            requests={requests}
+            clients={clients}
+            pricing={pricing}
+            siteOrigin={siteOrigin}
+          />
         </div>
       </div>
     </div>

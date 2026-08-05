@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, ExternalLink, Loader2, Search, Sparkles, X } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, ExternalLink, Loader2, Plus, Search, Sparkles, X } from "lucide-react";
 import type { GalleryRecord } from "@/lib/admin-data";
 import type { AgreementRequest } from "@/lib/agreements";
 import type { ClientSummary } from "@/lib/clients";
@@ -86,14 +86,23 @@ function initials(name: string): string {
 function ClientPicker({
   clients,
   selectedKey,
+  currentName,
+  currentEmail,
   onSelect,
+  onCreate,
 }: {
   clients: ClientSummary[];
   selectedKey: string;
+  currentName: string;
+  currentEmail: string;
   onSelect: (key: string) => void;
+  onCreate: (name: string, email: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const selected = clients.find((client) => client.key === selectedKey);
@@ -132,15 +141,17 @@ function ClientPicker({
         onClick={() => setOpen((value) => !value)}
         className={`${inputClass} flex w-full items-center justify-between gap-3 text-left hover:border-admin-ink/25`}
       >
-        <span className={selected ? "min-w-0" : "text-admin-ink/60"}>
-          {selected ? (
+        <span className={selected || currentName ? "min-w-0" : "text-admin-ink/60"}>
+          {selected || currentName ? (
             <span className="flex min-w-0 items-center gap-3">
               <span className="grid size-7 shrink-0 place-items-center rounded-full bg-admin-accent/12 text-[10px] font-semibold text-admin-accent">
-                {initials(selected.name)}
+                {initials(selected?.name ?? currentName)}
               </span>
               <span className="min-w-0">
-                <span className="block truncate font-medium">{selected.name}</span>
-                {selected.email ? <span className="block truncate text-xs text-admin-ink/55">{selected.email}</span> : null}
+                <span className="block truncate font-medium">{selected?.name ?? currentName}</span>
+                <span className="block truncate text-xs text-admin-ink/55">
+                  {(selected?.email ?? currentEmail) || "New client"}
+                </span>
               </span>
             </span>
           ) : (
@@ -152,18 +163,87 @@ function ClientPicker({
 
       {open ? (
         <div id="saved-client-picker" className="rounded-md border border-admin-ink/12 bg-white/80 p-3 shadow-[0_12px_30px_rgba(43,35,28,0.08)]">
-          <label className="relative block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-admin-ink/40" aria-hidden="true" />
-            <span className="sr-only">Search onboarded clients</span>
-            <input
-              ref={searchRef}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by name or email"
-              className={`${inputClass} w-full pl-9`}
-            />
-          </label>
-          <div className="mt-3 grid max-h-72 gap-2 overflow-y-auto sm:grid-cols-2" role="listbox" aria-label="Onboarded clients">
+          {creating ? (
+            <div className="rounded-md bg-admin-ink/[0.025] p-3 sm:p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold">New client</p>
+                  <p className="mt-0.5 text-xs text-admin-ink/50">They will be saved when you create this contract.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCreating(false)}
+                  className="grid size-8 shrink-0 place-items-center rounded-full text-admin-ink/45 transition hover:bg-admin-ink/6 hover:text-admin-ink"
+                  aria-label="Cancel new client"
+                >
+                  <X className="size-4" aria-hidden="true" />
+                </button>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-1.5 text-xs font-medium text-admin-ink/65">
+                  Client name
+                  <input
+                    autoFocus
+                    value={newName}
+                    onChange={(event) => setNewName(event.target.value)}
+                    placeholder="Full name"
+                    autoComplete="name"
+                    className={`${inputClass} w-full`}
+                  />
+                </label>
+                <label className="grid gap-1.5 text-xs font-medium text-admin-ink/65">
+                  Email address
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={(event) => setNewEmail(event.target.value)}
+                    placeholder="name@example.com"
+                    autoComplete="email"
+                    className={`${inputClass} w-full`}
+                  />
+                </label>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  disabled={!newName.trim()}
+                  onClick={() => {
+                    onCreate(newName.trim(), newEmail.trim());
+                    setCreating(false);
+                    setOpen(false);
+                    setNewName("");
+                    setNewEmail("");
+                  }}
+                  className="min-h-9 rounded-md bg-admin-ink px-4 text-xs font-semibold text-admin-surface transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  Use this client
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <label className="relative block flex-1">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-admin-ink/40" aria-hidden="true" />
+                  <span className="sr-only">Search onboarded clients</span>
+                  <input
+                    ref={searchRef}
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Search by name or email"
+                    className={`${inputClass} w-full pl-9`}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setCreating(true)}
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-md border border-admin-accent/25 bg-admin-accent/8 px-3 text-xs font-semibold text-admin-accent transition hover:bg-admin-accent/12 active:translate-y-px"
+                >
+                  <Plus className="size-4" aria-hidden="true" />
+                  Create new client
+                </button>
+              </div>
+              <div className="mt-3 grid max-h-72 gap-2 overflow-y-auto sm:grid-cols-2" role="listbox" aria-label="Onboarded clients">
             {matches.map((client) => {
               const isSelected = client.key === selectedKey;
               return (
@@ -194,10 +274,12 @@ function ClientPicker({
                 </button>
               );
             })}
-          </div>
-          {!matches.length ? (
-            <p className="px-2 py-6 text-center text-sm text-admin-ink/55">No onboarded clients match that search.</p>
-          ) : null}
+              </div>
+              {!matches.length ? (
+                <p className="px-2 py-6 text-center text-sm text-admin-ink/55">No onboarded clients match that search.</p>
+              ) : null}
+            </>
+          )}
         </div>
       ) : null}
       <span className="text-xs font-normal text-admin-ink/55">Only clients with a booking, gallery, or contract appear here.</span>
@@ -448,6 +530,12 @@ function CreateForm({
     setClientEmail(client.email ?? "");
   };
 
+  const createClient = (name: string, email: string) => {
+    setSelectedClientKey("");
+    setClientName(name);
+    setClientEmail(email);
+  };
+
   const chooseGallery = (id: string) => {
     const gallery = galleries.find((candidate) => candidate.id === id);
     if (!gallery) return;
@@ -483,7 +571,14 @@ function CreateForm({
         </div>
       </div>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <ClientPicker clients={clients} selectedKey={selectedClientKey} onSelect={chooseClient} />
+        <ClientPicker
+          clients={clients}
+          selectedKey={selectedClientKey}
+          currentName={selectedClientKey ? "" : clientName}
+          currentEmail={selectedClientKey ? "" : clientEmail}
+          onSelect={chooseClient}
+          onCreate={createClient}
+        />
         <label className="grid gap-1.5 text-sm font-medium">
           Linked gallery
           <select className={inputClass} name="gallery_id" onChange={(event) => chooseGallery(event.target.value)}>

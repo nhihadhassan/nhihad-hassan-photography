@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, ExternalLink, Loader2, Plus, Search, Sparkles, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, ExternalLink, Loader2, Mail, Plus, Search, Sparkles, X } from "lucide-react";
 import type { GalleryRecord } from "@/lib/admin-data";
 import type { AgreementRequest } from "@/lib/agreements";
 import type { ClientSummary } from "@/lib/clients";
@@ -9,6 +10,7 @@ import type { PricingCategory } from "@/data/pricing";
 import {
   createAgreementRequestAction,
   revokeAgreementRequestAction,
+  sendAgreementRequestEmailAction,
   type AgreementActionState,
 } from "@/app/admin/(protected)/agreements/actions";
 import { formatCompactDate } from "@/lib/utils";
@@ -71,7 +73,21 @@ function statusFor(request: AgreementRequest): { label: string; className: strin
   if (request.revoked_at) return { label: "Revoked", className: "bg-admin-danger/10 text-admin-danger" };
   if (request.signed_at) return { label: "Signed", className: "bg-admin-success/10 text-admin-success" };
   if (request.viewed_at) return { label: "Viewed", className: "bg-admin-info/10 text-admin-info" };
-  return { label: "Sent", className: "bg-admin-ink/8 text-admin-ink/65" };
+  if (request.sent_at) return { label: "Sent", className: "bg-admin-ink/8 text-admin-ink/65" };
+  return { label: "Draft", className: "bg-admin-ink/8 text-admin-ink/65" };
+}
+
+function deliveryLabel(request: AgreementRequest): string {
+  const delivery = request.latest_delivery;
+  if (!delivery) return "Email not sent";
+  if (delivery.status === "delivered") return "Email delivered";
+  if (delivery.status === "opened") return "Email opened";
+  if (delivery.status === "clicked") return "Email link opened";
+  if (["failed", "bounced", "suppressed", "complained"].includes(delivery.status)) {
+    return "Email failed";
+  }
+  if (delivery.status === "delivery_delayed") return "Email delayed";
+  return "Email sent";
 }
 
 function initials(name: string): string {
@@ -518,6 +534,7 @@ function CreateForm({
   const [shootTime, setShootTime] = useState("");
   const [location, setLocation] = useState("");
   const [total, setTotal] = useState("");
+  const [emailNow, setEmailNow] = useState(true);
 
   const deposit = moneyPart(total, 0.25);
   const balance = moneyPart(total, 0.75);
@@ -652,12 +669,18 @@ function CreateForm({
         </label>
       </div>
       <label className="mt-4 inline-flex items-center gap-2 text-sm text-admin-ink/65">
-        <input type="checkbox" name="mark_sent" defaultChecked className="size-4 accent-admin-accent" />
-        Mark as sent now
+        <input
+          type="checkbox"
+          name="mark_sent"
+          checked={emailNow}
+          onChange={(event) => setEmailNow(event.target.checked)}
+          className="size-4 accent-admin-accent"
+        />
+        Email the signing link to the client now
       </label>
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <button className="inline-flex min-h-11 items-center rounded-md bg-admin-ink px-4 text-sm font-medium text-admin-surface">
-          Create signing link
+          {emailNow ? "Create and email signing link" : "Create signing link"}
         </button>
         <StatusMessage state={state} />
       </div>
@@ -683,8 +706,10 @@ function CreateForm({
 }
 
 function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOrigin: string }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [revoked, setRevoked] = useState(Boolean(request.revoked_at));
+  const [feedback, setFeedback] = useState<{ ok: boolean; message: string } | null>(null);
   const url = `${siteOrigin}/agreement/${request.token}`;
   const status = revoked ? { label: "Revoked", className: "bg-admin-danger/10 text-admin-danger" } : statusFor(request);
 
@@ -701,9 +726,18 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
           </p>
           <p className="mt-1 font-mono text-xs text-admin-ink/35">{url}</p>
           <div className="mt-2 flex flex-wrap gap-3 text-xs text-admin-ink/65">
+            <span>{deliveryLabel(request)}</span>
             <span>Viewed: {request.viewed_at ? formatCompactDate(request.viewed_at) : "No"}</span>
             <span>Signed: {request.signed_at ? formatCompactDate(request.signed_at) : "No"}</span>
           </div>
+          {request.latest_delivery?.failure_reason ? (
+            <p className="mt-2 text-xs text-admin-danger">{request.latest_delivery.failure_reason}</p>
+          ) : null}
+          {feedback ? (
+            <p className={`mt-2 text-xs ${feedback.ok ? "text-admin-success" : "text-admin-danger"}`}>
+              {feedback.message}
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <CopyLink value={url} />
@@ -716,6 +750,23 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
             <ExternalLink className="size-3.5" />
             {request.signed_at ? "View signed" : "Open"}
           </a>
+          {!revoked && !request.signed_at ? (
+            <button
+              disabled={pending}
+              onClick={() => {
+                startTransition(async () => {
+                  setFeedback(null);
+                  const result = await sendAgreementRequestEmailAction(request.id);
+                  setFeedback(result);
+                  if (result.ok) router.refresh();
+                });
+              }}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-accent/25 px-3 text-xs font-medium text-admin-accent hover:bg-admin-accent/8 disabled:opacity-50"
+            >
+              {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Mail className="size-3.5" />}
+              {request.latest_delivery ? "Resend email" : "Send email"}
+            </button>
+          ) : null}
           {!revoked && !request.signed_at ? (
             <button
               disabled={pending}

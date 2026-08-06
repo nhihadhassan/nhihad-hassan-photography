@@ -154,7 +154,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ token:
               <ArrowLeft className="size-4" aria-hidden="true" />
               Back to site
             </Link>
-            <p className="font-serif text-lg text-soft-white sm:text-2xl">{brandConfig.name}</p>
+            <p className="font-serif text-sm text-soft-white sm:text-2xl">{brandConfig.name}</p>
           </div>
         </div>
 

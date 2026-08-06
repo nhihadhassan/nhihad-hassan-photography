@@ -33,7 +33,7 @@ export function AgreementSignForm({
 
   if (state.status === "success") {
     return (
-      <section className="mt-14 rounded-md border border-[#8b6444]/30 bg-white/60 p-6 text-center">
+      <section id="sign-contract" className="mt-14 rounded-md border border-[#8b6444]/30 bg-white/60 p-6 text-center">
         <CheckCircle2 className="mx-auto size-8 text-[#5f7a52]" aria-hidden="true" />
         <h2 className="mt-3 font-serif text-2xl text-ink">Agreement signed.</h2>
         <p className="mt-2 text-sm text-ink/65">Thank you. A copy is being prepared on this page.</p>
@@ -42,7 +42,7 @@ export function AgreementSignForm({
   }
 
   return (
-    <section className="mt-14 break-inside-avoid">
+    <section id="sign-contract" className="mt-14 scroll-mt-8 break-inside-avoid">
       <h2 className="font-serif text-2xl text-ink">Sign the agreement</h2>
       <p className="mt-3 text-sm leading-7 text-ink/75">
         Type your full legal name and sign in the box below. Your name, signature, and the date and

@@ -28,7 +28,7 @@ export function AgreementDocument({
   signatureSlot?: ReactNode;
 }) {
   return (
-    <article className="mx-auto max-w-3xl">
+    <article className="mx-auto max-w-3xl px-5 py-10 sm:px-10 sm:py-14 lg:px-14">
       <Reveal>
         <p className="text-xs uppercase tracking-[0.18em] text-ink/55">{brandConfig.name}</p>
         <h1 className="mt-3 font-serif text-5xl leading-[0.95] sm:text-6xl">Booking Agreement</h1>

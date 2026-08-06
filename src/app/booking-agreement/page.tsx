@@ -41,14 +41,16 @@ export default async function BookingAgreementPage({ searchParams }: Props) {
       </div>
 
       <main className="px-4 pb-20 pt-40 sm:px-6 lg:px-8 print:pt-8">
-        <AgreementDocument
-          intro={intro}
-          disclaimer={disclaimer}
-          sections={sections}
-          detailRows={detailRows}
-          actionSlot={<PrintButton />}
-          signatureSlot={<BlankSignatureBlock />}
-        />
+        <div className="mx-auto max-w-3xl bg-white shadow-[0_20px_60px_rgba(36,28,20,0.08)] print:shadow-none">
+          <AgreementDocument
+            intro={intro}
+            disclaimer={disclaimer}
+            sections={sections}
+            detailRows={detailRows}
+            actionSlot={<PrintButton />}
+            signatureSlot={<BlankSignatureBlock />}
+          />
+        </div>
       </main>
 
       <div className="print:hidden">

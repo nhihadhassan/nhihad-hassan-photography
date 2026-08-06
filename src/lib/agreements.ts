@@ -5,6 +5,8 @@ import { getBookingAgreement } from "@/lib/booking-agreement";
 import { advanceBookingStage } from "@/lib/bookings";
 import { sendSignedAgreementEmails } from "@/lib/notify-email";
 import { brandConfig } from "@/lib/config";
+import { hasR2Config } from "@/lib/env";
+import { getSignedReadUrl } from "@/lib/r2";
 import { siteUrl } from "@/lib/seo";
 import {
   listAgreementDeliveries,
@@ -38,6 +40,13 @@ export type AgreementRequest = {
   updated_at: string;
   gallery_title?: string | null;
   latest_delivery: AgreementDelivery | null;
+};
+
+export type AgreementCover = {
+  url: string;
+  alt: string;
+  focalX: number;
+  focalY: number;
 };
 
 export type SignedAgreement = {
@@ -201,6 +210,52 @@ export async function getAgreementRequestByToken(token: string): Promise<Agreeme
       .eq("id", request.id);
   }
   return request;
+}
+
+/** Resolve only the linked gallery cover needed by the tokenized signing page. */
+export async function getAgreementCover(galleryId: string | null): Promise<AgreementCover | null> {
+  if (!galleryId) return null;
+  const admin = getServiceRoleSupabaseClient();
+  const { data: gallery } = await admin
+    .from("galleries")
+    .select("title,cover_image_url,cover_image_alt,cover_photo_id,cover_focal_x,cover_focal_y")
+    .eq("id", galleryId)
+    .maybeSingle();
+
+  if (!gallery) return null;
+
+  const base = {
+    alt: (gallery.cover_image_alt as string | null) || `${gallery.title as string} gallery cover`,
+    focalX: (gallery.cover_focal_x as number | null) ?? 50,
+    focalY: (gallery.cover_focal_y as number | null) ?? 50,
+  };
+  if (gallery.cover_image_url) return { ...base, url: gallery.cover_image_url as string };
+  if (!hasR2Config()) return null;
+
+  let key: string | null = null;
+  if (gallery.cover_photo_id) {
+    const { data: cover } = await admin
+      .from("photos")
+      .select("web_key,thumbnail_key")
+      .eq("id", gallery.cover_photo_id as string)
+      .maybeSingle();
+    key = (cover?.web_key as string | null) ?? (cover?.thumbnail_key as string | null) ?? null;
+  }
+
+  if (!key) {
+    const { data: first } = await admin
+      .from("photos")
+      .select("web_key,thumbnail_key")
+      .eq("gallery_id", galleryId)
+      .eq("is_hidden", false)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    key = (first?.web_key as string | null) ?? (first?.thumbnail_key as string | null) ?? null;
+  }
+
+  return key ? { ...base, url: await getSignedReadUrl(key) } : null;
 }
 
 export async function getSignedAgreementByToken(token: string): Promise<SignedAgreement | null> {

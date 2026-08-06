@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check, FileSignature } from "lucide-react";
 import { SiteFooter } from "@/components/site-footer";
 import { PrintButton } from "@/components/print-button";
 import { AgreementDocument, buildDetailRows } from "@/components/agreement-document";
 import { AgreementSignForm } from "@/components/agreement-sign-form";
 import { agreementDetailFields } from "@/data/booking-agreement";
 import { getBookingAgreement } from "@/lib/booking-agreement";
-import { getAgreementRequestByToken, getSignedAgreementByToken } from "@/lib/agreements";
+import { brandConfig } from "@/lib/config";
+import {
+  getAgreementCover,
+  getAgreementRequestByToken,
+  getSignedAgreementByToken,
+} from "@/lib/agreements";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +31,14 @@ function formatDateTime(iso: string) {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+  });
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-CA", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 }
 
@@ -70,10 +83,14 @@ export default async function AgreementSigningPage({
   const request = await getAgreementRequestByToken(token);
   if (!request) return <Unavailable />;
 
-  const [terms, signed] = await Promise.all([
+  const [terms, signed, cover] = await Promise.all([
     getBookingAgreement(),
     getSignedAgreementByToken(token),
+    getAgreementCover(request.gallery_id),
   ]);
+  const clientName = request.client_name;
+  const firstName = clientName?.trim().split(/\s+/)[0] || "there";
+  const contractTitle = `${clientName?.trim() || request.details.type?.trim() || "Photography"} Contract`;
 
   const values: Record<string, string | undefined> = {
     client: request.client_name ?? undefined,
@@ -119,29 +136,91 @@ export default async function AgreementSigningPage({
   );
 
   return (
-    <div className="min-h-[100dvh] bg-[#f3eee5] text-ink print:bg-white">
-      <main className="px-4 pb-20 pt-16 sm:px-6 lg:px-8 print:pt-8">
-        <div className="mx-auto mb-8 max-w-3xl print:hidden">
+    <div className="min-h-[100dvh] bg-[#f1f0ed] text-ink print:bg-white">
+      <header className="relative min-h-[460px] overflow-hidden bg-charcoal text-soft-white print:hidden sm:min-h-[520px]">
+        <Image
+          src={cover?.url || "/portfolio/engagement-garden-embrace.webp"}
+          alt={cover?.alt || "A couple photographed by Nhihad Hassan Photography"}
+          fill
+          priority
+          unoptimized={Boolean(cover?.url?.startsWith("http"))}
+          sizes="100vw"
+          className="object-cover"
+          style={{ objectPosition: `${cover?.focalX ?? 50}% ${cover?.focalY ?? 50}%` }}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,8,8,.48),rgba(8,8,8,.14)_45%,rgba(8,8,8,.6))]" />
+        <div className="relative mx-auto flex min-h-[460px] max-w-6xl flex-col px-5 py-7 sm:min-h-[520px] sm:px-8 sm:py-9">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-ink/55 transition hover:text-ink"
+            className="inline-flex w-fit items-center gap-2 text-xs uppercase tracking-[0.18em] text-soft-white/75 transition hover:text-soft-white"
           >
             <ArrowLeft className="size-4" aria-hidden="true" />
             Back to site
           </Link>
+          <div className="mt-auto pb-24 text-center sm:pb-28">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-soft-white/80">
+              {brandConfig.name}
+            </p>
+            <h1 className="mt-8 text-3xl font-semibold tracking-[-0.02em] sm:text-4xl">
+              Hi {firstName},
+            </h1>
+            <p className="mt-2 text-lg text-soft-white/92 sm:text-xl">
+              Please review and sign this contract.
+            </p>
+          </div>
         </div>
-        <AgreementDocument
-          intro={terms.intro}
-          disclaimer={terms.disclaimer}
-          sections={terms.sections}
-          detailRows={detailRows}
-          actionSlot={<PrintButton />}
-          signatureSlot={signatureSlot}
-        />
+      </header>
+
+      <main className="relative z-10 px-4 pb-24 sm:px-6 lg:px-8 print:px-0 print:pb-0">
+        <section className="mx-auto -mt-24 max-w-4xl bg-[#fbfaf7] p-5 shadow-[0_22px_70px_rgba(31,25,19,0.16)] print:hidden sm:-mt-28 sm:p-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="font-serif text-3xl leading-tight sm:text-4xl">{contractTitle}</h2>
+                <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${signed ? "border-[#66805d]/30 bg-[#66805d]/8 text-[#52694b]" : "border-copper/35 bg-copper/8 text-[#8b6444]"}`}>
+                  {signed ? <Check className="size-3" aria-hidden="true" /> : null}
+                  {signed ? "Signed" : "Awaiting signature"}
+                </span>
+              </div>
+            </div>
+            <PrintButton className="shrink-0 rounded-none border-0 px-0 underline decoration-ink/20 underline-offset-4 hover:border-0" />
+          </div>
+
+          <dl className="mt-7 grid gap-5 border-t border-ink/10 pt-6 sm:grid-cols-3">
+            <div>
+              <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink/45">From</dt>
+              <dd className="mt-1.5 text-sm font-medium text-ink/85">{brandConfig.name}</dd>
+            </div>
+            <div>
+              <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink/45">To</dt>
+              <dd className="mt-1.5 text-sm font-medium text-ink/85">{clientName || "Client"}</dd>
+            </div>
+            <div>
+              <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink/45">Issue date</dt>
+              <dd className="mt-1.5 text-sm font-medium text-ink/85">{formatDate(request.sent_at || request.created_at)}</dd>
+            </div>
+          </dl>
+
+          <a
+            href="#sign-contract"
+            aria-disabled={Boolean(signed)}
+            className={`mt-8 flex min-h-13 w-full items-center justify-center gap-2 px-5 text-xs font-semibold uppercase tracking-[0.18em] transition ${signed ? "pointer-events-none bg-[#66805d] text-soft-white" : "bg-ink text-soft-white hover:bg-ink/88"}`}
+          >
+            {signed ? <Check className="size-4" aria-hidden="true" /> : <FileSignature className="size-4" aria-hidden="true" />}
+            {signed ? "Contract signed" : "Sign contract"}
+          </a>
+        </section>
+
+        <div className="mx-auto mt-4 max-w-4xl bg-[#fbfaf7] shadow-[0_18px_55px_rgba(31,25,19,0.08)] print:mt-0 print:max-w-none print:shadow-none sm:mt-5">
+          <AgreementDocument
+            intro={terms.intro}
+            disclaimer={terms.disclaimer}
+            sections={terms.sections}
+            detailRows={detailRows}
+            signatureSlot={signatureSlot}
+          />
+        </div>
       </main>
-      <div className="print:hidden">
-        <SiteFooter />
-      </div>
     </div>
   );
 }

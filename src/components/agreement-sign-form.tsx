@@ -43,7 +43,7 @@ export function AgreementSignForm({
 
   return (
     <section id="sign-contract" className="mt-14 scroll-mt-8 break-inside-avoid">
-      <h2 className="font-serif text-2xl text-ink">Sign the agreement</h2>
+      <h2 className="text-[22px] font-semibold leading-[1.3] text-ink">Signatures</h2>
       <p className="mt-3 text-sm leading-7 text-ink/75">
         Type your full legal name and sign in the box below. Your name, signature, and the date and
         time are recorded as your electronic signature, with the same intent as a handwritten one.
@@ -84,7 +84,7 @@ export function AgreementSignForm({
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-6 text-sm font-medium text-soft-white transition hover:bg-ink/88 disabled:opacity-50"
+          className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 bg-ink px-6 text-xs font-semibold uppercase tracking-[0.16em] text-soft-white transition hover:bg-ink/88 disabled:opacity-50"
         >
           {pending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : null}
           Sign agreement

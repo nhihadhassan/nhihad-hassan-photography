@@ -216,9 +216,8 @@ function findFirstAvailableDate(
 }
 
 function buildTimeSlots(status: DayStatus, duration: number) {
-  const step = duration >= 240 ? 120 : duration >= 90 ? 90 : 60;
   const result: Array<{ label: string; tentative: boolean }> = [];
-  for (let start = 9 * 60; start + duration <= 22 * 60; start += step) {
+  for (let start = 9 * 60; start + duration <= 22 * 60; start += 30) {
     const touchesDay = start < 17 * 60;
     const touchesNight = start + duration > 17 * 60;
     if ((touchesDay && status.day === "held") || (touchesNight && status.night === "held")) continue;

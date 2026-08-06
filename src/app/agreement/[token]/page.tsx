@@ -160,15 +160,15 @@ export default async function AgreementSigningPage({
           unoptimized={Boolean(cover?.url?.startsWith("http"))}
           sizes="100vw"
           className="object-cover"
-          style={{ objectPosition: `${cover?.focalX ?? 50}% ${cover?.focalY ?? 50}%` }}
+          style={{ objectPosition: `${cover?.focalX ?? 50}% ${Math.max(0, (cover?.focalY ?? 50) - 10)}%` }}
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,8,8,.48),rgba(8,8,8,.14)_45%,rgba(8,8,8,.6))]" />
         <div className="relative mx-auto h-full max-w-6xl px-5 sm:px-8">
-          <div className="pt-12 text-center sm:pt-14">
+          <div className="pt-6 text-center sm:pt-7">
             <p className="font-serif text-[clamp(1.05rem,5.5vw,2.8rem)] uppercase tracking-normal text-soft-white">
               {brandConfig.name}
             </p>
-            <h1 className="mt-14 font-serif text-[clamp(2.75rem,5vw,4.75rem)] font-medium leading-[0.92] sm:mt-16">
+            <h1 className="mt-20 font-serif text-[clamp(2.75rem,5vw,4.75rem)] font-medium leading-[0.92] sm:mt-[5.75rem]">
               Hi {firstName},
             </h1>
             <p className="mt-3 font-serif text-[clamp(1.65rem,3vw,2.75rem)] leading-[1.08] text-soft-white/92">

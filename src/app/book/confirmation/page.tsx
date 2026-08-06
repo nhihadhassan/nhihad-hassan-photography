@@ -59,7 +59,6 @@ export default async function BookingConfirmationPage({ searchParams }: Props) {
         <div className="mt-8 max-w-3xl">
           <div className="flex items-center gap-3 text-[#8b6444]"><CheckCircle2 className="size-5" aria-hidden="true" /><p className="text-xs uppercase tracking-[0.22em]">Step 3 of 3 · Request received</p></div>
           <h1 className="mt-4 font-serif text-5xl leading-[0.94] sm:text-7xl">Your request is in.</h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-ink/62">I&apos;ll review the details and reply personally to confirm availability. For now, there&apos;s nothing else you need to do.</p>
         </div>
 
         <div className="mt-10 grid items-start gap-6 lg:grid-cols-[1.15fr_0.85fr]">

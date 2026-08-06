@@ -49,9 +49,6 @@ export function BookingPaymentConfirmation({
       <section className="bg-[#f8f3eb] p-5 sm:p-8" aria-labelledby="tip-heading">
         <p className="text-xs uppercase tracking-[0.2em] text-[#8b6444]">Optional tip</p>
         <h2 id="tip-heading" className="mt-3 font-serif text-4xl leading-none text-ink">No tip is expected.</h2>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-ink/58">
-          Your package price already covers the experience. If you would still like to add something, you can choose it here.
-        </p>
         <fieldset className="mt-6">
           <legend className="sr-only">Choose an optional tip</legend>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

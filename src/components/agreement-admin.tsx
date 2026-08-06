@@ -2,10 +2,12 @@
 
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { BellRing, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, ExternalLink, Loader2, Mail, Plus, Search, Settings2, ShieldCheck, Sparkles, X } from "lucide-react";
+import { BellRing, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, ExternalLink, Loader2, Mail, PenLine, Plus, Search, Settings2, ShieldCheck, Sparkles, X } from "lucide-react";
 import type { GalleryRecord } from "@/lib/admin-data";
 import type { AgreementRequest } from "@/lib/agreements";
 import { isAgreementPastExpiry } from "@/lib/agreement-status";
+import { formatBackupContact, formatClientAddress } from "@/lib/agreement-client-details";
+import { SignaturePad } from "@/components/signature-pad";
 import type { ClientSummary } from "@/lib/clients";
 import type { PricingCategory } from "@/data/pricing";
 import {
@@ -14,6 +16,7 @@ import {
   type AgreementTemplateId,
 } from "@/data/wedding-agreement";
 import {
+  countersignAgreementAction,
   createAgreementRequestAction,
   revokeAgreementRequestAction,
   sendAgreementRequestEmailAction,
@@ -25,6 +28,9 @@ import { formatCompactDate } from "@/lib/utils";
 import { utcToTorontoLocalInput } from "@/lib/ics";
 
 const initialState: AgreementActionState = { status: "idle", message: "" };
+
+/** Default countersignature name; editable per contract before signing. */
+const brandName = "Nhihad Hassan";
 
 const inputClass =
   "min-h-11 rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus:border-admin-copper";
@@ -83,6 +89,9 @@ function CopyLink({ value, label = "Copy link" }: { value: string; label?: strin
 
 function statusFor(request: AgreementRequest): { label: string; className: string } {
   if (request.signed_at) return { label: "Signed", className: "bg-admin-success/10 text-admin-success" };
+  if (request.client_submitted_at && !request.revoked_at) {
+    return { label: "Awaiting your signature", className: "bg-admin-accent/12 text-admin-accent" };
+  }
   if (request.revoked_at) return { label: "Revoked", className: "bg-admin-danger/10 text-admin-danger" };
   if (isAgreementPastExpiry(request)) return { label: "Expired", className: "bg-admin-danger/10 text-admin-danger" };
   if (request.viewed_at) return { label: "Viewed", className: "bg-admin-info/10 text-admin-info" };
@@ -1004,9 +1013,16 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
   const [rowInterval, setRowInterval] = useState(request.reminder_interval_days);
   const [rowMaxSends, setRowMaxSends] = useState(request.reminder_max_sends);
   const [rowClientAddress, setRowClientAddress] = useState(request.details.clientAddress ?? "");
+  const [countersignName, setCountersignName] = useState(brandName);
+  const [countersignature, setCountersignature] = useState<string | null>(null);
   const url = `${siteOrigin}/agreement/${request.token}`;
   const expired = isAgreementPastExpiry(request);
-  const active = !revoked && !expired && !request.signed_at;
+  // The client has signed and returned this contract. Terms are frozen from
+  // here on, so editing, reminders and resends are no longer offered.
+  const awaitingCountersignature = Boolean(
+    request.client_submitted_at && !request.finalized_at && !revoked,
+  );
+  const active = !revoked && !expired && !request.signed_at && !awaitingCountersignature;
   const status = revoked ? { label: "Revoked", className: "bg-admin-danger/10 text-admin-danger" } : statusFor(request);
 
   return (
@@ -1024,7 +1040,12 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
           <div className="mt-2 flex flex-wrap gap-3 text-xs text-admin-ink/65">
             <span>{deliveryLabel(request)}</span>
             <span>Viewed: {request.viewed_at ? formatCompactDate(request.viewed_at) : "No"}</span>
-            <span>Signed: {request.signed_at ? formatCompactDate(request.signed_at) : "No"}</span>
+            <span>
+              Signed: {request.signed_at ? formatCompactDate(request.signed_at) : "No"}
+            </span>
+            {request.client_submitted_at ? (
+              <span>Client signed: {formatCompactDate(request.client_submitted_at)}</span>
+            ) : null}
             {request.expires_at ? (
               <span>Expires: {formatCompactDate(request.expires_at)}</span>
             ) : null}
@@ -1102,6 +1123,62 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
           ) : null}
         </div>
       </div>
+      {awaitingCountersignature ? (
+        <div className="mt-4 border-t border-admin-ink/10 pt-4">
+          <h4 className="text-sm font-semibold text-admin-ink">Review and countersign</h4>
+          <p className="mt-1 text-xs leading-5 text-admin-ink/70">
+            {request.client_name ?? "The client"} completed their details and signed. Check the
+            information below, then countersign to finalize the agreement and send their copy.
+          </p>
+          <dl className="mt-4 grid gap-2 text-xs text-admin-ink/80 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <dt className="inline font-medium text-admin-ink/70">Address: </dt>
+              <dd className="inline">{formatClientAddress(request.client_details) || "Not provided"}</dd>
+            </div>
+            <div>
+              <dt className="inline font-medium text-admin-ink/70">Phone: </dt>
+              <dd className="inline">{request.client_details.phone || "Not provided"}</dd>
+            </div>
+            <div>
+              <dt className="inline font-medium text-admin-ink/70">Backup: </dt>
+              <dd className="inline">{formatBackupContact(request.client_details) || "None"}</dd>
+            </div>
+          </dl>
+          <div className="mt-4 grid gap-3 sm:max-w-md">
+            <label className="grid gap-1.5 text-sm font-medium text-admin-ink">
+              Your full legal name
+              <input
+                value={countersignName}
+                onChange={(event) => setCountersignName(event.target.value)}
+                className={`${inputClass} w-full`}
+              />
+            </label>
+            <div>
+              <p className="mb-1.5 text-sm font-medium text-admin-ink">Your signature</p>
+              <SignaturePad onChange={setCountersignature} />
+            </div>
+          </div>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => {
+              startTransition(async () => {
+                setFeedback(null);
+                const result = await countersignAgreementAction(request.id, {
+                  signerName: countersignName,
+                  signatureDataUrl: countersignature,
+                });
+                setFeedback(result);
+                if (result.ok) router.refresh();
+              });
+            }}
+            className="mt-4 inline-flex min-h-10 items-center gap-1.5 rounded-md bg-admin-accent px-4 text-xs font-semibold text-white transition hover:bg-admin-accent/90 disabled:opacity-50"
+          >
+            {pending ? <Loader2 className="size-3.5 animate-spin" /> : <PenLine className="size-3.5" />}
+            Countersign and finalize
+          </button>
+        </div>
+      ) : null}
       {settingsOpen && active ? (
         <div className="mt-4 border-t border-admin-ink/10 pt-4">
           <div className="mb-5 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">

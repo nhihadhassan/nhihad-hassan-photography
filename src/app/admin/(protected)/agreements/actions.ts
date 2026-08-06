@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import {
+  countersignAgreement,
   createAgreementRequest,
   getAgreementRequestById,
   revokeAgreementRequest,
@@ -347,6 +348,38 @@ export async function updateAgreementAutomationAction(
     return {
       ok: false,
       message: error instanceof Error ? error.message : "Could not update contract automation.",
+    };
+  }
+}
+
+export async function countersignAgreementAction(
+  id: string,
+  input: { signerName: string; signatureDataUrl: string | null },
+): Promise<{ ok: boolean; message: string }> {
+  await requireAdmin();
+  const signerName = input.signerName.trim();
+  if (signerName.length < 2) {
+    return { ok: false, message: "Type your full legal name to countersign." };
+  }
+  if (!input.signatureDataUrl || !input.signatureDataUrl.startsWith("data:image/")) {
+    return { ok: false, message: "Draw your signature before countersigning." };
+  }
+  if (input.signatureDataUrl.length > 1_500_000) {
+    return { ok: false, message: "Signature image is too large. Clear it and try again." };
+  }
+  try {
+    const result = await countersignAgreement({
+      id,
+      signerName,
+      signatureDataUrl: input.signatureDataUrl,
+    });
+    if (!result.ok) return { ok: false, message: result.message };
+    revalidatePath("/admin/agreements");
+    return { ok: true, message: "Agreement countersigned. The client has been sent their copy." };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Could not countersign the agreement.",
     };
   }
 }

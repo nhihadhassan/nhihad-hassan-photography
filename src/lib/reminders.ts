@@ -44,12 +44,15 @@ async function expireDueAgreements(
   admin: ReturnType<typeof getServiceRoleSupabaseClient>,
   nowIso: string,
 ): Promise<number> {
+  // A contract the client has already signed is waiting on the photographer,
+  // so it must never expire out from under the pending countersignature.
   const { data, error } = await admin
     .from("agreement_requests")
     .update({ expired_at: nowIso, updated_at: nowIso })
     .is("signed_at", null)
     .is("revoked_at", null)
     .is("expired_at", null)
+    .is("client_submitted_at", null)
     .not("expires_at", "is", null)
     .lte("expires_at", nowIso)
     .select("id");
@@ -68,6 +71,7 @@ async function sendDueAgreementReminders(
     .is("signed_at", null)
     .is("revoked_at", null)
     .is("expired_at", null)
+    .is("client_submitted_at", null)
     .not("sent_at", "is", null);
   if (error) throw new Error(error.message);
 
@@ -93,7 +97,8 @@ async function sendDueAgreementReminders(
       .eq("reminder_count", count)
       .is("signed_at", null)
       .is("revoked_at", null)
-      .is("expired_at", null);
+      .is("expired_at", null)
+      .is("client_submitted_at", null);
 
     const result = await sendAgreementReminderEmail({
       to: row.client_email,
@@ -124,7 +129,8 @@ async function sendDueAgreementReminders(
       .eq("reminder_count", count)
       .is("signed_at", null)
       .is("revoked_at", null)
-      .is("expired_at", null);
+      .is("expired_at", null)
+      .is("client_submitted_at", null);
     if (!updateError) sent += 1;
   }
   return sent;

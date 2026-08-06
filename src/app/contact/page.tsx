@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { BookingServicePicker } from "@/components/booking-service-picker";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
+import { ContactServiceSelect } from "@/components/contact-service-select";
 import { EditPencil } from "@/components/edit-mode";
 import { getSiteSettings } from "@/lib/site-settings";
 import { getContent } from "@/lib/site-content";
@@ -66,14 +67,7 @@ export default async function ContactPage() {
             </div>
           </Reveal>
           <Reveal delay={0.1}>
-            <div className="max-w-xl lg:justify-self-end">
-              <p className="font-serif text-3xl leading-tight text-soft-white sm:text-4xl">
-                Start with a quick look at what may be open.
-              </p>
-              <p className="mt-5 text-sm leading-6 text-soft-white/60">
-                Review availability below, then choose the session that fits. You&apos;ll select an exact date and time in the next step.
-              </p>
-            </div>
+            <ContactServiceSelect categories={pricing} />
           </Reveal>
         </section>
         <div className="-mx-4 mt-14 sm:-mx-6 lg:-mx-8">

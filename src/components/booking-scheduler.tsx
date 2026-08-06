@@ -22,9 +22,14 @@ const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 export function BookingScheduler({ availability, serviceId, packageName, duration }: Props) {
   const available = useMemo(() => new Map(availability), [availability]);
   const today = useMemo(() => new Date(), []);
+  const sessionMinutes = durationMinutes(duration);
+  const firstAvailable = useMemo(
+    () => findFirstAvailableDate(available, today, sessionMinutes),
+    [available, today, sessionMinutes],
+  );
   const todayKey = localDateKey(today);
-  const [monthOffset, setMonthOffset] = useState(0);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [monthOffset, setMonthOffset] = useState(firstAvailable?.monthOffset ?? 0);
+  const [selectedDate, setSelectedDate] = useState<string | null>(firstAvailable?.date ?? null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
   const shownMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
@@ -41,7 +46,7 @@ export function BookingScheduler({ availability, serviceId, packageName, duratio
   const dayStatus = selectedDate
     ? available.get(selectedDate) ?? { day: "open", night: "open" }
     : null;
-  const slots = dayStatus ? buildTimeSlots(dayStatus, durationMinutes(duration)) : [];
+  const slots = dayStatus ? buildTimeSlots(dayStatus, sessionMinutes) : [];
 
   function selectDate(date: string) {
     setSelectedDate(date);
@@ -184,6 +189,30 @@ export function BookingScheduler({ availability, serviceId, packageName, duratio
       </section>
     </div>
   );
+}
+
+function findFirstAvailableDate(
+  availability: Map<string, DayStatus>,
+  today: Date,
+  duration: number,
+) {
+  for (let monthOffset = 0; monthOffset <= 5; monthOffset += 1) {
+    const shownMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+    const year = shownMonth.getFullYear();
+    const month = shownMonth.getMonth();
+    const days = new Date(year, month + 1, 0).getDate();
+    const firstDay = monthOffset === 0 ? today.getDate() : 1;
+
+    for (let day = firstDay; day <= days; day += 1) {
+      const date = `${year}-${pad(month + 1)}-${pad(day)}`;
+      const status = availability.get(date) ?? { day: "open", night: "open" };
+      if (buildTimeSlots(status, duration).length > 0) {
+        return { date, monthOffset };
+      }
+    }
+  }
+
+  return null;
 }
 
 function buildTimeSlots(status: DayStatus, duration: number) {

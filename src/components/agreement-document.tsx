@@ -28,11 +28,11 @@ export function AgreementDocument({
   signatureSlot?: ReactNode;
 }) {
   return (
-    <article className="mx-auto max-w-3xl px-5 py-10 sm:px-10 sm:py-14 lg:px-14">
+    <article className="mx-auto max-w-none px-6 py-10 sm:px-12 sm:py-14">
       <Reveal>
-        <p className="text-xs uppercase tracking-[0.18em] text-ink/55">{brandConfig.name}</p>
-        <h1 className="mt-3 font-serif text-5xl leading-[0.95] sm:text-6xl">Booking Agreement</h1>
-        <p className="mt-6 text-base leading-7 text-ink/70">{intro}</p>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-ink/50">{brandConfig.name}</p>
+        <h1 className="mt-3 text-[26px] font-semibold leading-[1.54]">Booking Agreement</h1>
+        <p className="mt-6 text-[15px] leading-[1.7] text-ink/78">{intro}</p>
 
         {actionSlot ? (
           <div className="mt-6 flex flex-wrap items-center gap-3 print:hidden">{actionSlot}</div>
@@ -45,7 +45,7 @@ export function AgreementDocument({
 
       <Reveal delay={0.05}>
         <section className="mt-12">
-          <h2 className="font-serif text-2xl text-ink">Agreement details</h2>
+          <h2 className="text-[22px] font-semibold leading-[1.3] text-ink">Agreement details</h2>
           <dl className="mt-4 divide-y divide-ink/12 border-y border-ink/12">
             <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[200px_1fr]">
               <dt className="text-sm font-medium text-ink/60">Photographer</dt>
@@ -76,10 +76,10 @@ export function AgreementDocument({
         <div className="mt-12 space-y-9">
           {sections.map((section) => (
             <section key={section.heading} className="break-inside-avoid">
-              <h2 className="font-serif text-2xl text-ink">{section.heading}</h2>
+              <h2 className="text-[22px] font-semibold leading-[1.3] text-ink">{section.heading}</h2>
               <div className="mt-3 space-y-3">
                 {section.clauses.map((clause, i) => (
-                  <p key={i} className="text-sm leading-7 text-ink/75">
+                  <p key={i} className="text-[15px] leading-[1.7] text-ink/78">
                     {clause}
                   </p>
                 ))}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Check, FileSignature } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { SiteFooter } from "@/components/site-footer";
 import { PrintButton } from "@/components/print-button";
 import { AgreementDocument, buildDetailRows } from "@/components/agreement-document";
@@ -137,7 +137,7 @@ export default async function AgreementSigningPage({
 
   return (
     <div className="min-h-[100dvh] bg-[#f1f0ed] text-ink print:bg-white">
-      <header className="relative min-h-[460px] overflow-hidden bg-charcoal text-soft-white print:hidden sm:min-h-[520px]">
+      <header className="relative h-[500px] overflow-hidden bg-charcoal text-soft-white print:hidden sm:h-[560px]">
         <Image
           src={cover?.url || "/portfolio/ma-baby-shower-couple.webp"}
           alt={cover?.alt || "An expecting couple photographed by Nhihad Hassan Photography"}
@@ -150,22 +150,15 @@ export default async function AgreementSigningPage({
           style={{ objectPosition: `${cover?.focalX ?? 50}% ${cover?.focalY ?? 50}%` }}
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,8,8,.48),rgba(8,8,8,.14)_45%,rgba(8,8,8,.6))]" />
-        <div className="relative mx-auto flex min-h-[460px] max-w-6xl flex-col px-5 py-7 sm:min-h-[520px] sm:px-8 sm:py-9">
-          <Link
-            href="/"
-            className="inline-flex w-fit items-center gap-2 text-xs uppercase tracking-[0.18em] text-soft-white/75 transition hover:text-soft-white"
-          >
-            <ArrowLeft className="size-4" aria-hidden="true" />
-            Back to site
-          </Link>
-          <div className="mt-auto pb-24 text-center sm:pb-28">
-            <p className="whitespace-nowrap font-serif text-[clamp(1.35rem,4.8vw,4.75rem)] font-normal uppercase leading-none tracking-[0.015em] text-soft-white">
+        <div className="relative mx-auto h-full max-w-6xl px-5 sm:px-8">
+          <div className="pt-12 text-center sm:pt-14">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-soft-white/90">
               {brandConfig.name}
             </p>
-            <h1 className="mt-7 text-3xl font-semibold tracking-[-0.02em] sm:text-4xl">
+            <h1 className="mt-16 text-3xl font-semibold tracking-[-0.02em] sm:mt-20 sm:text-[28px]">
               Hi {firstName},
             </h1>
-            <p className="mt-2 text-lg text-soft-white/92 sm:text-xl">
+            <p className="mt-1 text-lg text-soft-white/92 sm:text-[28px] sm:leading-[1.5]">
               Please review and sign this contract.
             </p>
           </div>
@@ -173,12 +166,12 @@ export default async function AgreementSigningPage({
       </header>
 
       <main className="relative z-10 px-4 pb-24 sm:px-6 lg:px-8 print:px-0 print:pb-0">
-        <section className="mx-auto -mt-24 max-w-4xl bg-[#fbfaf7] p-5 shadow-[0_22px_70px_rgba(31,25,19,0.16)] print:hidden sm:-mt-28 sm:p-8">
+        <section className="mx-auto -mt-[180px] max-w-[800px] bg-[#fbfaf7] px-6 py-8 shadow-[0_18px_48px_rgba(31,25,19,0.14)] print:hidden sm:-mt-[216px] sm:px-12 sm:py-12">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-3">
-                <h2 className="font-serif text-3xl leading-tight sm:text-4xl">{contractTitle}</h2>
-                <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${signed ? "border-[#66805d]/30 bg-[#66805d]/8 text-[#52694b]" : "border-copper/35 bg-copper/8 text-[#8b6444]"}`}>
+                <h2 className="text-2xl font-semibold leading-tight">{contractTitle}</h2>
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${signed ? "bg-[#66805d]/8 text-[#52694b]" : "bg-copper/8 text-[#776f98]"}`}>
                   {signed ? <Check className="size-3" aria-hidden="true" /> : null}
                   {signed ? "Signed" : "Awaiting signature"}
                 </span>
@@ -187,7 +180,7 @@ export default async function AgreementSigningPage({
             <PrintButton className="shrink-0 rounded-none border-0 px-0 underline decoration-ink/20 underline-offset-4 hover:border-0" />
           </div>
 
-          <dl className="mt-7 grid gap-5 border-t border-ink/10 pt-6 sm:grid-cols-3">
+          <dl className="mt-7 grid gap-5 sm:grid-cols-3">
             <div>
               <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink/45">From</dt>
               <dd className="mt-1.5 text-sm font-medium text-ink/85">{brandConfig.name}</dd>
@@ -205,14 +198,14 @@ export default async function AgreementSigningPage({
           <a
             href="#sign-contract"
             aria-disabled={Boolean(signed)}
-            className={`mt-8 flex min-h-13 w-full items-center justify-center gap-2 px-5 text-xs font-semibold uppercase tracking-[0.18em] transition ${signed ? "pointer-events-none bg-[#66805d] text-soft-white" : "bg-ink text-soft-white hover:bg-ink/88"}`}
+            className={`mt-12 flex min-h-[60px] w-full items-center justify-center px-5 text-xs font-semibold uppercase tracking-[0.18em] transition ${signed ? "pointer-events-none bg-[#66805d] text-soft-white" : "bg-ink text-soft-white hover:bg-ink/88"}`}
           >
-            {signed ? <Check className="size-4" aria-hidden="true" /> : <FileSignature className="size-4" aria-hidden="true" />}
+            {signed ? <Check className="mr-2 size-4" aria-hidden="true" /> : null}
             {signed ? "Contract signed" : "Sign contract"}
           </a>
         </section>
 
-        <div className="mx-auto mt-4 max-w-4xl bg-[#fbfaf7] shadow-[0_18px_55px_rgba(31,25,19,0.08)] print:mt-0 print:max-w-none print:shadow-none sm:mt-5">
+        <div className="mx-auto mt-4 max-w-[800px] bg-[#fbfaf7] shadow-[0_14px_40px_rgba(31,25,19,0.06)] print:mt-0 print:max-w-none print:shadow-none sm:mt-5">
           <AgreementDocument
             intro={terms.intro}
             disclaimer={terms.disclaimer}

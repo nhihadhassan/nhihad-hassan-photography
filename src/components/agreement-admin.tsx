@@ -709,17 +709,31 @@ function CreateForm({
           </select>
         </label>
         {templateId === "wedding" ? (
-          <label className="grid gap-1.5 text-sm font-medium">
-            Partner name
-            <input
-              className={inputClass}
-              name="partner"
-              value={partnerName}
-              onChange={(event) => setPartnerName(event.target.value)}
-              placeholder="Partner's full name"
-              autoComplete="name"
-            />
-          </label>
+          <>
+            <label className="grid gap-1.5 text-sm font-medium">
+              Partner name
+              <input
+                className={inputClass}
+                name="partner"
+                value={partnerName}
+                onChange={(event) => setPartnerName(event.target.value)}
+                placeholder="Partner's full name"
+                autoComplete="name"
+              />
+            </label>
+            <label className="grid gap-1.5 text-sm font-medium">
+              Second signer name
+              <input className={inputClass} name="secondSignerName" placeholder="Full legal name" autoComplete="name" />
+            </label>
+            <label className="grid gap-1.5 text-sm font-medium">
+              Second signer email
+              <input className={inputClass} name="secondSignerEmail" type="email" placeholder="name@example.com" autoComplete="email" />
+            </label>
+            <label className="grid gap-1.5 text-sm font-medium">
+              Second signer phone
+              <input className={inputClass} name="secondSignerPhone" placeholder="(416) 555-0123" autoComplete="tel" />
+            </label>
+          </>
         ) : null}
         <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
           Description of services

@@ -76,10 +76,11 @@ export const getBookingAgreement = cache(
     templateId: AgreementTemplateId | string = "photography",
     clientName = "",
     partnerName = "",
+    secondSignerName = "",
   ): Promise<BookingAgreementContent> => {
     const content = await getBaseBookingAgreement();
     return resolveAgreementTemplateId(templateId) === "wedding"
-      ? applyWeddingAgreement(content, { clientName, partnerName })
+      ? applyWeddingAgreement(content, { clientName, partnerName, secondSignerName })
       : content;
   },
 );

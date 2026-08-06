@@ -42,5 +42,10 @@ export async function submitSignatureAction(
   if (!result.ok) return { status: "error", message: result.message };
 
   revalidatePath(`/agreement/${token}`);
-  return { status: "success", message: "Signed. Thank you." };
+  return {
+    status: "success",
+    message: result.complete
+      ? "All required signatures are complete. Thank you."
+      : "Your signature is recorded. The agreement is waiting for the other signer.",
+  };
 }

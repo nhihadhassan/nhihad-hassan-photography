@@ -13,8 +13,9 @@ import { brandConfig } from "@/lib/config";
 import {
   getAgreementCover,
   getAgreementRequestByToken,
-  getSignedAgreementByToken,
+  getSignedAgreementsByToken,
 } from "@/lib/agreements";
+import { remainingAgreementSigners, requiredAgreementSigners } from "@/lib/agreement-signers";
 
 export const dynamic = "force-dynamic";
 
@@ -86,11 +87,11 @@ export default async function AgreementSigningPage({
   const request = await getAgreementRequestByToken(token);
   if (!request) return <Unavailable />;
 
-  const [signed, cover] = await Promise.all([
-    getSignedAgreementByToken(token),
+  const [signatures, cover] = await Promise.all([
+    getSignedAgreementsByToken(token),
     getAgreementCover(request.gallery_id),
   ]);
-  const snapshot = signed?.agreement_snapshot;
+  const snapshot = signatures[0]?.agreement_snapshot;
   const signedTerms = snapshot?.sections?.length ? snapshot : null;
   const agreementDetails = signedTerms ? signedTerms.details : request.details;
   const clientName = signedTerms ? signedTerms.clientName : request.client_name;
@@ -105,6 +106,7 @@ export default async function AgreementSigningPage({
         agreementDetails.template,
         clientName ?? "",
         agreementDetails.partner,
+        agreementDetails.secondSignerName,
       );
   const firstName = clientName?.trim().split(/\s+/)[0] || "there";
   const contractTitle = `${clientName?.trim() || agreementDetails.type?.trim() || "Photography"} Contract`;
@@ -136,6 +138,9 @@ export default async function AgreementSigningPage({
     galleryWindow: agreementDetails.window,
     clientEmail: clientEmail ?? undefined,
     clientPhone: agreementDetails.phone,
+    secondSignerName: agreementDetails.secondSignerName,
+    secondSignerEmail: agreementDetails.secondSignerEmail,
+    secondSignerPhone: agreementDetails.secondSignerPhone,
   };
   const templateId = resolveAgreementTemplateId(agreementDetails.template);
   const referenceFormatting = !signedTerms || ["reference-v1", "reference-v2"].includes(agreementDetails.presentationVersion ?? "");
@@ -161,34 +166,30 @@ export default async function AgreementSigningPage({
     ? buildDetailRows(serviceFields, values, MONEY_FIELDS)
     : undefined;
 
-  const signatureSlot = signed ? (
+  const requiredSigners = requiredAgreementSigners(request);
+  const remainingSigners = remainingAgreementSigners(requiredSigners, signatures.map((signature) => signature.signer_email));
+  const fullySigned = Boolean(request.signed_at) || (requiredSigners.length > 0 && remainingSigners.length === 0);
+  const signatureSlot = (
     <section className="mt-14 break-inside-avoid">
-      <h2 className="font-serif text-2xl text-ink">Signed</h2>
-      <p className="mt-3 text-sm leading-7 text-ink/75">
-        Signed electronically by {signed.signer_name} on {formatDateTime(signed.signed_at)}.
-      </p>
-      {signed.signature_data_url ? (
-        <div className="mt-5 inline-block rounded-md border border-ink/15 bg-white p-3">
-          <Image
-            src={signed.signature_data_url}
-            alt={`Signature of ${signed.signer_name}`}
-            width={360}
-            height={120}
-            unoptimized
-            className="h-24 w-auto"
-          />
+      {signatures.length ? <>
+        <h2 className="font-serif text-2xl text-ink">{fullySigned ? "Signed" : "Signatures received"}</h2>
+        <div className="mt-4 grid gap-5 sm:grid-cols-2">
+          {signatures.map((signature) => (
+            <div key={signature.id} className="border border-ink/12 bg-white/55 p-4">
+              <p className="text-sm leading-6 text-ink/75">
+                Signed electronically by <strong className="font-semibold text-ink">{signature.signer_name}</strong><br />
+                {formatDateTime(signature.signed_at)}
+              </p>
+              {signature.signature_data_url ? (
+                <Image src={signature.signature_data_url} alt={`Signature of ${signature.signer_name}`} width={360} height={120} unoptimized className="mt-3 h-20 w-auto" />
+              ) : null}
+            </div>
+          ))}
         </div>
-      ) : null}
-      <p className="mt-4 text-xs text-ink/45">
-        This record is kept by the photographer as confirmation of your agreement.
-      </p>
+      </> : null}
+      {!fullySigned && remainingSigners.length ? <AgreementSignForm token={token} signers={remainingSigners} /> : null}
+      {fullySigned ? <p className="mt-4 text-xs text-ink/45">This record is kept by the photographer as confirmation of the completed agreement.</p> : null}
     </section>
-  ) : (
-    <AgreementSignForm
-      token={token}
-      defaultName={request.client_name ?? ""}
-      defaultEmail={request.client_email ?? ""}
-    />
   );
 
   return (
@@ -227,16 +228,16 @@ export default async function AgreementSigningPage({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="font-serif text-3xl font-medium leading-none sm:text-4xl">{contractTitle}</h2>
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${signed ? "bg-[#66805d]/8 text-[#52694b]" : "bg-copper/8 text-[#776f98]"}`}>
-                  {signed ? <Check className="size-3" aria-hidden="true" /> : null}
-                  {signed ? "Signed" : "Awaiting signature"}
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${fullySigned ? "bg-[#66805d]/8 text-[#52694b]" : "bg-copper/8 text-[#776f98]"}`}>
+                  {fullySigned ? <Check className="size-3" aria-hidden="true" /> : null}
+                  {fullySigned ? "Signed" : signatures.length ? `Awaiting ${remainingSigners.length} signature` : "Awaiting signatures"}
                 </span>
               </div>
             </div>
             <PrintButton className="shrink-0 rounded-none border-0 px-0 underline decoration-ink/20 underline-offset-4 hover:border-0" />
           </div>
 
-          <dl className={`mt-7 grid gap-5 ${request.expires_at && !signed ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+          <dl className={`mt-7 grid gap-5 ${request.expires_at && !fullySigned ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
             <div>
               <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink/45">From</dt>
               <dd className="mt-1.5 text-sm font-medium text-ink/85">{brandConfig.name}</dd>
@@ -249,7 +250,7 @@ export default async function AgreementSigningPage({
               <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink/45">Issue date</dt>
               <dd className="mt-1.5 text-sm font-medium text-ink/85">{formatDate(request.sent_at || request.created_at)}</dd>
             </div>
-            {request.expires_at && !signed ? (
+            {request.expires_at && !fullySigned ? (
               <div>
                 <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink/45">
                   Sign by
@@ -263,11 +264,11 @@ export default async function AgreementSigningPage({
 
           <a
             href="#sign-contract"
-            aria-disabled={Boolean(signed)}
-            className={`mt-12 flex min-h-[60px] w-full items-center justify-center px-5 text-xs font-semibold uppercase tracking-[0.18em] transition ${signed ? "pointer-events-none bg-[#66805d] text-soft-white" : "bg-ink text-soft-white hover:bg-ink/88"}`}
+            aria-disabled={fullySigned}
+            className={`mt-12 flex min-h-[60px] w-full items-center justify-center px-5 text-xs font-semibold uppercase tracking-[0.18em] transition ${fullySigned ? "pointer-events-none bg-[#66805d] text-soft-white" : "bg-ink text-soft-white hover:bg-ink/88"}`}
           >
-            {signed ? <Check className="mr-2 size-4" aria-hidden="true" /> : null}
-            {signed ? "Contract signed" : "Sign contract"}
+            {fullySigned ? <Check className="mr-2 size-4" aria-hidden="true" /> : null}
+            {fullySigned ? "Contract signed" : signatures.length ? "Complete remaining signature" : "Sign contract"}
           </a>
         </section>
 

@@ -42,6 +42,7 @@ export default async function BookingAgreementPage({ searchParams }: Props) {
     templateId,
     values.client,
     values.partner,
+    values.secondSignerName,
   );
   const detailFields =
     templateId === "wedding"

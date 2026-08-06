@@ -44,6 +44,9 @@ function detailsFromForm(formData: FormData): AgreementDetails {
     partner: pick("partner"),
     signerName: pick("signerName"),
     signerTitle: pick("signerTitle"),
+    secondSignerName: pick("secondSignerName"),
+    secondSignerEmail: pick("secondSignerEmail"),
+    secondSignerPhone: pick("secondSignerPhone"),
     effectiveDate: pick("effectiveDate"),
     clientAddress: pick("clientAddress"),
     phone: pick("phone"),
@@ -91,6 +94,43 @@ function integerSetting(formData: FormData, key: string, fallback: number, min: 
   return Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : fallback;
 }
 
+async function emailAgreementSigners(input: {
+  agreementRequestId: string;
+  agreementUrl: string;
+  expiresAt: string | null;
+  primaryName: string | null;
+  primaryEmail: string | null;
+  secondName?: string;
+  secondEmail?: string;
+}) {
+  const recipients = [
+    { name: input.primaryName, email: input.primaryEmail },
+    { name: input.secondName ?? null, email: input.secondEmail ?? null },
+  ].filter((recipient): recipient is { name: string | null; email: string } => Boolean(recipient.email));
+  if (!recipients.length) return { ok: false, message: "This agreement has no signer email." };
+
+  const results = await Promise.all(recipients.map((recipient) => sendAgreementRequestEmail({
+    agreementRequestId: input.agreementRequestId,
+    clientEmail: recipient.email,
+    clientName: recipient.name,
+    agreementUrl: input.agreementUrl,
+    expiresAt: input.expiresAt,
+  })));
+  const failed = results.filter((result) => !result.ok);
+  if (failed.length) {
+    return {
+      ok: false,
+      message: `${recipients.length - failed.length} of ${recipients.length} signer emails were sent. ${failed[0]?.message ?? "One delivery failed."}`,
+    };
+  }
+  return {
+    ok: true,
+    message: recipients.length === 1
+      ? `Agreement emailed to ${recipients[0].email}.`
+      : `Agreement emailed to both required signers.`,
+  };
+}
+
 export async function createAgreementRequestAction(
   _prev: AgreementActionState,
   formData: FormData,
@@ -102,6 +142,7 @@ export async function createAgreementRequestAction(
     const emailNow = formData.get("mark_sent") === "on";
     const remindersEnabled = formData.get("reminders_enabled") === "on";
     const expiryInput = clean(formData.get("expires_at"));
+    const details = detailsFromForm(formData);
     const expiryDate = expiryInput ? torontoLocalToUtc(expiryInput) : null;
     if (expiryInput && (!expiryDate || expiryDate.getTime() <= Date.now())) {
       return {
@@ -114,7 +155,7 @@ export async function createAgreementRequestAction(
       clientName,
       clientEmail,
       message: clean(formData.get("message")),
-      details: detailsFromForm(formData),
+      details,
       expiresAt: expiryDate?.toISOString() ?? null,
       remindersEnabled,
       reminderIntervalDays: integerSetting(formData, "reminder_interval_days", 3, 1, 30),
@@ -131,12 +172,14 @@ export async function createAgreementRequestAction(
           signUrl,
         };
       }
-      const delivery = await sendAgreementRequestEmail({
+      const delivery = await emailAgreementSigners({
         agreementRequestId: id,
-        clientEmail,
-        clientName,
         agreementUrl: signUrl,
         expiresAt: expiryDate?.toISOString() ?? null,
+        primaryName: clientName,
+        primaryEmail: clientEmail,
+        secondName: details.secondSignerName,
+        secondEmail: details.secondSignerEmail,
       });
       revalidatePath("/admin/agreements");
       return {
@@ -241,12 +284,14 @@ export async function sendAgreementRequestEmailAction(
       return { ok: false, message: "This agreement has no client email. Add one before sending." };
     }
 
-    const result = await sendAgreementRequestEmail({
+    const result = await emailAgreementSigners({
       agreementRequestId: request.id,
-      clientEmail: request.client_email,
-      clientName: request.client_name,
       agreementUrl: signUrlFor(request.token),
       expiresAt: request.expires_at,
+      primaryName: request.client_name,
+      primaryEmail: request.client_email,
+      secondName: request.details.secondSignerName,
+      secondEmail: request.details.secondSignerEmail,
     });
     revalidatePath("/admin/agreements");
     return { ok: result.ok, message: result.message };

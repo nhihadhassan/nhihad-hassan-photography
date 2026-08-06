@@ -13,6 +13,7 @@ import {
   type AgreementDelivery,
 } from "@/lib/agreement-deliveries";
 import { isAgreementPastExpiry } from "@/lib/agreement-status";
+import { requiredAgreementSigners } from "@/lib/agreement-signers";
 
 /** Per-client shoot details captured at request time and shown on the contract. */
 export type AgreementDetails = {
@@ -22,6 +23,9 @@ export type AgreementDetails = {
   partner?: string;
   signerName?: string;
   signerTitle?: string;
+  secondSignerName?: string;
+  secondSignerEmail?: string;
+  secondSignerPhone?: string;
   effectiveDate?: string;
   clientAddress?: string;
   phone?: string;
@@ -134,6 +138,9 @@ function asDetails(value: unknown): AgreementDetails {
     partner: pick("partner"),
     signerName: pick("signerName"),
     signerTitle: pick("signerTitle"),
+    secondSignerName: pick("secondSignerName"),
+    secondSignerEmail: pick("secondSignerEmail"),
+    secondSignerPhone: pick("secondSignerPhone"),
     effectiveDate: pick("effectiveDate"),
     clientAddress: pick("clientAddress"),
     phone: pick("phone"),
@@ -384,6 +391,23 @@ export async function getSignedAgreementByToken(token: string): Promise<SignedAg
   return data ? mapSigned(data as Record<string, unknown>) : null;
 }
 
+export async function getSignedAgreementsByToken(token: string): Promise<SignedAgreement[]> {
+  const admin = getServiceRoleSupabaseClient();
+  const { data: req } = await admin
+    .from("agreement_requests")
+    .select("id")
+    .eq("token", token)
+    .maybeSingle();
+  if (!req) return [];
+  const { data, error } = await admin
+    .from("signed_agreements")
+    .select("*,galleries(title)")
+    .eq("agreement_request_id", req.id as string)
+    .order("signed_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as Record<string, unknown>[]).map(mapSigned);
+}
+
 export async function revokeAgreementRequest(id: string) {
   const admin = getServiceRoleSupabaseClient();
   const { error } = await admin
@@ -430,7 +454,7 @@ export async function signAgreement(input: {
   signatureDataUrl?: string | null;
   ip?: string | null;
   userAgent?: string | null;
-}): Promise<{ ok: true } | { ok: false; message: string }> {
+}): Promise<{ ok: true; complete: boolean } | { ok: false; message: string }> {
   const admin = getServiceRoleSupabaseClient();
   const { data: row } = await admin
     .from("agreement_requests")
@@ -452,27 +476,54 @@ export async function signAgreement(input: {
     return { ok: false, message: "This agreement has expired and can no longer be signed." };
   }
 
-  const terms = await getBookingAgreement(
-    request.details.template,
-    request.client_name ?? "",
-    request.details.partner,
-  );
-  const snapshot: AgreementSnapshot = {
-    photographerName: brandConfig.name,
-    photographerEmail: brandConfig.contactEmail,
-    intro: terms.intro,
-    disclaimer: terms.disclaimer,
-    sections: terms.sections,
-    details: request.details,
-    clientName: request.client_name,
-    clientEmail: request.client_email,
-  };
+  const { data: existingRows, error: existingError } = await admin
+    .from("signed_agreements")
+    .select("signer_email,agreement_snapshot")
+    .eq("agreement_request_id", request.id)
+    .order("signed_at", { ascending: true });
+  if (existingError) return { ok: false, message: existingError.message };
+
+  const requiredSigners = requiredAgreementSigners(request);
+  const isDualSignature = requiredSigners.length > 1;
+  const submittedEmail = (input.signerEmail ?? "").trim().toLowerCase();
+  const assignedSigner = isDualSignature
+    ? requiredSigners.find((signer) => signer.email === submittedEmail)
+    : null;
+  if (isDualSignature && !assignedSigner) {
+    return { ok: false, message: "Please choose one of the people named as a signer." };
+  }
+  if (isDualSignature && assignedSigner && assignedSigner.name.toLowerCase() !== input.signerName.trim().toLowerCase()) {
+    return { ok: false, message: `This signature must be completed as ${assignedSigner.name}.` };
+  }
+  if ((existingRows ?? []).some((row) => (row.signer_email as string | null)?.toLowerCase() === submittedEmail)) {
+    return { ok: false, message: "This person has already signed the agreement." };
+  }
+
+  const firstSnapshot = (existingRows?.[0]?.agreement_snapshot as AgreementSnapshot | undefined);
+  const snapshot: AgreementSnapshot = firstSnapshot ?? await (async () => {
+    const terms = await getBookingAgreement(
+      request.details.template,
+      request.client_name ?? "",
+      request.details.partner,
+      request.details.secondSignerName,
+    );
+    return {
+      photographerName: brandConfig.name,
+      photographerEmail: brandConfig.contactEmail,
+      intro: terms.intro,
+      disclaimer: terms.disclaimer,
+      sections: terms.sections,
+      details: request.details,
+      clientName: request.client_name,
+      clientEmail: request.client_email,
+    };
+  })();
 
   const { error: insertError } = await admin.from("signed_agreements").insert({
     agreement_request_id: request.id,
     gallery_id: request.gallery_id,
-    signer_name: input.signerName,
-    signer_email: input.signerEmail ?? request.client_email ?? null,
+    signer_name: assignedSigner?.name ?? input.signerName,
+    signer_email: assignedSigner?.email ?? input.signerEmail ?? request.client_email ?? null,
     signature_data_url: input.signatureDataUrl ?? null,
     agreement_snapshot: snapshot,
     signed_ip: input.ip ?? null,
@@ -480,18 +531,21 @@ export async function signAgreement(input: {
   });
   if (insertError) return { ok: false, message: insertError.message };
 
-  await admin
-    .from("agreement_requests")
-    .update({ signed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-    .eq("id", request.id);
+  const complete = (existingRows?.length ?? 0) + 1 >= Math.max(1, requiredSigners.length);
+  if (complete) {
+    await admin
+      .from("agreement_requests")
+      .update({ signed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq("id", request.id);
+  }
 
   // Auto-advance the linked booking. A signed contract moves the job to
   // Booked when a deposit is already on file, otherwise to Contract out.
-  const { data: linkedBooking } = await admin
+  const { data: linkedBooking } = complete ? await admin
     .from("bookings")
     .select("id")
     .eq("agreement_request_id", request.id)
-    .maybeSingle();
+    .maybeSingle() : { data: null };
   if (linkedBooking?.id) {
     const bookingId = linkedBooking.id as string;
     const { count } = await admin
@@ -509,7 +563,7 @@ export async function signAgreement(input: {
     url: `${origin}/agreement/${input.token}`,
   }).catch(() => undefined);
 
-  return { ok: true };
+  return { ok: true, complete };
 }
 
 export async function getAdminSignedAgreements(): Promise<SignedAgreement[]> {

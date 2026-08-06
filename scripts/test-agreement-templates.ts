@@ -23,6 +23,7 @@ const generalText = [
 const wedding = applyWeddingAgreement(shared, {
   clientName: "Alex Chen",
   partnerName: "Jamie Lee",
+  secondSignerName: "Jamie Lee",
 });
 const weddingText = [
   wedding.intro,
@@ -80,6 +81,16 @@ assert.match(generalText, /6\.4 No Refund\./);
 assert.match(generalText, /cancellation by the Client will not result in a refund of any fees paid/i);
 assert.match(generalText, /6\.5 Photographer cancellation or replacement\./);
 assert.match(weddingText, /6\.4 No Refund\./);
+assert.match(weddingText, /\{\{secondSignerName\}\}/);
+assert.match(weddingText, /\{\{secondSignerEmail\}\}/);
+assert.match(weddingText, /10\.8 Multiple clients\./);
+assert.match(weddingText, /joint and several/i);
+const singleSignerWeddingText = JSON.stringify(applyWeddingAgreement(shared, {
+  clientName: "Alex Chen",
+  partnerName: "Jamie Lee",
+}));
+assert.doesNotMatch(singleSignerWeddingText, /10\.8 Multiple clients\./);
+assert.doesNotMatch(singleSignerWeddingText, /secondSignerEmail/);
 assert.match(weddingText, /2\. Fees and Deposit/);
 assert.match(weddingText, /2\.2 Deposit/);
 assert.doesNotMatch(weddingText, /2\.2 Retainer/);

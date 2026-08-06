@@ -40,9 +40,8 @@ function replaceClauseNumber(clause: string, from: string, to: string): string {
 /** Add wedding-only terms without duplicating the shared photography agreement. */
 export function applyWeddingAgreement(
   content: AgreementContent,
-  _context: { clientName?: string | null; partnerName?: string | null } = {},
+  context: { clientName?: string | null; partnerName?: string | null; secondSignerName?: string | null } = {},
 ): AgreementContent {
-  void _context;
   const sections = content.sections.map((section): AgreementSection => {
     if (section.heading.startsWith("1.")) {
       return {
@@ -94,12 +93,30 @@ export function applyWeddingAgreement(
       };
     }
 
+    if (section.heading.startsWith("10.")) {
+      if (!context.secondSignerName) return { ...section, clauses: [...section.clauses] };
+      return {
+        ...section,
+        clauses: [
+          ...section.clauses.map((clause) =>
+            clause.replace(
+              "to the Client at {{clientEmail}} or {{clientPhone}}",
+              "to the Client at {{clientEmail}}, {{secondSignerEmail}}, {{clientPhone}}, or {{secondSignerPhone}}",
+            ),
+          ),
+          "10.8 Multiple clients. {{clientName}} and {{secondSignerName}} are both Clients and required signers. Their payment and other obligations under this Agreement are joint and several. Notice given to either Client is notice to both.",
+        ],
+      };
+    }
+
     return { ...section, clauses: [...section.clauses] };
   });
 
   return {
     ...content,
-    intro: `THIS AGREEMENT is made as of {{effectiveDate}} (the “Effective Date”) between {{clientName}}, represented where applicable by {{signerName}}, {{signerTitle}}, with a mailing address of {{clientAddress}}, email {{clientEmail}}, and phone {{clientPhone}} (the “Client”), and Nhihad Hassan Photography (the “Photographer”).`,
+    intro: context.secondSignerName
+      ? `THIS AGREEMENT is made as of {{effectiveDate}} (the “Effective Date”) between {{clientName}} and {{secondSignerName}} (together, the “Client”), with a mailing address of {{clientAddress}}, emails {{clientEmail}} and {{secondSignerEmail}}, and phones {{clientPhone}} and {{secondSignerPhone}}, and Nhihad Hassan Photography (the “Photographer”).`
+      : `THIS AGREEMENT is made as of {{effectiveDate}} (the “Effective Date”) between {{clientName}}, with a mailing address of {{clientAddress}}, email {{clientEmail}}, and phone {{clientPhone}} (the “Client”), and Nhihad Hassan Photography (the “Photographer”).`,
     sections,
   };
 }

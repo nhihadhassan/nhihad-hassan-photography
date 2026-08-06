@@ -29,13 +29,24 @@ export function RemindersControl({ enabled: initialEnabled }: { enabled: boolean
     startRun(async () => {
       const summary: ReminderSummary = await runRemindersNowAction();
       if (!summary.enabled) {
-        setResult("Reminders are turned off. Turn them on above first.");
+        setResult(
+          summary.expiredContracts > 0
+            ? `Reminders are off. ${summary.expiredContracts} expired contract${summary.expiredContracts === 1 ? " was" : "s were"} closed.`
+            : "Reminders are turned off. Turn them on above first.",
+        );
       } else if (summary.sent === 0) {
-        setResult("No reminders were due right now.");
+        setResult(
+          summary.expiredContracts > 0
+            ? `No emails were due. ${summary.expiredContracts} expired contract${summary.expiredContracts === 1 ? " was" : "s were"} closed.`
+            : "No reminders were due right now.",
+        );
       } else {
         const parts = Object.entries(summary.byKind)
           .filter(([, n]) => n > 0)
           .map(([k, n]) => `${n} ${k.replace(/_/g, " ")}`);
+        if (summary.contractSignature > 0) {
+          parts.push(`${summary.contractSignature} contract signature`);
+        }
         setResult(`Sent ${summary.sent} reminder${summary.sent === 1 ? "" : "s"}: ${parts.join(", ")}.`);
       }
     });
@@ -47,7 +58,8 @@ export function RemindersControl({ enabled: initialEnabled }: { enabled: boolean
         <div>
           <p className="font-medium text-admin-ink">Automated reminders</p>
           <p className="mt-0.5 text-sm text-admin-ink/65">
-            When on, the daily job sends the reminders below. When off, nothing is sent.
+            When on, the daily job sends the reminders below and any contract reminders you enable.
+            Expiry dates are enforced even when reminder emails are off.
           </p>
         </div>
         <button

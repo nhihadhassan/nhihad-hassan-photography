@@ -26,6 +26,7 @@ const MONEY_FIELDS = new Set(["total", "deposit", "balance"]);
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("en-CA", {
+    timeZone: "America/Toronto",
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -36,6 +37,7 @@ function formatDateTime(iso: string) {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-CA", {
+    timeZone: "America/Toronto",
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -191,7 +193,7 @@ export default async function AgreementSigningPage({
             <PrintButton className="shrink-0 rounded-none border-0 px-0 underline decoration-ink/20 underline-offset-4 hover:border-0" />
           </div>
 
-          <dl className="mt-7 grid gap-5 sm:grid-cols-3">
+          <dl className={`mt-7 grid gap-5 ${request.expires_at && !signed ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
             <div>
               <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink/45">From</dt>
               <dd className="mt-1.5 text-sm font-medium text-ink/85">{brandConfig.name}</dd>
@@ -204,6 +206,16 @@ export default async function AgreementSigningPage({
               <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink/45">Issue date</dt>
               <dd className="mt-1.5 text-sm font-medium text-ink/85">{formatDate(request.sent_at || request.created_at)}</dd>
             </div>
+            {request.expires_at && !signed ? (
+              <div>
+                <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink/45">
+                  Sign by
+                </dt>
+                <dd className="mt-1.5 text-sm font-medium text-ink/85">
+                  {formatDateTime(request.expires_at)}
+                </dd>
+              </div>
+            ) : null}
           </dl>
 
           <a

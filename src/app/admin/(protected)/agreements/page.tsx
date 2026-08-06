@@ -33,6 +33,8 @@ export default async function AdminAgreementsPage() {
     viewed_at: r.viewed_at,
     signed_at: r.signed_at,
     revoked_at: r.revoked_at,
+    expires_at: r.expires_at,
+    expired_at: r.expired_at,
     created_at: r.created_at,
   }));
 

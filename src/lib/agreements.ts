@@ -12,6 +12,7 @@ import {
   listAgreementDeliveries,
   type AgreementDelivery,
 } from "@/lib/agreement-deliveries";
+import { isAgreementPastExpiry } from "@/lib/agreement-status";
 
 /** Per-client shoot details captured at request time and shown on the contract. */
 export type AgreementDetails = {
@@ -36,6 +37,16 @@ export type AgreementRequest = {
   viewed_at: string | null;
   signed_at: string | null;
   revoked_at: string | null;
+  expires_at: string | null;
+  expired_at: string | null;
+  reminders_enabled: boolean;
+  reminder_interval_days: number;
+  reminder_max_sends: number;
+  reminder_count: number;
+  last_reminder_at: string | null;
+  last_reminder_attempt_at: string | null;
+  last_reminder_error: string | null;
+  last_reminder_message_id: string | null;
   created_at: string;
   updated_at: string;
   gallery_title?: string | null;
@@ -108,6 +119,16 @@ function mapRequest(row: Record<string, unknown>): AgreementRequest {
     viewed_at: (row.viewed_at as string | null) ?? null,
     signed_at: (row.signed_at as string | null) ?? null,
     revoked_at: (row.revoked_at as string | null) ?? null,
+    expires_at: (row.expires_at as string | null) ?? null,
+    expired_at: (row.expired_at as string | null) ?? null,
+    reminders_enabled: Boolean(row.reminders_enabled),
+    reminder_interval_days: Math.max(1, Number(row.reminder_interval_days) || 3),
+    reminder_max_sends: Math.max(1, Number(row.reminder_max_sends) || 3),
+    reminder_count: Math.max(0, Number(row.reminder_count) || 0),
+    last_reminder_at: (row.last_reminder_at as string | null) ?? null,
+    last_reminder_attempt_at: (row.last_reminder_attempt_at as string | null) ?? null,
+    last_reminder_error: (row.last_reminder_error as string | null) ?? null,
+    last_reminder_message_id: (row.last_reminder_message_id as string | null) ?? null,
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
     gallery_title: gallery?.title ?? null,
@@ -139,6 +160,10 @@ export async function createAgreementRequest(input: {
   clientEmail?: string | null;
   details?: AgreementDetails;
   message?: string | null;
+  expiresAt?: string | null;
+  remindersEnabled?: boolean;
+  reminderIntervalDays?: number;
+  reminderMaxSends?: number;
 }) {
   const admin = getServiceRoleSupabaseClient();
   const token = generateToken();
@@ -151,6 +176,10 @@ export async function createAgreementRequest(input: {
       client_email: input.clientEmail ?? null,
       details: input.details ?? {},
       message: input.message ?? null,
+      expires_at: input.expiresAt ?? null,
+      reminders_enabled: input.remindersEnabled ?? false,
+      reminder_interval_days: input.reminderIntervalDays ?? 3,
+      reminder_max_sends: input.reminderMaxSends ?? 3,
       sent_at: null,
     })
     .select("id,token")
@@ -203,6 +232,19 @@ export async function getAgreementRequestByToken(token: string): Promise<Agreeme
   if (error || !data) return null;
   const request = mapRequest(data as Record<string, unknown>);
   if (request.revoked_at) return null;
+  if (isAgreementPastExpiry(request)) {
+    if (!request.expired_at) {
+      const expiredAt = new Date().toISOString();
+      await admin
+        .from("agreement_requests")
+        .update({ expired_at: expiredAt, updated_at: expiredAt })
+        .eq("id", request.id)
+        .is("signed_at", null)
+        .is("revoked_at", null)
+        .is("expired_at", null);
+    }
+    return null;
+  }
   if (!request.viewed_at) {
     await admin
       .from("agreement_requests")
@@ -285,6 +327,36 @@ export async function revokeAgreementRequest(id: string) {
   if (error) throw new Error(error.message);
 }
 
+export async function updateAgreementAutomationSettings(
+  id: string,
+  input: {
+    expiresAt: string | null;
+    remindersEnabled: boolean;
+    reminderIntervalDays: number;
+    reminderMaxSends: number;
+  },
+) {
+  const admin = getServiceRoleSupabaseClient();
+  const now = new Date().toISOString();
+  const { data, error } = await admin
+    .from("agreement_requests")
+    .update({
+      expires_at: input.expiresAt,
+      reminders_enabled: input.remindersEnabled,
+      reminder_interval_days: input.reminderIntervalDays,
+      reminder_max_sends: input.reminderMaxSends,
+      updated_at: now,
+    })
+    .eq("id", id)
+    .is("signed_at", null)
+    .is("revoked_at", null)
+    .is("expired_at", null)
+    .select("id")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Only an active, unsigned contract can be changed.");
+}
+
 export async function signAgreement(input: {
   token: string;
   signerName: string;
@@ -303,6 +375,16 @@ export async function signAgreement(input: {
   const request = mapRequest(row as Record<string, unknown>);
   if (request.revoked_at) return { ok: false, message: "This signing link has been turned off." };
   if (request.signed_at) return { ok: false, message: "This agreement has already been signed." };
+  if (isAgreementPastExpiry(request)) {
+    const expiredAt = new Date().toISOString();
+    await admin
+      .from("agreement_requests")
+      .update({ expired_at: expiredAt, updated_at: expiredAt })
+      .eq("id", request.id)
+      .is("signed_at", null)
+      .is("revoked_at", null);
+    return { ok: false, message: "This agreement has expired and can no longer be signed." };
+  }
 
   const terms = await getBookingAgreement();
   const snapshot: AgreementSnapshot = {

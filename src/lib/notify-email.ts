@@ -7,6 +7,18 @@ import { emailShell, escapeHtml } from "@/lib/emails/shell";
 
 export type SendResult = { ok: boolean; message: string; messageId?: string };
 
+function formatTorontoDateTime(iso: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Toronto",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(new Date(iso));
+}
+
 /** Core send. Best-effort: returns ok:false (never throws) when unconfigured. */
 async function sendMail(opts: {
   to: string;
@@ -200,18 +212,27 @@ export async function sendAgreementEmail(input: {
   clientName: string | null;
   agreementUrl: string;
   idempotencyKey: string;
+  expiresAt?: string | null;
 }): Promise<SendResult> {
   const first = input.clientName?.trim().split(/\s+/)[0];
   const greeting = first ? `Hi ${escapeHtml(first)},` : "Hello,";
+  const expiry = input.expiresAt ? formatTorontoDateTime(input.expiresAt) : null;
+  const expiryHtml = expiry
+    ? `<p style="margin:0 0 14px 0;">Please sign by <strong>${escapeHtml(expiry)}</strong>. After that time, the agreement will close automatically.</p>`
+    : "";
+  const expiryText = expiry
+    ? `\n\nPlease sign by ${expiry}. After that time, the agreement will close automatically.`
+    : "";
   const bodyHtml = `
     <p style="margin:0 0 14px 0;">${greeting}</p>
     <p style="margin:0 0 14px 0;">Your photography agreement with ${escapeHtml(brandConfig.name)} is ready to review and sign.</p>
+    ${expiryHtml}
     <p style="margin:0;">Please read the agreement carefully, confirm the booking details, and use the signature form at the bottom when you are ready.</p>`;
   return sendMail({
     to: input.to,
     replyTo: brandConfig.contactEmail,
     subject: `Your photography agreement · ${brandConfig.name}`,
-    text: `${first ? `Hi ${first},` : "Hello,"}\n\nYour photography agreement with ${brandConfig.name} is ready to review and sign:\n\n${input.agreementUrl}\n\nPlease read the agreement carefully and confirm the booking details before signing.`,
+    text: `${first ? `Hi ${first},` : "Hello,"}\n\nYour photography agreement with ${brandConfig.name} is ready to review and sign.${expiryText}\n\n${input.agreementUrl}\n\nPlease read the agreement carefully and confirm the booking details before signing.`,
     html: emailShell({
       eyebrow: "Photography agreement",
       heading: "Your agreement is ready.",
@@ -220,6 +241,43 @@ export async function sendAgreementEmail(input: {
       ctaUrl: input.agreementUrl,
     }),
     tags: [{ name: "category", value: "agreement" }],
+    idempotencyKey: input.idempotencyKey,
+  });
+}
+
+/** Follow-up for an active agreement that is still awaiting a signature. */
+export async function sendAgreementReminderEmail(input: {
+  to: string;
+  clientName: string | null;
+  agreementUrl: string;
+  expiresAt?: string | null;
+  idempotencyKey: string;
+}): Promise<SendResult> {
+  const first = input.clientName?.trim().split(/\s+/)[0];
+  const greeting = first ? `Hi ${escapeHtml(first)},` : "Hello,";
+  const expiry = input.expiresAt ? formatTorontoDateTime(input.expiresAt) : null;
+  const expiryHtml = expiry
+    ? `<p style="margin:0 0 14px 0;">This signing link closes on <strong>${escapeHtml(expiry)}</strong>.</p>`
+    : "";
+  const expiryText = expiry ? `\n\nThis signing link closes on ${expiry}.` : "";
+  const bodyHtml = `
+    <p style="margin:0 0 14px 0;">${greeting}</p>
+    <p style="margin:0 0 14px 0;">A quick reminder that your photography agreement with ${escapeHtml(brandConfig.name)} is still waiting for your signature.</p>
+    ${expiryHtml}
+    <p style="margin:0;">You can review the details and sign using the button below.</p>`;
+  return sendMail({
+    to: input.to,
+    replyTo: brandConfig.contactEmail,
+    subject: `Reminder: your photography agreement is waiting`,
+    text: `${first ? `Hi ${first},` : "Hello,"}\n\nA quick reminder that your photography agreement with ${brandConfig.name} is still waiting for your signature.${expiryText}\n\nReview and sign here:\n${input.agreementUrl}`,
+    html: emailShell({
+      eyebrow: "Agreement reminder",
+      heading: "Your signature is still needed.",
+      bodyHtml,
+      ctaLabel: "Review and sign agreement",
+      ctaUrl: input.agreementUrl,
+    }),
+    tags: [{ name: "category", value: "agreement_reminder" }],
     idempotencyKey: input.idempotencyKey,
   });
 }

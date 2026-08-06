@@ -19,6 +19,7 @@ export type StatusKey =
   | "paid"
   | "partially_paid"
   | "overdue"
+  | "expired"
   | "void";
 
 type Tone = "positive" | "waiting" | "danger" | "info" | "neutral";
@@ -32,6 +33,7 @@ const STATUS: Record<StatusKey, { label: string; tone: Tone }> = {
   paid: { label: "Paid", tone: "positive" },
   partially_paid: { label: "Partially paid", tone: "waiting" },
   overdue: { label: "Overdue", tone: "danger" },
+  expired: { label: "Expired", tone: "danger" },
   void: { label: "Void", tone: "neutral" },
 };
 
@@ -74,9 +76,13 @@ export function statusForContract(a: {
   viewed_at: string | null;
   sent_at: string | null;
   revoked_at: string | null;
+  expires_at?: string | null;
+  expired_at?: string | null;
 }): StatusKey {
-  if (a.revoked_at) return "void";
   if (a.signed_at) return "signed";
+  if (a.revoked_at) return "void";
+  const pastExpiry = a.expires_at ? new Date(a.expires_at).getTime() <= Date.now() : false;
+  if (a.expired_at || pastExpiry) return "expired";
   if (a.viewed_at) return "viewed";
   if (a.sent_at) return "sent";
   return "draft";

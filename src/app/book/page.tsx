@@ -85,7 +85,7 @@ export default async function BookPage({ searchParams }: Props) {
         </section>
 
         <div className="relative z-10 mx-auto -mt-16 max-w-5xl px-4 sm:-mt-20 sm:px-6 lg:px-8">
-          <section className="grid gap-5 border-b border-ink/10 bg-[#f8f3eb] px-5 py-7 shadow-[0_18px_55px_rgba(31,25,19,0.12)] sm:grid-cols-[1fr_auto] sm:items-center sm:px-8">
+          <section className="grid gap-5 bg-[#f8f3eb] px-5 py-7 shadow-[0_18px_55px_rgba(31,25,19,0.12)] sm:grid-cols-[1fr_auto] sm:items-center sm:px-8">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-[#8b6444]">{selection.category.label}</p>
               <h2 className="mt-2 font-serif text-4xl">{selection.tier.name}</h2>

@@ -99,7 +99,7 @@ export function applyWeddingAgreement(
 
   return {
     ...content,
-    intro: `This Wedding Photography Services Agreement is between Nhihad Hassan Photography (the “Photographer”) and the client identified below (the “Client”). It takes effect when signed and governs the photography services, fees, deliverables, and usage rights for the Wedding described below.`,
+    intro: `THIS AGREEMENT is made as of the date the Client signs it (the “Effective Date”) between the client identified below (the “Client”) and Nhihad Hassan Photography (the “Photographer”) in connection with the Wedding described below.`,
     sections,
   };
 }

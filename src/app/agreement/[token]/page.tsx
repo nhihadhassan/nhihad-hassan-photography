@@ -6,7 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { PrintButton } from "@/components/print-button";
 import { AgreementDocument, buildDetailRows } from "@/components/agreement-document";
 import { AgreementSignForm } from "@/components/agreement-sign-form";
-import { agreementDetailFields } from "@/data/booking-agreement";
+import { agreementDetailFields, agreementFeeFields, legacyAgreementDetailFields } from "@/data/booking-agreement";
 import { resolveAgreementTemplateId } from "@/data/wedding-agreement";
 import { getBookingAgreement } from "@/lib/booking-agreement";
 import { brandConfig } from "@/lib/config";
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const MONEY_FIELDS = new Set(["total", "deposit", "balance"]);
+const MONEY_FIELDS = new Set(["total", "hourly", "deposit", "balance"]);
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("en-CA", {
@@ -117,16 +117,21 @@ export default async function AgreementSigningPage({
     date: agreementDetails.date,
     location: agreementDetails.location,
     total: agreementDetails.total,
+    hourly: agreementDetails.hourly,
     deposit: agreementDetails.deposit,
     balance: agreementDetails.balance,
+    balanceDueDate: agreementDetails.balanceDueDate,
+    lateFeePercent: agreementDetails.lateFeePercent,
     window: agreementDetails.window,
   };
   const templateId = resolveAgreementTemplateId(agreementDetails.template);
-  const detailFields =
-    templateId === "wedding"
-      ? agreementDetailFields
-      : agreementDetailFields.filter((field) => field.param !== "partner");
+  const usesSectionTwoFees = !signedTerms || agreementDetails.feeStructureVersion === "section-2";
+  const fieldsForLayout = usesSectionTwoFees ? agreementDetailFields : legacyAgreementDetailFields;
+  const detailFields = templateId === "wedding"
+    ? fieldsForLayout
+    : fieldsForLayout.filter((field) => field.param !== "partner");
   const detailRows = buildDetailRows(detailFields, values, MONEY_FIELDS);
+  const feeRows = usesSectionTwoFees ? buildDetailRows(agreementFeeFields, values, MONEY_FIELDS) : undefined;
 
   const signatureSlot = signed ? (
     <section className="mt-14 break-inside-avoid">
@@ -248,6 +253,7 @@ export default async function AgreementSigningPage({
             intro={terms.intro}
             sections={terms.sections}
             detailRows={detailRows}
+            feeRows={feeRows}
             signatureSlot={signatureSlot}
           />
         </div>

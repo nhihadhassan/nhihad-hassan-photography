@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   agreementDisclaimer,
+  agreementFeeFields,
   agreementIntro,
   agreementSections,
 } from "../src/data/booking-agreement";
@@ -41,9 +42,15 @@ assert.match(weddingText, /coverage of the Wedding/);
 assert.match(weddingText, /scheduled coverage exceeds six consecutive hours/);
 assert.match(weddingText, /Wedding materials/);
 assert.doesNotMatch(generalText, /scheduled coverage exceeds six consecutive hours/);
+assert.match(agreementIntro, /^THIS AGREEMENT/);
+assert.deepEqual(
+  agreementFeeFields.map((field) => field.param),
+  ["total", "hourly", "deposit", "balanceDueDate", "balance", "lateFeePercent"],
+);
+assert.doesNotMatch(generalText, /25% deposit/i);
 
 for (const requiredConcept of [
-  /Invoice and late payment/i,
+  /2\.3 Invoice/i,
   /access and consent/i,
   /Photography staff/i,
   /artistic judgment/i,

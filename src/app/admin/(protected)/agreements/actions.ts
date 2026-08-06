@@ -30,14 +30,18 @@ const clean = (value: FormDataEntryValue | null) => {
 function detailsFromForm(formData: FormData): AgreementDetails {
   const pick = (k: string) => clean(formData.get(k)) ?? undefined;
   return {
+    feeStructureVersion: "section-2",
     template: pick("template"),
     partner: pick("partner"),
     type: pick("type"),
     date: pick("date"),
     location: pick("location"),
     total: pick("total"),
+    hourly: pick("hourly"),
     deposit: pick("deposit"),
     balance: pick("balance"),
+    balanceDueDate: pick("balanceDueDate"),
+    lateFeePercent: pick("lateFeePercent"),
     window: pick("window"),
   };
 }
@@ -135,6 +139,7 @@ export async function createGalleryAgreementRequestAction(
       clientEmail: gallery.client_email,
       message: gallery.title,
       details: {
+        feeStructureVersion: "section-2",
         template: isWeddingAgreementType(gallery.title) ? "wedding" : "photography",
         type: gallery.title,
         date: gallery.event_date ?? undefined,

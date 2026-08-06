@@ -8,7 +8,7 @@ import {
   buildDetailRows,
 } from "@/components/agreement-document";
 import { brandConfig } from "@/lib/config";
-import { agreementDetailFields } from "@/data/booking-agreement";
+import { agreementDetailFields, agreementFeeFields, agreementFields } from "@/data/booking-agreement";
 import { resolveAgreementTemplateId } from "@/data/wedding-agreement";
 import { getBookingAgreement } from "@/lib/booking-agreement";
 
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
-const MONEY_FIELDS = new Set(["total", "deposit", "balance"]);
+const MONEY_FIELDS = new Set(["total", "hourly", "deposit", "balance"]);
 
 function first(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? "";
@@ -30,7 +30,7 @@ function first(value: string | string[] | undefined): string {
 export default async function BookingAgreementPage({ searchParams }: Props) {
   const params = await searchParams;
   const values: Record<string, string | undefined> = {};
-  for (const field of agreementDetailFields) values[field.param] = first(params[field.param]);
+  for (const field of agreementFields) values[field.param] = first(params[field.param]);
   const templateId = resolveAgreementTemplateId(first(params.template));
   const { intro, sections } = await getBookingAgreement(
     templateId,
@@ -42,6 +42,7 @@ export default async function BookingAgreementPage({ searchParams }: Props) {
       ? agreementDetailFields
       : agreementDetailFields.filter((field) => field.param !== "partner");
   const detailRows = buildDetailRows(detailFields, values, MONEY_FIELDS);
+  const feeRows = buildDetailRows(agreementFeeFields, values, MONEY_FIELDS);
 
   return (
     <div className="min-h-[100dvh] bg-[#f3eee5] text-ink print:bg-white">
@@ -60,6 +61,7 @@ export default async function BookingAgreementPage({ searchParams }: Props) {
             intro={intro}
             sections={sections}
             detailRows={detailRows}
+            feeRows={feeRows}
             actionSlot={<PrintButton />}
             signatureSlot={<BlankSignatureBlock />}
           />

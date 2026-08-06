@@ -16,14 +16,18 @@ import { isAgreementPastExpiry } from "@/lib/agreement-status";
 
 /** Per-client shoot details captured at request time and shown on the contract. */
 export type AgreementDetails = {
+  feeStructureVersion?: string;
   template?: string;
   partner?: string;
   type?: string;
   date?: string;
   location?: string;
   total?: string;
+  hourly?: string;
   deposit?: string;
   balance?: string;
+  balanceDueDate?: string;
+  lateFeePercent?: string;
   window?: string;
 };
 
@@ -97,14 +101,18 @@ function asDetails(value: unknown): AgreementDetails {
   const v = value as Record<string, unknown>;
   const pick = (k: string) => (typeof v[k] === "string" ? (v[k] as string) : undefined);
   return {
+    feeStructureVersion: pick("feeStructureVersion"),
     template: pick("template"),
     partner: pick("partner"),
     type: pick("type"),
     date: pick("date"),
     location: pick("location"),
     total: pick("total"),
+    hourly: pick("hourly"),
     deposit: pick("deposit"),
     balance: pick("balance"),
+    balanceDueDate: pick("balanceDueDate"),
+    lateFeePercent: pick("lateFeePercent"),
     window: pick("window"),
   };
 }

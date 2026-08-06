@@ -26,13 +26,31 @@ export const agreementDetailFields: AgreementDetailField[] = [
   { param: "type", label: "Shoot type / package" },
   { param: "date", label: "Shoot date(s) and time" },
   { param: "location", label: "Location(s)" },
+  { param: "window", label: "Gallery availability window" },
+];
+
+/** Booking-specific figures shown directly in Section 2.1. */
+export const agreementFeeFields: AgreementDetailField[] = [
+  { param: "total", label: "Total fee for services" },
+  { param: "hourly", label: "Additional hourly pricing" },
+  { param: "deposit", label: "Deposit due upon signing" },
+  { param: "balanceDueDate", label: "Final due date" },
+  { param: "balance", label: "Remaining amount due" },
+  { param: "lateFeePercent", label: "Late fee per month" },
+];
+
+/** Original detail layout retained when displaying a previously signed snapshot. */
+export const legacyAgreementDetailFields: AgreementDetailField[] = [
+  ...agreementDetailFields,
   { param: "total", label: "Total fee (CAD)" },
   { param: "deposit", label: "Deposit (25%)" },
   { param: "balance", label: "Balance due" },
-  { param: "window", label: "Gallery availability window" },
 ];
+
+export const agreementFields = [...agreementDetailFields, ...agreementFeeFields];
+
 export const agreementIntro =
-  "This Photography Services Agreement is between Nhihad Hassan Photography (the “Photographer”) and the client identified below (the “Client”). It takes effect when signed and governs the photography services, fees, deliverables, and usage rights described below.";
+  "THIS AGREEMENT is made as of the date the Client signs it (the “Effective Date”) between the client identified below (the “Client”) and Nhihad Hassan Photography (the “Photographer”).";
 
 export const agreementDisclaimer =
   "This agreement template is provided for convenience and is not legal advice. Consider having it reviewed by a licensed Ontario lawyer before relying on it.";
@@ -47,13 +65,11 @@ export const agreementSections: AgreementSection[] = [
     ],
   },
   {
-    heading: "2. Fees and Payment",
+    heading: "2. Fees and Deposit",
     clauses: [
-      "2.1 Fees. The Client will pay the total fee shown in the Agreement details for the selected services and package. Applicable taxes are additional only where required by law and identified on the invoice. Any additional hourly, overtime, travel, or other pricing must be agreed in writing before it is charged.",
-      "2.2 Deposit. A 25% deposit paid by Interac e-Transfer reserves the shoot date. The deposit is non-refundable because the Photographer sets aside the time and may decline other work for that date. It is credited toward the total fee, and the booking is not confirmed until the signed Agreement and deposit are received.",
-      "2.3 Balance. The remaining balance is due on or before the shoot day unless another final due date is shown in the Agreement details or invoice. The Photographer may pause delivery of the Work Product until the account is paid in full.",
-      "2.4 Invoice and late payment. The Photographer may issue an invoice when the services are agreed. The Client will pay each amount by its stated due date. Overdue amounts may accrue interest only at the lawful rate stated on the invoice or otherwise agreed in writing; no unstated late fee will be imposed.",
-      "2.5 Final amount. A final invoice may include only additional services or reasonable expenses authorized under this Agreement. If the final total differs from an earlier estimate, each authorized item and amount will be shown on the invoice.",
+      "2.1 Fees. The Client will pay the Photographer the fees set out in this Section 2.1 (the “Fees”), including any applicable federal or provincial sales taxes due on the Fees.",
+      "2.2 Deposit. The deposit shown above is due when this Agreement is signed and is non-refundable because the Photographer commits time to the Services and may turn down other work. The deposit is credited toward the total Fees payable by the Client. The booking is not confirmed until the signed Agreement and deposit are received.",
+      "2.3 Invoice. The Photographer will issue an invoice when the Services are agreed. The Client will pay all outstanding Fees on or before the due dates shown above. A payment made after its due date will incur the monthly late fee shown above on the outstanding balance, subject to applicable law. The final invoice may include additional services or reasonable expenses authorized under this Agreement and will state the final amount payable.",
     ],
   },
   {

@@ -34,12 +34,6 @@ function exactPrice(price: string): string {
   return Number.isFinite(amount) && amount > 0 ? String(amount) : "";
 }
 
-function moneyPart(value: string, multiplier: number): string {
-  const amount = Number(value.replace(/[^0-9.]/g, ""));
-  if (!Number.isFinite(amount) || amount <= 0) return "";
-  return String(Math.round(amount * multiplier * 100) / 100);
-}
-
 function StatusMessage({ state }: { state: AgreementActionState }) {
   if (!state.message) return null;
   return (
@@ -556,13 +550,15 @@ function CreateForm({
   const [shootTime, setShootTime] = useState("");
   const [location, setLocation] = useState("");
   const [total, setTotal] = useState("");
+  const [hourly, setHourly] = useState("");
+  const [deposit, setDeposit] = useState("");
+  const [balance, setBalance] = useState("");
+  const [balanceDueDate, setBalanceDueDate] = useState("");
+  const [lateFeePercent, setLateFeePercent] = useState("");
   const [emailNow, setEmailNow] = useState(true);
   const [expiryEnabled, setExpiryEnabled] = useState(false);
   const [expiryAt, setExpiryAt] = useState("");
   const [remindersEnabled, setRemindersEnabled] = useState(true);
-
-  const deposit = moneyPart(total, 0.25);
-  const balance = moneyPart(total, 0.75);
 
   const chooseClient = (key: string) => {
     const client = clients.find((candidate) => candidate.key === key);
@@ -703,12 +699,24 @@ function CreateForm({
           <input className={inputClass} name="total" value={total} onChange={(event) => setTotal(event.target.value)} placeholder="$0" inputMode="decimal" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
-          Deposit (25%)
-          <input className={`${inputClass} bg-admin-ink/[0.035]`} name="deposit" value={deposit} placeholder="Calculated automatically" readOnly />
+          Additional hourly price (CAD/hour)
+          <input className={inputClass} name="hourly" value={hourly} onChange={(event) => setHourly(event.target.value)} placeholder="$0 per hour" inputMode="decimal" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
-          Balance due
-          <input className={`${inputClass} bg-admin-ink/[0.035]`} name="balance" value={balance} placeholder="Calculated automatically" readOnly />
+          Deposit due upon signing (CAD)
+          <input className={inputClass} name="deposit" value={deposit} onChange={(event) => setDeposit(event.target.value)} placeholder="$0" inputMode="decimal" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Final due date
+          <input className={inputClass} name="balanceDueDate" type="date" value={balanceDueDate} onChange={(event) => setBalanceDueDate(event.target.value)} />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Remaining amount due (CAD)
+          <input className={inputClass} name="balance" value={balance} onChange={(event) => setBalance(event.target.value)} placeholder="$0" inputMode="decimal" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Late fee (% per month)
+          <input className={inputClass} name="lateFeePercent" value={lateFeePercent} onChange={(event) => setLateFeePercent(event.target.value)} placeholder="0" inputMode="decimal" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
           Gallery availability window

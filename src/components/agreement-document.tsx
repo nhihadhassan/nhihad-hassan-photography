@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { Reveal } from "@/components/reveal";
 import { brandConfig } from "@/lib/config";
 import type { AgreementSection } from "@/data/booking-agreement";
@@ -18,6 +18,33 @@ function Clause({ children }: { children: string }) {
   );
 }
 
+function AgreementIntro({ children }: { children: string }) {
+  const lead = "THIS AGREEMENT";
+  if (!children.startsWith(lead)) return <>{children}</>;
+
+  return (
+    <>
+      <strong className="font-bold text-ink">{lead}</strong>
+      {children.slice(lead.length)}
+    </>
+  );
+}
+
+function DetailTable({ rows }: { rows: DetailRow[] }) {
+  return (
+    <dl className="divide-y divide-ink/12 border-y border-ink/12">
+      {rows.map((row) => (
+        <div key={row.label} className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[200px_1fr]">
+          <dt className="text-[13px] font-semibold text-ink/60 print:text-[8pt]">{row.label}</dt>
+          <dd className="text-[13px] text-ink/85 print:text-[8pt]">
+            {row.value ? row.value : <span className="mt-3 block h-5 max-w-xs border-b border-dashed border-ink/30" />}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 /**
  * The rendered booking-agreement contract: header, intro, the per-client
  * details table, and the clause sections. Shared by the public
@@ -30,6 +57,7 @@ export function AgreementDocument({
   intro,
   sections,
   detailRows,
+  feeRows,
   actionSlot,
   signatureSlot,
 }: {
@@ -37,6 +65,7 @@ export function AgreementDocument({
   intro: string;
   sections: AgreementSection[];
   detailRows: DetailRow[];
+  feeRows?: DetailRow[];
   actionSlot?: ReactNode;
   signatureSlot?: ReactNode;
 }) {
@@ -50,7 +79,7 @@ export function AgreementDocument({
           {title}
         </h1>
         <p className="mt-6 text-[14px] leading-[1.72] text-ink/78 print:text-[8.5pt] print:leading-[1.55]">
-          {intro}
+          <AgreementIntro>{intro}</AgreementIntro>
         </p>
 
         {actionSlot ? (
@@ -98,12 +127,14 @@ export function AgreementDocument({
               </h2>
               <div className="mt-3 space-y-3">
                 {section.clauses.map((clause, i) => (
-                  <p
-                    key={i}
-                    className="text-[14px] leading-[1.72] text-ink/78 print:text-[8.5pt] print:leading-[1.55]"
-                  >
-                    <Clause>{clause}</Clause>
-                  </p>
+                  <Fragment key={i}>
+                    <p className="text-[14px] leading-[1.72] text-ink/78 print:text-[8.5pt] print:leading-[1.55]">
+                      <Clause>{clause}</Clause>
+                    </p>
+                    {section.heading.startsWith("2.") && i === 0 && feeRows?.length ? (
+                      <div className="py-1"><DetailTable rows={feeRows} /></div>
+                    ) : null}
+                  </Fragment>
                 ))}
               </div>
             </section>
@@ -151,7 +182,14 @@ export function buildDetailRows(
 ): DetailRow[] {
   return fields.map((field) => {
     const raw = (values[field.param] ?? "").trim();
-    const value = raw && moneyParams.has(field.param) && !raw.startsWith("$") ? `$${raw}` : raw;
+    let value = raw;
+    if (value && moneyParams.has(field.param) && !value.startsWith("$")) value = `$${value}`;
+    if (value && field.param === "hourly" && !/\/\s*hour$/i.test(value)) value = `${value}/hour`;
+    if (value && field.param === "lateFeePercent" && !value.endsWith("%")) value = `${value}%`;
+    if (value && field.param === "balanceDueDate" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [year, month, day] = value.split("-").map(Number);
+      value = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, day)));
+    }
     return { label: field.label, value: value || null };
   });
 }

@@ -83,25 +83,36 @@ export default async function AgreementSigningPage({
   const request = await getAgreementRequestByToken(token);
   if (!request) return <Unavailable />;
 
-  const [terms, signed, cover] = await Promise.all([
+  const [currentTerms, signed, cover] = await Promise.all([
     getBookingAgreement(),
     getSignedAgreementByToken(token),
     getAgreementCover(request.gallery_id),
   ]);
-  const clientName = request.client_name;
+  const snapshot = signed?.agreement_snapshot;
+  const signedTerms = snapshot?.sections?.length ? snapshot : null;
+  const terms = signedTerms
+    ? {
+        intro: signedTerms.intro,
+        disclaimer: signedTerms.disclaimer,
+        sections: signedTerms.sections,
+      }
+    : currentTerms;
+  const agreementDetails = signedTerms ? signedTerms.details : request.details;
+  const clientName = signedTerms ? signedTerms.clientName : request.client_name;
+  const clientEmail = signedTerms ? signedTerms.clientEmail : request.client_email;
   const firstName = clientName?.trim().split(/\s+/)[0] || "there";
-  const contractTitle = `${clientName?.trim() || request.details.type?.trim() || "Photography"} Contract`;
+  const contractTitle = `${clientName?.trim() || agreementDetails.type?.trim() || "Photography"} Contract`;
 
   const values: Record<string, string | undefined> = {
-    client: request.client_name ?? undefined,
-    email: request.client_email ?? undefined,
-    type: request.details.type,
-    date: request.details.date,
-    location: request.details.location,
-    total: request.details.total,
-    deposit: request.details.deposit,
-    balance: request.details.balance,
-    window: request.details.window,
+    client: clientName ?? undefined,
+    email: clientEmail ?? undefined,
+    type: agreementDetails.type,
+    date: agreementDetails.date,
+    location: agreementDetails.location,
+    total: agreementDetails.total,
+    deposit: agreementDetails.deposit,
+    balance: agreementDetails.balance,
+    window: agreementDetails.window,
   };
   const detailRows = buildDetailRows(agreementDetailFields, values, MONEY_FIELDS);
 

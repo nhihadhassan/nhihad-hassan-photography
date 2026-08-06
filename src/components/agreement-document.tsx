@@ -5,6 +5,19 @@ import type { AgreementSection } from "@/data/booking-agreement";
 
 export type DetailRow = { label: string; value: string | null };
 
+function Clause({ children }: { children: string }) {
+  const match = children.match(/^(\d+\.\d+\s+[^.]+\.)(?:\s+|$)([\s\S]*)$/);
+
+  if (!match) return <>{children}</>;
+
+  return (
+    <>
+      <span className="font-semibold text-ink/90">{match[1]}</span>
+      {match[2] ? ` ${match[2]}` : null}
+    </>
+  );
+}
+
 /**
  * The rendered booking-agreement contract: header, intro, disclaimer, the
  * per-client details table, and the clause sections. Shared by the public
@@ -28,28 +41,36 @@ export function AgreementDocument({
   signatureSlot?: ReactNode;
 }) {
   return (
-    <article className="mx-auto max-w-none px-6 py-10 sm:px-12 sm:py-14">
+    <article className="mx-auto max-w-none px-6 py-10 sm:px-12 sm:py-14 print:px-[0.72in] print:py-[0.62in]">
       <Reveal>
-        <p className="text-[11px] uppercase tracking-[0.16em] text-ink/50">{brandConfig.name}</p>
-        <h1 className="mt-3 text-[26px] font-semibold leading-[1.54]">Booking Agreement</h1>
-        <p className="mt-6 text-[15px] leading-[1.7] text-ink/78">{intro}</p>
+        <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink/50 print:text-[7.5pt]">
+          {brandConfig.name}
+        </p>
+        <h1 className="mt-3 text-[28px] font-semibold leading-[1.24] tracking-[-0.02em] print:text-[16pt]">
+          Photography Services Agreement
+        </h1>
+        <p className="mt-6 text-[14px] leading-[1.72] text-ink/78 print:text-[8.5pt] print:leading-[1.55]">
+          {intro}
+        </p>
 
         {actionSlot ? (
           <div className="mt-6 flex flex-wrap items-center gap-3 print:hidden">{actionSlot}</div>
         ) : null}
 
-        <p className="mt-6 rounded-md border border-ink/15 bg-white/50 px-4 py-3 text-sm leading-6 text-ink/65">
+        <p className="mt-6 rounded-md border border-ink/15 bg-white/50 px-4 py-3 text-[12px] leading-5 text-ink/60 print:rounded-none print:bg-transparent print:text-[7.5pt] print:leading-[1.45]">
           {disclaimer}
         </p>
       </Reveal>
 
       <Reveal delay={0.05}>
         <section className="mt-12">
-          <h2 className="text-[22px] font-semibold leading-[1.3] text-ink">Agreement details</h2>
+          <h2 className="text-[20px] font-semibold leading-[1.3] tracking-[-0.01em] text-ink print:text-[12.5pt]">
+            Agreement details
+          </h2>
           <dl className="mt-4 divide-y divide-ink/12 border-y border-ink/12">
             <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[200px_1fr]">
-              <dt className="text-sm font-medium text-ink/60">Photographer</dt>
-              <dd className="text-sm text-ink/85">
+              <dt className="text-[13px] font-semibold text-ink/60 print:text-[8pt]">Photographer</dt>
+              <dd className="text-[13px] text-ink/85 print:text-[8pt]">
                 {brandConfig.name}, {brandConfig.contactEmail}, Toronto, Ontario
               </dd>
             </div>
@@ -58,8 +79,8 @@ export function AgreementDocument({
                 key={row.label}
                 className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[200px_1fr]"
               >
-                <dt className="text-sm font-medium text-ink/60">{row.label}</dt>
-                <dd className="text-sm text-ink/85">
+                <dt className="text-[13px] font-semibold text-ink/60 print:text-[8pt]">{row.label}</dt>
+                <dd className="text-[13px] text-ink/85 print:text-[8pt]">
                   {row.value ? (
                     row.value
                   ) : (
@@ -73,14 +94,19 @@ export function AgreementDocument({
       </Reveal>
 
       <Reveal delay={0.05}>
-        <div className="mt-12 space-y-9">
+        <div className="mt-12 space-y-9 print:space-y-6">
           {sections.map((section) => (
             <section key={section.heading} className="break-inside-avoid">
-              <h2 className="text-[22px] font-semibold leading-[1.3] text-ink">{section.heading}</h2>
+              <h2 className="text-[20px] font-semibold leading-[1.3] tracking-[-0.01em] text-ink print:text-[12.5pt]">
+                {section.heading}
+              </h2>
               <div className="mt-3 space-y-3">
                 {section.clauses.map((clause, i) => (
-                  <p key={i} className="text-[15px] leading-[1.7] text-ink/78">
-                    {clause}
+                  <p
+                    key={i}
+                    className="text-[14px] leading-[1.72] text-ink/78 print:text-[8.5pt] print:leading-[1.55]"
+                  >
+                    <Clause>{clause}</Clause>
                   </p>
                 ))}
               </div>
@@ -98,8 +124,10 @@ export function AgreementDocument({
 export function BlankSignatureBlock() {
   return (
     <section className="mt-14 break-inside-avoid">
-      <h2 className="font-serif text-2xl text-ink">Signatures</h2>
-      <p className="mt-3 text-sm leading-7 text-ink/75">
+      <h2 className="text-[20px] font-semibold tracking-[-0.01em] text-ink print:text-[12.5pt]">
+        Signatures
+      </h2>
+      <p className="mt-3 text-[14px] leading-6 text-ink/75 print:text-[8.5pt]">
         By signing below, both parties agree to the terms set out in this agreement.
       </p>
       <div className="mt-8 grid gap-10 sm:grid-cols-2">

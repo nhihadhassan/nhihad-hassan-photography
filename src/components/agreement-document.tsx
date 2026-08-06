@@ -19,22 +19,20 @@ function Clause({ children }: { children: string }) {
 }
 
 /**
- * The rendered booking-agreement contract: header, intro, disclaimer, the
- * per-client details table, and the clause sections. Shared by the public
+ * The rendered booking-agreement contract: header, intro, the per-client
+ * details table, and the clause sections. Shared by the public
  * /booking-agreement page and the tokenized /agreement/[token] signing page.
  * `actionSlot` renders under the intro (e.g. a print button); `signatureSlot`
  * renders at the end (blank lines, a sign form, or a completed signature).
  */
 export function AgreementDocument({
   intro,
-  disclaimer,
   sections,
   detailRows,
   actionSlot,
   signatureSlot,
 }: {
   intro: string;
-  disclaimer: string;
   sections: AgreementSection[];
   detailRows: DetailRow[];
   actionSlot?: ReactNode;
@@ -56,10 +54,6 @@ export function AgreementDocument({
         {actionSlot ? (
           <div className="mt-6 flex flex-wrap items-center gap-3 print:hidden">{actionSlot}</div>
         ) : null}
-
-        <p className="mt-6 rounded-md border border-ink/15 bg-white/50 px-4 py-3 text-[12px] leading-5 text-ink/60 print:rounded-none print:bg-transparent print:text-[7.5pt] print:leading-[1.45]">
-          {disclaimer}
-        </p>
       </Reveal>
 
       <Reveal delay={0.05}>

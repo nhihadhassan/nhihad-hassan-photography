@@ -231,7 +231,6 @@ export default async function AgreementSigningPage({
         <div className="mx-auto mt-4 max-w-[800px] bg-[#fbfaf7] shadow-[0_14px_40px_rgba(31,25,19,0.06)] print:mt-0 print:max-w-none print:shadow-none sm:mt-5">
           <AgreementDocument
             intro={terms.intro}
-            disclaimer={terms.disclaimer}
             sections={terms.sections}
             detailRows={detailRows}
             signatureSlot={signatureSlot}

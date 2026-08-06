@@ -28,7 +28,7 @@ function first(value: string | string[] | undefined): string {
 
 export default async function BookingAgreementPage({ searchParams }: Props) {
   const params = await searchParams;
-  const { intro, disclaimer, sections } = await getBookingAgreement();
+  const { intro, sections } = await getBookingAgreement();
 
   const values: Record<string, string | undefined> = {};
   for (const field of agreementDetailFields) values[field.param] = first(params[field.param]);
@@ -44,7 +44,6 @@ export default async function BookingAgreementPage({ searchParams }: Props) {
         <div className="mx-auto max-w-3xl bg-white shadow-[0_20px_60px_rgba(36,28,20,0.08)] print:shadow-none">
           <AgreementDocument
             intro={intro}
-            disclaimer={disclaimer}
             sections={sections}
             detailRows={detailRows}
             actionSlot={<PrintButton />}

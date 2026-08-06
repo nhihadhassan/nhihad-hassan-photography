@@ -7,6 +7,7 @@ import type { PricingCategory } from "@/data/pricing";
 import { bookingHref } from "@/lib/booking-options";
 
 const VALUE_SEPARATOR = "\u001f";
+const CUSTOM_PACKAGE = "custom-package";
 
 export function ContactServiceSelect({ categories }: { categories: PricingCategory[] }) {
   const router = useRouter();
@@ -15,6 +16,11 @@ export function ContactServiceSelect({ categories }: { categories: PricingCatego
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selection) return;
+
+    if (selection === CUSTOM_PACKAGE) {
+      router.push("/book/custom");
+      return;
+    }
 
     const [serviceId, packageName] = selection.split(VALUE_SEPARATOR);
     if (!serviceId || !packageName) return;
@@ -54,6 +60,9 @@ export function ContactServiceSelect({ categories }: { categories: PricingCatego
                 ))}
               </optgroup>
             ))}
+            <optgroup label="Something different">
+              <option value={CUSTOM_PACKAGE}>Request a custom package</option>
+            </optgroup>
           </select>
           <ChevronDown
             className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-copper"
@@ -68,7 +77,7 @@ export function ContactServiceSelect({ categories }: { categories: PricingCatego
           disabled={!selection}
           className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-copper/65 bg-copper px-6 text-sm font-medium text-ink transition hover:border-beige hover:bg-beige disabled:cursor-not-allowed disabled:border-soft-white/12 disabled:bg-soft-white/8 disabled:text-soft-white/35"
         >
-          Continue to dates
+          {selection === CUSTOM_PACKAGE ? "Build a custom package" : "Continue to dates"}
           <ArrowRight className="size-4" aria-hidden="true" />
         </button>
         <a href="#sessions" className="text-sm text-soft-white/55 underline-offset-4 transition hover:text-soft-white hover:underline">

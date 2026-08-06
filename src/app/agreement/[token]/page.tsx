@@ -7,6 +7,7 @@ import { PrintButton } from "@/components/print-button";
 import { AgreementDocument, buildDetailRows } from "@/components/agreement-document";
 import { AgreementSignForm } from "@/components/agreement-sign-form";
 import { agreementDetailFields } from "@/data/booking-agreement";
+import { resolveAgreementTemplateId } from "@/data/wedding-agreement";
 import { getBookingAgreement } from "@/lib/booking-agreement";
 import { brandConfig } from "@/lib/config";
 import {
@@ -85,28 +86,32 @@ export default async function AgreementSigningPage({
   const request = await getAgreementRequestByToken(token);
   if (!request) return <Unavailable />;
 
-  const [currentTerms, signed, cover] = await Promise.all([
-    getBookingAgreement(),
+  const [signed, cover] = await Promise.all([
     getSignedAgreementByToken(token),
     getAgreementCover(request.gallery_id),
   ]);
   const snapshot = signed?.agreement_snapshot;
   const signedTerms = snapshot?.sections?.length ? snapshot : null;
+  const agreementDetails = signedTerms ? signedTerms.details : request.details;
+  const clientName = signedTerms ? signedTerms.clientName : request.client_name;
+  const clientEmail = signedTerms ? signedTerms.clientEmail : request.client_email;
   const terms = signedTerms
     ? {
         intro: signedTerms.intro,
         disclaimer: signedTerms.disclaimer,
         sections: signedTerms.sections,
       }
-    : currentTerms;
-  const agreementDetails = signedTerms ? signedTerms.details : request.details;
-  const clientName = signedTerms ? signedTerms.clientName : request.client_name;
-  const clientEmail = signedTerms ? signedTerms.clientEmail : request.client_email;
+    : await getBookingAgreement(
+        agreementDetails.template,
+        clientName ?? "",
+        agreementDetails.partner,
+      );
   const firstName = clientName?.trim().split(/\s+/)[0] || "there";
   const contractTitle = `${clientName?.trim() || agreementDetails.type?.trim() || "Photography"} Contract`;
 
   const values: Record<string, string | undefined> = {
     client: clientName ?? undefined,
+    partner: agreementDetails.partner,
     email: clientEmail ?? undefined,
     type: agreementDetails.type,
     date: agreementDetails.date,
@@ -116,7 +121,12 @@ export default async function AgreementSigningPage({
     balance: agreementDetails.balance,
     window: agreementDetails.window,
   };
-  const detailRows = buildDetailRows(agreementDetailFields, values, MONEY_FIELDS);
+  const templateId = resolveAgreementTemplateId(agreementDetails.template);
+  const detailFields =
+    templateId === "wedding"
+      ? agreementDetailFields
+      : agreementDetailFields.filter((field) => field.param !== "partner");
+  const detailRows = buildDetailRows(detailFields, values, MONEY_FIELDS);
 
   const signatureSlot = signed ? (
     <section className="mt-14 break-inside-avoid">
@@ -230,6 +240,11 @@ export default async function AgreementSigningPage({
 
         <div className="mx-auto mt-4 max-w-[800px] bg-[#fbfaf7] shadow-[0_14px_40px_rgba(31,25,19,0.06)] print:mt-0 print:max-w-none print:shadow-none sm:mt-5">
           <AgreementDocument
+            title={
+              templateId === "wedding"
+                ? "Wedding Photography Services Agreement"
+                : "Photography Services Agreement"
+            }
             intro={terms.intro}
             sections={terms.sections}
             detailRows={detailRows}

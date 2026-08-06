@@ -14,6 +14,7 @@ import { sendAgreementRequestEmail } from "@/lib/agreement-deliveries";
 import { getAdminGallery } from "@/lib/admin-data";
 import { siteUrl } from "@/lib/seo";
 import { torontoLocalToUtc } from "@/lib/ics";
+import { isWeddingAgreementType } from "@/data/wedding-agreement";
 
 export type AgreementActionState = {
   status: "idle" | "success" | "error";
@@ -29,6 +30,8 @@ const clean = (value: FormDataEntryValue | null) => {
 function detailsFromForm(formData: FormData): AgreementDetails {
   const pick = (k: string) => clean(formData.get(k)) ?? undefined;
   return {
+    template: pick("template"),
+    partner: pick("partner"),
     type: pick("type"),
     date: pick("date"),
     location: pick("location"),
@@ -132,6 +135,7 @@ export async function createGalleryAgreementRequestAction(
       clientEmail: gallery.client_email,
       message: gallery.title,
       details: {
+        template: isWeddingAgreementType(gallery.title) ? "wedding" : "photography",
         type: gallery.title,
         date: gallery.event_date ?? undefined,
       },

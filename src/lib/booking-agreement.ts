@@ -7,6 +7,11 @@ import {
   agreementSections as staticSections,
   type AgreementSection,
 } from "@/data/booking-agreement";
+import {
+  applyWeddingAgreement,
+  resolveAgreementTemplateId,
+  type AgreementTemplateId,
+} from "@/data/wedding-agreement";
 
 export type BookingAgreementContent = {
   intro: string;
@@ -35,7 +40,7 @@ function sanitizeSections(value: unknown): AgreementSection[] {
  * The booking-agreement content: the single edited row if present, otherwise
  * the static defaults from src/data/booking-agreement.ts. Cached per request.
  */
-export const getBookingAgreement = cache(async (): Promise<BookingAgreementContent> => {
+const getBaseBookingAgreement = cache(async (): Promise<BookingAgreementContent> => {
   const fallback: BookingAgreementContent = {
     intro: staticIntro,
     disclaimer: staticDisclaimer,
@@ -65,3 +70,16 @@ export const getBookingAgreement = cache(async (): Promise<BookingAgreementConte
     return fallback;
   }
 });
+
+export const getBookingAgreement = cache(
+  async (
+    templateId: AgreementTemplateId | string = "photography",
+    clientName = "",
+    partnerName = "",
+  ): Promise<BookingAgreementContent> => {
+    const content = await getBaseBookingAgreement();
+    return resolveAgreementTemplateId(templateId) === "wedding"
+      ? applyWeddingAgreement(content, { clientName, partnerName })
+      : content;
+  },
+);

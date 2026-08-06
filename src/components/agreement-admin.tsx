@@ -9,6 +9,11 @@ import { isAgreementPastExpiry } from "@/lib/agreement-status";
 import type { ClientSummary } from "@/lib/clients";
 import type { PricingCategory } from "@/data/pricing";
 import {
+  agreementTemplates,
+  isWeddingAgreementType,
+  type AgreementTemplateId,
+} from "@/data/wedding-agreement";
+import {
   createAgreementRequestAction,
   revokeAgreementRequestAction,
   sendAgreementRequestEmailAction,
@@ -544,6 +549,8 @@ function CreateForm({
   const [selectedClientKey, setSelectedClientKey] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
+  const [templateId, setTemplateId] = useState<AgreementTemplateId>("photography");
+  const [partnerName, setPartnerName] = useState("");
   const [shootType, setShootType] = useState("");
   const [shootDate, setShootDate] = useState("");
   const [shootTime, setShootTime] = useState("");
@@ -586,6 +593,7 @@ function CreateForm({
 
   const choosePackage = (value: string) => {
     setShootType(value);
+    setTemplateId(isWeddingAgreementType(value) ? "wedding" : "photography");
     const match = pricing.flatMap((category) =>
       category.tiers.map((tier) => ({ value: `${category.label} · ${tier.name}`, tier })),
     ).find((candidate) => candidate.value === value);
@@ -633,6 +641,24 @@ function CreateForm({
           Client email
           <input className={inputClass} name="client_email" type="email" value={clientEmail} onChange={(event) => setClientEmail(event.target.value)} placeholder="name@example.com" autoComplete="email" />
         </label>
+        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+          Contract template
+          <select
+            className={inputClass}
+            name="template"
+            value={templateId}
+            onChange={(event) => setTemplateId(event.target.value as AgreementTemplateId)}
+          >
+            {agreementTemplates.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.label}
+              </option>
+            ))}
+          </select>
+          <span className="text-xs font-normal text-admin-ink/55">
+            {agreementTemplates.find((template) => template.id === templateId)?.description}
+          </span>
+        </label>
         <label className="grid gap-1.5 text-sm font-medium">
           Shoot type / package
           <select className={inputClass} name="type" value={shootType} onChange={(event) => choosePackage(event.target.value)}>
@@ -649,6 +675,19 @@ function CreateForm({
             <option value="Custom photography coverage">Custom photography coverage</option>
           </select>
         </label>
+        {templateId === "wedding" ? (
+          <label className="grid gap-1.5 text-sm font-medium">
+            Partner name
+            <input
+              className={inputClass}
+              name="partner"
+              value={partnerName}
+              onChange={(event) => setPartnerName(event.target.value)}
+              placeholder="Partner's full name"
+              autoComplete="name"
+            />
+          </label>
+        ) : null}
         <ShootSchedulePicker
           date={shootDate}
           time={shootTime}

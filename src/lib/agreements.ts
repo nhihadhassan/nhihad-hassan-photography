@@ -16,6 +16,8 @@ import { isAgreementPastExpiry } from "@/lib/agreement-status";
 
 /** Per-client shoot details captured at request time and shown on the contract. */
 export type AgreementDetails = {
+  template?: string;
+  partner?: string;
   type?: string;
   date?: string;
   location?: string;
@@ -95,6 +97,8 @@ function asDetails(value: unknown): AgreementDetails {
   const v = value as Record<string, unknown>;
   const pick = (k: string) => (typeof v[k] === "string" ? (v[k] as string) : undefined);
   return {
+    template: pick("template"),
+    partner: pick("partner"),
     type: pick("type"),
     date: pick("date"),
     location: pick("location"),
@@ -386,7 +390,11 @@ export async function signAgreement(input: {
     return { ok: false, message: "This agreement has expired and can no longer be signed." };
   }
 
-  const terms = await getBookingAgreement();
+  const terms = await getBookingAgreement(
+    request.details.template,
+    request.client_name ?? "",
+    request.details.partner,
+  );
   const snapshot: AgreementSnapshot = {
     photographerName: brandConfig.name,
     photographerEmail: brandConfig.contactEmail,

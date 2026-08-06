@@ -9,6 +9,7 @@ import {
 } from "@/components/agreement-document";
 import { brandConfig } from "@/lib/config";
 import { agreementDetailFields } from "@/data/booking-agreement";
+import { resolveAgreementTemplateId } from "@/data/wedding-agreement";
 import { getBookingAgreement } from "@/lib/booking-agreement";
 
 export const metadata: Metadata = {
@@ -28,11 +29,19 @@ function first(value: string | string[] | undefined): string {
 
 export default async function BookingAgreementPage({ searchParams }: Props) {
   const params = await searchParams;
-  const { intro, sections } = await getBookingAgreement();
-
   const values: Record<string, string | undefined> = {};
   for (const field of agreementDetailFields) values[field.param] = first(params[field.param]);
-  const detailRows = buildDetailRows(agreementDetailFields, values, MONEY_FIELDS);
+  const templateId = resolveAgreementTemplateId(first(params.template));
+  const { intro, sections } = await getBookingAgreement(
+    templateId,
+    values.client,
+    values.partner,
+  );
+  const detailFields =
+    templateId === "wedding"
+      ? agreementDetailFields
+      : agreementDetailFields.filter((field) => field.param !== "partner");
+  const detailRows = buildDetailRows(detailFields, values, MONEY_FIELDS);
 
   return (
     <div className="min-h-[100dvh] bg-[#f3eee5] text-ink print:bg-white">
@@ -43,6 +52,11 @@ export default async function BookingAgreementPage({ searchParams }: Props) {
       <main className="px-4 pb-20 pt-40 sm:px-6 lg:px-8 print:pt-8">
         <div className="mx-auto max-w-3xl bg-white shadow-[0_20px_60px_rgba(36,28,20,0.08)] print:shadow-none">
           <AgreementDocument
+            title={
+              templateId === "wedding"
+                ? "Wedding Photography Services Agreement"
+                : "Photography Services Agreement"
+            }
             intro={intro}
             sections={sections}
             detailRows={detailRows}

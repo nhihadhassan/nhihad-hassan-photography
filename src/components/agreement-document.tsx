@@ -26,12 +26,14 @@ function Clause({ children }: { children: string }) {
  * renders at the end (blank lines, a sign form, or a completed signature).
  */
 export function AgreementDocument({
+  title = "Photography Services Agreement",
   intro,
   sections,
   detailRows,
   actionSlot,
   signatureSlot,
 }: {
+  title?: string;
   intro: string;
   sections: AgreementSection[];
   detailRows: DetailRow[];
@@ -45,7 +47,7 @@ export function AgreementDocument({
           {brandConfig.name}
         </p>
         <h1 className="mt-3 font-serif text-4xl font-medium leading-none sm:text-5xl print:text-[16pt] print:leading-[1.24]">
-          Photography Services Agreement
+          {title}
         </h1>
         <p className="mt-6 text-[14px] leading-[1.72] text-ink/78 print:text-[8.5pt] print:leading-[1.55]">
           {intro}

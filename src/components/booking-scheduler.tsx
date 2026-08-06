@@ -174,7 +174,7 @@ export function BookingScheduler({ availability, serviceId, packageName, duratio
           <div className="mt-auto border-t border-ink/10 pt-6">
             <p className="mb-4 flex items-center gap-2 text-sm text-ink/64">
               <Clock3 className="size-4 text-copper" aria-hidden="true" />
-              {formatDate(selectedDate)} at {selectedTime}
+              {formatDate(selectedDate)} at {selectedTime} (EST)
             </p>
             <ButtonLink
               href={bookingDetailsHref({ serviceId, packageName, date: selectedDate, time: selectedTime })}

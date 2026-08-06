@@ -6,10 +6,9 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { BookingPaymentConfirmation } from "@/components/booking-payment-confirmation";
 import { findBookingSelection, startingPrice } from "@/lib/booking-options";
+import { getBookingVisual } from "@/lib/booking-visuals";
 import { getPricing } from "@/lib/pricing";
 import { getSiteSettings } from "@/lib/site-settings";
-import { services } from "@/data/services";
-import { portfolioItems } from "@/data/photography";
 import { withDefaultSocialImages } from "@/lib/seo";
 
 export const metadata: Metadata = withDefaultSocialImages({
@@ -44,7 +43,7 @@ export default async function BookingConfirmationPage({ searchParams }: Props) {
 
   const date = query.date!;
   const time = query.time!;
-  const image = findServiceImage(selection.category.id);
+  const image = await getBookingVisual(selection.category.id);
   const basePrice = startingPrice(selection.tier.price);
   const deposit = basePrice ? basePrice * 0.25 : 0;
   const isStartingPrice = selection.tier.price.includes("–") || selection.tier.price.includes("-");
@@ -66,7 +65,20 @@ export default async function BookingConfirmationPage({ searchParams }: Props) {
         <div className="mt-10 grid items-start gap-6 lg:grid-cols-[1.15fr_0.85fr]">
           <BookingPaymentConfirmation deposit={deposit} transferEmail={settings.contactEmail} isStartingPrice={isStartingPrice} />
           <aside className="overflow-hidden bg-ink text-soft-white lg:sticky lg:top-28">
-            {image ? <div className="relative aspect-[16/7]"><Image src={image.imageUrl} alt={image.alt} fill sizes="(min-width: 1024px) 36vw, 100vw" className="object-cover" /></div> : null}
+            {image ? (
+              <div className="relative aspect-[16/7]">
+                <Image
+                  src={image.imageUrl}
+                  alt={image.alt}
+                  fill
+                  sizes="(min-width: 1024px) 36vw, 100vw"
+                  quality={92}
+                  unoptimized={image.imageUrl.startsWith("http")}
+                  className="object-cover"
+                  style={{ objectPosition: image.focalPosition }}
+                />
+              </div>
+            ) : null}
             <div className="p-6 sm:p-8">
               <p className="text-xs uppercase tracking-[0.18em] text-copper">{selection.category.label}</p>
               <h2 className="mt-2 font-serif text-4xl">{selection.tier.name}</h2>
@@ -86,12 +98,6 @@ export default async function BookingConfirmationPage({ searchParams }: Props) {
       <SiteFooter />
     </div>
   );
-}
-
-function findServiceImage(categoryId: string) {
-  const serviceId = categoryId === "engagements" ? "couples" : categoryId;
-  const service = services.find((item) => item.id === serviceId);
-  return portfolioItems.find((item) => item.id === service?.imageId) ?? null;
 }
 
 function formatDate(date: string) {

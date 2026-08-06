@@ -6,9 +6,8 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { BookingDetailsForm } from "@/components/booking-details-form";
 import { findBookingSelection, startingPrice } from "@/lib/booking-options";
+import { getBookingVisual } from "@/lib/booking-visuals";
 import { getPricing } from "@/lib/pricing";
-import { services } from "@/data/services";
-import { portfolioItems } from "@/data/photography";
 import { withDefaultSocialImages } from "@/lib/seo";
 
 export const metadata: Metadata = withDefaultSocialImages({
@@ -42,7 +41,7 @@ export default async function BookingDetailsPage({ searchParams }: Props) {
 
   const date = query.date!;
   const time = query.time!;
-  const image = findServiceImage(selection.category.id);
+  const image = await getBookingVisual(selection.category.id);
   const basePrice = startingPrice(selection.tier.price);
   const deposit = basePrice ? new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(basePrice * 0.25) : null;
 
@@ -73,7 +72,16 @@ export default async function BookingDetailsPage({ searchParams }: Props) {
           <aside className="overflow-hidden bg-ink text-soft-white lg:sticky lg:top-28">
             {image ? (
               <div className="relative aspect-[16/7]">
-                <Image src={image.imageUrl} alt={image.alt} fill sizes="(min-width: 1024px) 36vw, 100vw" className="object-cover" />
+                <Image
+                  src={image.imageUrl}
+                  alt={image.alt}
+                  fill
+                  sizes="(min-width: 1024px) 36vw, 100vw"
+                  quality={92}
+                  unoptimized={image.imageUrl.startsWith("http")}
+                  className="object-cover"
+                  style={{ objectPosition: image.focalPosition }}
+                />
               </div>
             ) : null}
             <div className="p-6 sm:p-8">
@@ -95,11 +103,6 @@ export default async function BookingDetailsPage({ searchParams }: Props) {
       <SiteFooter />
     </div>
   );
-}
-function findServiceImage(categoryId: string) {
-  const serviceId = categoryId === "engagements" ? "couples" : categoryId;
-  const service = services.find((item) => item.id === serviceId);
-  return portfolioItems.find((item) => item.id === service?.imageId) ?? null;
 }
 
 function formatDate(date: string) {

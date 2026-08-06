@@ -7,9 +7,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { BookingScheduler } from "@/components/booking-scheduler";
 import { fetchAvailability } from "@/lib/calendar";
 import { findBookingSelection } from "@/lib/booking-options";
+import { getBookingVisual } from "@/lib/booking-visuals";
 import { getPricing } from "@/lib/pricing";
-import { services } from "@/data/services";
-import { portfolioItems } from "@/data/photography";
 import { withDefaultSocialImages } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -50,14 +49,15 @@ export default async function BookPage({ searchParams }: Props) {
     );
   }
 
-  const availability = await fetchAvailability();
-  const serviceImage = findServiceImage(selection.category.id);
+  const [availability, serviceImage] = await Promise.all([
+    fetchAvailability(),
+    getBookingVisual(selection.category.id),
+  ]);
 
   return (
     <div className="min-h-[100dvh] bg-[#f3eee5] text-ink">
-      <SiteHeader tone="light" />
-      <main className="pb-24 pt-28 sm:pt-32">
-        <section className="relative isolate min-h-[360px] overflow-hidden bg-ink sm:min-h-[430px]">
+      <main className="pb-24">
+        <section className="relative isolate min-h-[500px] overflow-hidden bg-ink sm:min-h-[620px]">
           {serviceImage ? (
             <Image
               src={serviceImage.imageUrl}
@@ -65,24 +65,27 @@ export default async function BookPage({ searchParams }: Props) {
               fill
               priority
               sizes="100vw"
-              className="object-cover opacity-65"
+              quality={92}
+              unoptimized={serviceImage.imageUrl.startsWith("http")}
+              className="object-cover"
+              style={{ objectPosition: serviceImage.focalPosition }}
             />
           ) : null}
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,0.88),rgba(8,8,8,0.42),rgba(8,8,8,0.68))]" />
-          <div className="relative mx-auto flex min-h-[360px] max-w-7xl flex-col justify-end px-4 pb-12 pt-16 text-soft-white sm:min-h-[430px] sm:px-6 sm:pb-16 lg:px-8">
-            <Link href="/contact" className="mb-auto inline-flex items-center gap-2 text-sm text-soft-white/68 transition hover:text-soft-white">
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,8,8,0.42),rgba(8,8,8,0.08)_38%,rgba(8,8,8,0.7))]" />
+          <div className="relative mx-auto flex min-h-[500px] max-w-7xl flex-col justify-end px-4 pb-24 pt-7 text-soft-white sm:min-h-[620px] sm:px-6 sm:pb-28 sm:pt-9 lg:px-8">
+            <Link href="/contact" className="mb-auto inline-flex items-center gap-2 text-sm font-medium text-soft-white/84 drop-shadow-sm transition hover:text-soft-white">
               <ArrowLeft className="size-4" aria-hidden="true" />
               Change service
             </Link>
             <p className="text-xs uppercase tracking-[0.22em] text-copper">Step 1 of 2</p>
-            <h1 className="mt-4 max-w-3xl font-serif text-5xl leading-[0.94] sm:text-7xl">
-              Choose a date and time.
+            <h1 className="mt-4 max-w-5xl font-sans text-[clamp(2.35rem,5.5vw,5.25rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-soft-white drop-shadow-sm">
+              Please select a date and time.
             </h1>
           </div>
         </section>
 
-        <div className="mx-auto -mt-1 max-w-5xl px-4 sm:px-6 lg:px-8">
-          <section className="relative z-10 grid gap-5 border-b border-ink/10 bg-[#f8f3eb] px-5 py-7 sm:grid-cols-[1fr_auto] sm:items-center sm:px-8">
+        <div className="relative z-10 mx-auto -mt-16 max-w-5xl px-4 sm:-mt-20 sm:px-6 lg:px-8">
+          <section className="grid gap-5 border-b border-ink/10 bg-[#f8f3eb] px-5 py-7 shadow-[0_18px_55px_rgba(31,25,19,0.12)] sm:grid-cols-[1fr_auto] sm:items-center sm:px-8">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-[#8b6444]">{selection.category.label}</p>
               <h2 className="mt-2 font-serif text-4xl">{selection.tier.name}</h2>
@@ -106,9 +109,4 @@ export default async function BookPage({ searchParams }: Props) {
       <SiteFooter />
     </div>
   );
-}
-function findServiceImage(categoryId: string) {
-  const serviceId = categoryId === "engagements" ? "couples" : categoryId;
-  const service = services.find((item) => item.id === serviceId);
-  return portfolioItems.find((item) => item.id === service?.imageId) ?? null;
 }

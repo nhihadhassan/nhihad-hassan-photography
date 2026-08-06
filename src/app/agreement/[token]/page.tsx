@@ -107,6 +107,7 @@ export default async function AgreementSigningPage({
         clientName ?? "",
         agreementDetails.partner,
         agreementDetails.secondSignerName,
+        agreementDetails.rehostingFee === "0",
       );
   const firstName = clientName?.trim().split(/\s+/)[0] || "there";
   const contractTitle = `${clientName?.trim() || agreementDetails.type?.trim() || "Photography"} Contract`;

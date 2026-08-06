@@ -77,10 +77,22 @@ export const getBookingAgreement = cache(
     clientName = "",
     partnerName = "",
     secondSignerName = "",
+    omitRehostingFee = false,
   ): Promise<BookingAgreementContent> => {
     const content = await getBaseBookingAgreement();
-    return resolveAgreementTemplateId(templateId) === "wedding"
+    const templated = resolveAgreementTemplateId(templateId) === "wedding"
       ? applyWeddingAgreement(content, { clientName, partnerName, secondSignerName })
       : content;
+    if (!omitRehostingFee) return templated;
+    return {
+      ...templated,
+      sections: templated.sections.map((section) => ({
+        ...section,
+        clauses: section.clauses.map((clause) => clause.replace(
+          " Restoring an expired gallery will incur a rehosting fee of {{rehostingFee}}.",
+          "",
+        )),
+      })),
+    };
   },
 );

@@ -43,6 +43,7 @@ export default async function BookingAgreementPage({ searchParams }: Props) {
     values.client,
     values.partner,
     values.secondSignerName,
+    values.rehostingFee === "0",
   );
   const detailFields =
     templateId === "wedding"

@@ -522,6 +522,7 @@ export async function signAgreement(input: {
       request.client_name ?? "",
       request.details.partner,
       request.details.secondSignerName,
+      request.details.rehostingFee === "0",
     );
     return {
       photographerName: brandConfig.name,

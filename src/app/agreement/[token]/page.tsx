@@ -139,10 +139,11 @@ export default async function AgreementSigningPage({
     <div className="min-h-[100dvh] bg-[#f1f0ed] text-ink print:bg-white">
       <header className="relative min-h-[460px] overflow-hidden bg-charcoal text-soft-white print:hidden sm:min-h-[520px]">
         <Image
-          src={cover?.url || "/portfolio/engagement-garden-embrace.webp"}
-          alt={cover?.alt || "A couple photographed by Nhihad Hassan Photography"}
+          src={cover?.url || "/portfolio/ma-baby-shower-couple.webp"}
+          alt={cover?.alt || "An expecting couple photographed by Nhihad Hassan Photography"}
           fill
           priority
+          quality={90}
           unoptimized={Boolean(cover?.url?.startsWith("http"))}
           sizes="100vw"
           className="object-cover"
@@ -158,10 +159,10 @@ export default async function AgreementSigningPage({
             Back to site
           </Link>
           <div className="mt-auto pb-24 text-center sm:pb-28">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-soft-white/80">
+            <p className="whitespace-nowrap font-serif text-[clamp(1.35rem,4.8vw,4.75rem)] font-normal uppercase leading-none tracking-[0.015em] text-soft-white">
               {brandConfig.name}
             </p>
-            <h1 className="mt-8 text-3xl font-semibold tracking-[-0.02em] sm:text-4xl">
+            <h1 className="mt-7 text-3xl font-semibold tracking-[-0.02em] sm:text-4xl">
               Hi {firstName},
             </h1>
             <p className="mt-2 text-lg text-soft-white/92 sm:text-xl">

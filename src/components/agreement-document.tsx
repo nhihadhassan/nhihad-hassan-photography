@@ -46,7 +46,7 @@ export function AgreementDocument({
         <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink/50 print:text-[7.5pt]">
           {brandConfig.name}
         </p>
-        <h1 className="mt-3 text-[28px] font-semibold leading-[1.24] tracking-[-0.02em] print:text-[16pt]">
+        <h1 className="mt-3 font-serif text-4xl font-medium leading-none sm:text-5xl print:text-[16pt] print:leading-[1.24]">
           Photography Services Agreement
         </h1>
         <p className="mt-6 text-[14px] leading-[1.72] text-ink/78 print:text-[8.5pt] print:leading-[1.55]">
@@ -64,7 +64,7 @@ export function AgreementDocument({
 
       <Reveal delay={0.05}>
         <section className="mt-12">
-          <h2 className="text-[20px] font-semibold leading-[1.3] tracking-[-0.01em] text-ink print:text-[12.5pt]">
+          <h2 className="font-serif text-3xl font-medium leading-none text-ink print:text-[12.5pt] print:leading-[1.3]">
             Agreement details
           </h2>
           <dl className="mt-4 divide-y divide-ink/12 border-y border-ink/12">
@@ -97,7 +97,7 @@ export function AgreementDocument({
         <div className="mt-12 space-y-9 print:space-y-6">
           {sections.map((section) => (
             <section key={section.heading} className="break-inside-avoid">
-              <h2 className="text-[20px] font-semibold leading-[1.3] tracking-[-0.01em] text-ink print:text-[12.5pt]">
+              <h2 className="font-serif text-3xl font-medium leading-none text-ink print:text-[12.5pt] print:leading-[1.3]">
                 {section.heading}
               </h2>
               <div className="mt-3 space-y-3">

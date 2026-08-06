@@ -43,7 +43,7 @@ export function AgreementSignForm({
 
   return (
     <section id="sign-contract" className="mt-14 scroll-mt-8 break-inside-avoid">
-      <h2 className="text-[22px] font-semibold leading-[1.3] text-ink">Signatures</h2>
+      <h2 className="font-serif text-3xl font-medium leading-none text-ink">Signatures</h2>
       <p className="mt-3 text-sm leading-7 text-ink/75">
         Type your full legal name and sign in the box below. Your name, signature, and the date and
         time are recorded as your electronic signature, with the same intent as a handwritten one.

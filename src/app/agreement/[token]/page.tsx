@@ -163,13 +163,13 @@ export default async function AgreementSigningPage({
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,8,8,.48),rgba(8,8,8,.14)_45%,rgba(8,8,8,.6))]" />
         <div className="relative mx-auto h-full max-w-6xl px-5 sm:px-8">
           <div className="pt-12 text-center sm:pt-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-soft-white/90">
+            <p className="font-serif text-[clamp(1.05rem,5.5vw,2.8rem)] uppercase tracking-normal text-soft-white">
               {brandConfig.name}
             </p>
-            <h1 className="mt-16 text-3xl font-semibold tracking-[-0.02em] sm:mt-20 sm:text-[28px]">
+            <h1 className="mt-14 font-serif text-[clamp(2.75rem,5vw,4.75rem)] font-medium leading-[0.92] sm:mt-16">
               Hi {firstName},
             </h1>
-            <p className="mt-1 text-lg text-soft-white/92 sm:text-[28px] sm:leading-[1.5]">
+            <p className="mt-3 font-serif text-[clamp(1.65rem,3vw,2.75rem)] leading-[1.08] text-soft-white/92">
               Please review and sign this contract.
             </p>
           </div>
@@ -181,7 +181,7 @@ export default async function AgreementSigningPage({
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-3">
-                <h2 className="text-2xl font-semibold leading-tight">{contractTitle}</h2>
+                <h2 className="font-serif text-3xl font-medium leading-none sm:text-4xl">{contractTitle}</h2>
                 <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${signed ? "bg-[#66805d]/8 text-[#52694b]" : "bg-copper/8 text-[#776f98]"}`}>
                   {signed ? <Check className="size-3" aria-hidden="true" /> : null}
                   {signed ? "Signed" : "Awaiting signature"}

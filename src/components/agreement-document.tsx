@@ -3,29 +3,107 @@ import { Reveal } from "@/components/reveal";
 import { brandConfig } from "@/lib/config";
 import type { AgreementSection } from "@/data/booking-agreement";
 
-export type DetailRow = { label: string; value: string | null };
+export type DetailRow = { param: string; label: string; value: string | null };
 
-function Clause({ children }: { children: string }) {
-  const match = children.match(/^(\d+\.\d+\s+[^.]+\.)(?:\s+|$)([\s\S]*)$/);
+const VARIABLE_LABELS: Record<string, string> = {
+  effectiveDate: "effective date",
+  clientName: "client name",
+  partnerName: "partner name",
+  clientAddress: "client address",
+  city: "city name",
+  cancellationNoticeDays: "number of days",
+  mealHours: "number of hours",
+  galleryWindow: "gallery availability window",
+  clientEmail: "client email",
+};
 
-  if (!match) return <>{children}</>;
+function formatVariableValue(param: string, value?: string): string | undefined {
+  if (!value || !["effectiveDate", "balanceDueDate"].includes(param) || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+  const [year, month, day] = value.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
+}
+
+function VariableValue({ value, label, underlined = false }: { value?: string; label: string; underlined?: boolean }) {
+  if (value) {
+    return underlined ? (
+      <span className="font-medium underline decoration-ink/55 decoration-1 underline-offset-2">{value}</span>
+    ) : (
+      <mark className="rounded-[2px] bg-[#fff4a8] px-1 font-semibold text-ink print:bg-[#fff4a8]">{value}</mark>
+    );
+  }
 
   return (
+    <mark className="rounded-[2px] bg-[#fff4a8] px-1 font-semibold text-ink print:bg-[#fff4a8]">
+      [Enter {label}]
+    </mark>
+  );
+}
+
+function RichText({ text, values, underlineVariables = false }: {
+  text: string;
+  values: Record<string, string | undefined>;
+  underlineVariables?: boolean;
+}) {
+  const tokenPattern = /(\{\{[A-Za-z]+\}\}|“[^”]+”)/g;
+  return (
     <>
-      <span className="font-semibold text-ink/90">{match[1]}</span>
-      {match[2] ? ` ${match[2]}` : null}
+      {text.split(tokenPattern).filter(Boolean).map((part, index) => {
+        const variable = part.match(/^\{\{([A-Za-z]+)\}\}$/)?.[1];
+        if (variable) {
+          return (
+            <VariableValue
+              key={`${variable}-${index}`}
+              value={formatVariableValue(variable, values[variable])}
+              label={VARIABLE_LABELS[variable] ?? variable}
+              underlined={underlineVariables}
+            />
+          );
+        }
+        if (/^“[^”]+”$/.test(part)) {
+          return <strong key={`${part}-${index}`} className="font-bold text-ink">{part}</strong>;
+        }
+        return <Fragment key={index}>{part}</Fragment>;
+      })}
     </>
   );
 }
 
-function AgreementIntro({ children }: { children: string }) {
+function Clause({ children, values, referenceFormatting }: {
+  children: string;
+  values: Record<string, string | undefined>;
+  referenceFormatting: boolean;
+}) {
+  const match = children.match(/^(\d+\.\d+\s+[^.]+\.)(?:\s+|$)([\s\S]*)$/);
+
+  if (!match) return referenceFormatting ? <RichText text={children} values={values} /> : <>{children}</>;
+
+  return (
+    <>
+      <span className="font-semibold text-ink/90">{match[1]}</span>
+      {match[2] ? <> {referenceFormatting ? <RichText text={match[2]} values={values} /> : match[2]}</> : null}
+    </>
+  );
+}
+
+function AgreementIntro({ children, values, referenceFormatting }: {
+  children: string;
+  values: Record<string, string | undefined>;
+  referenceFormatting: boolean;
+}) {
   const lead = "THIS AGREEMENT";
-  if (!children.startsWith(lead)) return <>{children}</>;
+  if (!referenceFormatting || !children.startsWith(lead)) return <>{children}</>;
 
   return (
     <>
       <strong className="font-bold text-ink">{lead}</strong>
-      {children.slice(lead.length)}
+      <RichText text={children.slice(lead.length)} values={values} underlineVariables />
     </>
   );
 }
@@ -45,6 +123,25 @@ function DetailTable({ rows }: { rows: DetailRow[] }) {
   );
 }
 
+function VariableList({ rows, bullets = false }: { rows: DetailRow[]; bullets?: boolean }) {
+  const items = rows.map((row) => (
+    <div key={row.param} className="leading-7">
+      <span>{row.label}: </span>
+      <VariableValue value={row.value ?? undefined} label={row.label.toLowerCase()} />
+    </div>
+  ));
+
+  return bullets ? (
+    <ul className="list-disc space-y-0.5 pl-7 text-[14px] text-ink/78 print:text-[8.5pt]">
+      {items.map((item, index) => <li key={rows[index].param}>{item}</li>)}
+    </ul>
+  ) : (
+    <div className="space-y-0.5 border-l-2 border-ink/10 pl-4 text-[14px] text-ink/78 print:text-[8.5pt]">
+      {items}
+    </div>
+  );
+}
+
 /**
  * The rendered booking-agreement contract: header, intro, the per-client
  * details table, and the clause sections. Shared by the public
@@ -57,7 +154,10 @@ export function AgreementDocument({
   intro,
   sections,
   detailRows,
+  serviceRows,
   feeRows,
+  agreementValues = {},
+  referenceFormatting = false,
   actionSlot,
   signatureSlot,
 }: {
@@ -65,7 +165,10 @@ export function AgreementDocument({
   intro: string;
   sections: AgreementSection[];
   detailRows: DetailRow[];
+  serviceRows?: DetailRow[];
   feeRows?: DetailRow[];
+  agreementValues?: Record<string, string | undefined>;
+  referenceFormatting?: boolean;
   actionSlot?: ReactNode;
   signatureSlot?: ReactNode;
 }) {
@@ -75,11 +178,14 @@ export function AgreementDocument({
         <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink/50 print:text-[7.5pt]">
           {brandConfig.name}
         </p>
-        <h1 className="mt-3 font-serif text-4xl font-medium leading-none sm:text-5xl print:text-[16pt] print:leading-[1.24]">
+        <h1 className={referenceFormatting
+          ? "mt-5 text-center text-3xl font-bold leading-tight tracking-[-0.02em] text-ink sm:text-4xl print:text-[17pt]"
+          : "mt-3 font-serif text-4xl font-medium leading-none sm:text-5xl print:text-[16pt] print:leading-[1.24]"
+        }>
           {title}
         </h1>
         <p className="mt-6 text-[14px] leading-[1.72] text-ink/78 print:text-[8.5pt] print:leading-[1.55]">
-          <AgreementIntro>{intro}</AgreementIntro>
+          <AgreementIntro values={agreementValues} referenceFormatting={referenceFormatting}>{intro}</AgreementIntro>
         </p>
 
         {actionSlot ? (
@@ -87,7 +193,7 @@ export function AgreementDocument({
         ) : null}
       </Reveal>
 
-      <Reveal delay={0.05}>
+      {!referenceFormatting ? <Reveal delay={0.05}>
         <section className="mt-12">
           <h2 className="font-serif text-3xl font-medium leading-none text-ink print:text-[12.5pt] print:leading-[1.3]">
             Agreement details
@@ -116,23 +222,31 @@ export function AgreementDocument({
             ))}
           </dl>
         </section>
-      </Reveal>
+      </Reveal> : null}
 
       <Reveal delay={0.05}>
         <div className="mt-12 space-y-9 print:space-y-6">
           {sections.map((section) => (
             <section key={section.heading} className="break-inside-avoid">
-              <h2 className="font-serif text-3xl font-medium leading-none text-ink print:text-[12.5pt] print:leading-[1.3]">
+              <h2 className={referenceFormatting
+                ? "text-[28px] font-bold leading-tight tracking-[-0.015em] text-ink print:text-[15pt]"
+                : "font-serif text-3xl font-medium leading-none text-ink print:text-[12.5pt] print:leading-[1.3]"
+              }>
                 {section.heading}
               </h2>
               <div className="mt-3 space-y-3">
                 {section.clauses.map((clause, i) => (
                   <Fragment key={i}>
                     <p className="text-[14px] leading-[1.72] text-ink/78 print:text-[8.5pt] print:leading-[1.55]">
-                      <Clause>{clause}</Clause>
+                      <Clause values={agreementValues} referenceFormatting={referenceFormatting}>{clause}</Clause>
                     </p>
+                    {referenceFormatting && section.heading.startsWith("1.") && i === 0 && serviceRows?.length ? (
+                      <div className="py-2"><VariableList rows={serviceRows} /></div>
+                    ) : null}
                     {section.heading.startsWith("2.") && i === 0 && feeRows?.length ? (
-                      <div className="py-1"><DetailTable rows={feeRows} /></div>
+                      <div className="py-2">
+                        {referenceFormatting ? <VariableList rows={feeRows} bullets /> : <DetailTable rows={feeRows} />}
+                      </div>
                     ) : null}
                   </Fragment>
                 ))}
@@ -186,10 +300,7 @@ export function buildDetailRows(
     if (value && moneyParams.has(field.param) && !value.startsWith("$")) value = `$${value}`;
     if (value && field.param === "hourly" && !/\/\s*hour$/i.test(value)) value = `${value}/hour`;
     if (value && field.param === "lateFeePercent" && !value.endsWith("%")) value = `${value}%`;
-    if (value && field.param === "balanceDueDate" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      const [year, month, day] = value.split("-").map(Number);
-      value = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, day)));
-    }
-    return { label: field.label, value: value || null };
+    value = formatVariableValue(field.param, value) ?? "";
+    return { param: field.param, label: field.label, value: value || null };
   });
 }

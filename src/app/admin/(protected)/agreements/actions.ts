@@ -27,15 +27,31 @@ const clean = (value: FormDataEntryValue | null) => {
   return text || null;
 };
 
+const todayInToronto = () =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Toronto",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
 function detailsFromForm(formData: FormData): AgreementDetails {
   const pick = (k: string) => clean(formData.get(k)) ?? undefined;
   return {
     feeStructureVersion: "section-2",
+    presentationVersion: "reference-v1",
     template: pick("template"),
     partner: pick("partner"),
+    effectiveDate: pick("effectiveDate"),
+    clientAddress: pick("clientAddress"),
+    phone: pick("phone"),
     type: pick("type"),
+    description: pick("description"),
     date: pick("date"),
     location: pick("location"),
+    city: pick("city"),
+    cancellationNoticeDays: pick("cancellationNoticeDays"),
+    mealHours: pick("mealHours"),
     total: pick("total"),
     hourly: pick("hourly"),
     deposit: pick("deposit"),
@@ -140,9 +156,14 @@ export async function createGalleryAgreementRequestAction(
       message: gallery.title,
       details: {
         feeStructureVersion: "section-2",
+        presentationVersion: "reference-v1",
         template: isWeddingAgreementType(gallery.title) ? "wedding" : "photography",
+        effectiveDate: todayInToronto(),
         type: gallery.title,
+        description: gallery.description ?? gallery.title,
         date: gallery.event_date ?? undefined,
+        city: "Toronto",
+        mealHours: "6",
       },
       remindersEnabled: Boolean(gallery.client_email),
     });

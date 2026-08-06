@@ -37,12 +37,22 @@ assert.equal(resolveAgreementTemplateId("photography"), "photography");
 assert.equal(resolveAgreementTemplateId("wedding"), "wedding");
 assert.equal(resolveAgreementTemplateId("unknown"), "photography");
 assert.equal(wedding.sections.length, shared.sections.length);
-assert.match(weddingText, /wedding of Alex Chen and Jamie Lee/);
+assert.match(weddingText, /wedding of \{\{clientName\}\} and \{\{partnerName\}\}/);
 assert.match(weddingText, /coverage of the Wedding/);
-assert.match(weddingText, /scheduled coverage exceeds six consecutive hours/);
+assert.match(weddingText, /scheduled coverage exceeds \{\{mealHours\}\} consecutive hours/);
 assert.match(weddingText, /Wedding materials/);
 assert.doesNotMatch(generalText, /scheduled coverage exceeds six consecutive hours/);
 assert.match(agreementIntro, /^THIS AGREEMENT/);
+for (const variable of [
+  "effectiveDate",
+  "clientName",
+  "clientAddress",
+  "city",
+  "cancellationNoticeDays",
+  "galleryWindow",
+]) {
+  assert.match(generalText, new RegExp(`\\{\\{${variable}\\}\\}`));
+}
 assert.deepEqual(
   agreementFeeFields.map((field) => field.param),
   ["total", "hourly", "deposit", "balanceDueDate", "balance", "lateFeePercent"],

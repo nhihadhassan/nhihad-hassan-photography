@@ -6,7 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { PrintButton } from "@/components/print-button";
 import { AgreementDocument, buildDetailRows } from "@/components/agreement-document";
 import { AgreementSignForm } from "@/components/agreement-sign-form";
-import { agreementDetailFields, agreementFeeFields, legacyAgreementDetailFields } from "@/data/booking-agreement";
+import { agreementDetailFields, agreementFeeFields, agreementServiceFields, legacyAgreementDetailFields, sectionTwoAgreementDetailFields } from "@/data/booking-agreement";
 import { resolveAgreementTemplateId } from "@/data/wedding-agreement";
 import { getBookingAgreement } from "@/lib/booking-agreement";
 import { brandConfig } from "@/lib/config";
@@ -112,10 +112,17 @@ export default async function AgreementSigningPage({
   const values: Record<string, string | undefined> = {
     client: clientName ?? undefined,
     partner: agreementDetails.partner,
+    effectiveDate: agreementDetails.effectiveDate,
+    clientAddress: agreementDetails.clientAddress,
     email: clientEmail ?? undefined,
+    phone: agreementDetails.phone,
     type: agreementDetails.type,
+    description: agreementDetails.description ?? agreementDetails.type,
     date: agreementDetails.date,
     location: agreementDetails.location,
+    city: agreementDetails.city,
+    cancellationNoticeDays: agreementDetails.cancellationNoticeDays,
+    mealHours: agreementDetails.mealHours,
     total: agreementDetails.total,
     hourly: agreementDetails.hourly,
     deposit: agreementDetails.deposit,
@@ -123,15 +130,34 @@ export default async function AgreementSigningPage({
     balanceDueDate: agreementDetails.balanceDueDate,
     lateFeePercent: agreementDetails.lateFeePercent,
     window: agreementDetails.window,
+    clientName: clientName ?? undefined,
+    partnerName: agreementDetails.partner,
+    galleryWindow: agreementDetails.window,
+    clientEmail: clientEmail ?? undefined,
   };
   const templateId = resolveAgreementTemplateId(agreementDetails.template);
+  const referenceFormatting = !signedTerms || agreementDetails.presentationVersion === "reference-v1";
   const usesSectionTwoFees = !signedTerms || agreementDetails.feeStructureVersion === "section-2";
-  const fieldsForLayout = usesSectionTwoFees ? agreementDetailFields : legacyAgreementDetailFields;
+  const fieldsForLayout = referenceFormatting
+    ? agreementDetailFields
+    : usesSectionTwoFees
+      ? sectionTwoAgreementDetailFields
+      : legacyAgreementDetailFields;
   const detailFields = templateId === "wedding"
     ? fieldsForLayout
     : fieldsForLayout.filter((field) => field.param !== "partner");
   const detailRows = buildDetailRows(detailFields, values, MONEY_FIELDS);
   const feeRows = usesSectionTwoFees ? buildDetailRows(agreementFeeFields, values, MONEY_FIELDS) : undefined;
+  const serviceFields = agreementServiceFields.map((field) =>
+    templateId === "wedding" && field.param === "date"
+      ? { ...field, label: "Date of wedding" }
+      : templateId === "wedding" && field.param === "location"
+        ? { ...field, label: "Location of wedding" }
+        : field,
+  );
+  const serviceRows = referenceFormatting
+    ? buildDetailRows(serviceFields, values, MONEY_FIELDS)
+    : undefined;
 
   const signatureSlot = signed ? (
     <section className="mt-14 break-inside-avoid">
@@ -253,7 +279,10 @@ export default async function AgreementSigningPage({
             intro={terms.intro}
             sections={terms.sections}
             detailRows={detailRows}
+            serviceRows={serviceRows}
             feeRows={feeRows}
+            agreementValues={values}
+            referenceFormatting={referenceFormatting}
             signatureSlot={signatureSlot}
           />
         </div>

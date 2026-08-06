@@ -17,11 +17,19 @@ import { isAgreementPastExpiry } from "@/lib/agreement-status";
 /** Per-client shoot details captured at request time and shown on the contract. */
 export type AgreementDetails = {
   feeStructureVersion?: string;
+  presentationVersion?: string;
   template?: string;
   partner?: string;
+  effectiveDate?: string;
+  clientAddress?: string;
+  phone?: string;
   type?: string;
+  description?: string;
   date?: string;
   location?: string;
+  city?: string;
+  cancellationNoticeDays?: string;
+  mealHours?: string;
   total?: string;
   hourly?: string;
   deposit?: string;
@@ -102,11 +110,19 @@ function asDetails(value: unknown): AgreementDetails {
   const pick = (k: string) => (typeof v[k] === "string" ? (v[k] as string) : undefined);
   return {
     feeStructureVersion: pick("feeStructureVersion"),
+    presentationVersion: pick("presentationVersion"),
     template: pick("template"),
     partner: pick("partner"),
+    effectiveDate: pick("effectiveDate"),
+    clientAddress: pick("clientAddress"),
+    phone: pick("phone"),
     type: pick("type"),
+    description: pick("description"),
     date: pick("date"),
     location: pick("location"),
+    city: pick("city"),
+    cancellationNoticeDays: pick("cancellationNoticeDays"),
+    mealHours: pick("mealHours"),
     total: pick("total"),
     hourly: pick("hourly"),
     deposit: pick("deposit"),

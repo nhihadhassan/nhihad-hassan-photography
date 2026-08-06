@@ -8,7 +8,7 @@ import {
   buildDetailRows,
 } from "@/components/agreement-document";
 import { brandConfig } from "@/lib/config";
-import { agreementDetailFields, agreementFeeFields, agreementFields } from "@/data/booking-agreement";
+import { agreementDetailFields, agreementFeeFields, agreementFields, agreementServiceFields } from "@/data/booking-agreement";
 import { resolveAgreementTemplateId } from "@/data/wedding-agreement";
 import { getBookingAgreement } from "@/lib/booking-agreement";
 
@@ -31,6 +31,11 @@ export default async function BookingAgreementPage({ searchParams }: Props) {
   const params = await searchParams;
   const values: Record<string, string | undefined> = {};
   for (const field of agreementFields) values[field.param] = first(params[field.param]);
+  values.description ||= values.type;
+  values.clientName = values.client;
+  values.partnerName = values.partner;
+  values.galleryWindow = values.window;
+  values.clientEmail = values.email;
   const templateId = resolveAgreementTemplateId(first(params.template));
   const { intro, sections } = await getBookingAgreement(
     templateId,
@@ -43,6 +48,14 @@ export default async function BookingAgreementPage({ searchParams }: Props) {
       : agreementDetailFields.filter((field) => field.param !== "partner");
   const detailRows = buildDetailRows(detailFields, values, MONEY_FIELDS);
   const feeRows = buildDetailRows(agreementFeeFields, values, MONEY_FIELDS);
+  const serviceFields = agreementServiceFields.map((field) =>
+    templateId === "wedding" && field.param === "date"
+      ? { ...field, label: "Date of wedding" }
+      : templateId === "wedding" && field.param === "location"
+        ? { ...field, label: "Location of wedding" }
+        : field,
+  );
+  const serviceRows = buildDetailRows(serviceFields, values, MONEY_FIELDS);
 
   return (
     <div className="min-h-[100dvh] bg-[#f3eee5] text-ink print:bg-white">
@@ -61,7 +74,10 @@ export default async function BookingAgreementPage({ searchParams }: Props) {
             intro={intro}
             sections={sections}
             detailRows={detailRows}
+            serviceRows={serviceRows}
             feeRows={feeRows}
+            agreementValues={values}
+            referenceFormatting
             actionSlot={<PrintButton />}
             signatureSlot={<BlankSignatureBlock />}
           />

@@ -34,6 +34,15 @@ function exactPrice(price: string): string {
   return Number.isFinite(amount) && amount > 0 ? String(amount) : "";
 }
 
+function todayInToronto(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Toronto",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 function StatusMessage({ state }: { state: AgreementActionState }) {
   if (!state.message) return null;
   return (
@@ -543,12 +552,19 @@ function CreateForm({
   const [selectedClientKey, setSelectedClientKey] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientAddress, setClientAddress] = useState("");
+  const [effectiveDate, setEffectiveDate] = useState(() => todayInToronto());
   const [templateId, setTemplateId] = useState<AgreementTemplateId>("photography");
   const [partnerName, setPartnerName] = useState("");
   const [shootType, setShootType] = useState("");
+  const [description, setDescription] = useState("");
   const [shootDate, setShootDate] = useState("");
   const [shootTime, setShootTime] = useState("");
   const [location, setLocation] = useState("");
+  const [city, setCity] = useState("Toronto");
+  const [cancellationNoticeDays, setCancellationNoticeDays] = useState("");
+  const [mealHours, setMealHours] = useState("6");
   const [total, setTotal] = useState("");
   const [hourly, setHourly] = useState("");
   const [deposit, setDeposit] = useState("");
@@ -589,6 +605,7 @@ function CreateForm({
 
   const choosePackage = (value: string) => {
     setShootType(value);
+    setDescription(value);
     setTemplateId(isWeddingAgreementType(value) ? "wedding" : "photography");
     const match = pricing.flatMap((category) =>
       category.tiers.map((tier) => ({ value: `${category.label} · ${tier.name}`, tier })),
@@ -637,6 +654,18 @@ function CreateForm({
           Client email
           <input className={inputClass} name="client_email" type="email" value={clientEmail} onChange={(event) => setClientEmail(event.target.value)} placeholder="name@example.com" autoComplete="email" />
         </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Client phone
+          <input className={inputClass} name="phone" value={clientPhone} onChange={(event) => setClientPhone(event.target.value)} placeholder="(416) 555-0123" autoComplete="tel" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Client address
+          <input className={inputClass} name="clientAddress" value={clientAddress} onChange={(event) => setClientAddress(event.target.value)} placeholder="Street, city, province" autoComplete="street-address" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Effective date
+          <input className={inputClass} name="effectiveDate" type="date" value={effectiveDate} onChange={(event) => setEffectiveDate(event.target.value)} />
+        </label>
         <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
           Contract template
           <select
@@ -684,6 +713,10 @@ function CreateForm({
             />
           </label>
         ) : null}
+        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+          Description of services
+          <textarea className={`${inputClass} min-h-24 py-3`} name="description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Describe the coverage, hours, deliverables, and any included services" />
+        </label>
         <ShootSchedulePicker
           date={shootDate}
           time={shootTime}
@@ -694,6 +727,20 @@ function CreateForm({
           Location(s)
           <input className={inputClass} name="location" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Venue, city" />
         </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Included travel city
+          <input className={inputClass} name="city" value={city} onChange={(event) => setCity(event.target.value)} placeholder="Toronto" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Cancellation notice (days)
+          <input className={inputClass} name="cancellationNoticeDays" value={cancellationNoticeDays} onChange={(event) => setCancellationNoticeDays(event.target.value)} placeholder="e.g. 7" inputMode="numeric" />
+        </label>
+        {templateId === "wedding" ? (
+          <label className="grid gap-1.5 text-sm font-medium">
+            Meal threshold (hours)
+            <input className={inputClass} name="mealHours" value={mealHours} onChange={(event) => setMealHours(event.target.value)} placeholder="6" inputMode="decimal" />
+          </label>
+        ) : null}
         <label className="grid gap-1.5 text-sm font-medium">
           Total fee (CAD)
           <input className={inputClass} name="total" value={total} onChange={(event) => setTotal(event.target.value)} placeholder="$0" inputMode="decimal" />

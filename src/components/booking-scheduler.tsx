@@ -54,8 +54,8 @@ export function BookingScheduler({ availability, serviceId, packageName, duratio
   }
 
   return (
-    <div className="grid border border-ink/10 bg-[#f8f3eb] lg:grid-cols-[1fr_0.9fr]">
-      <section className="p-5 sm:p-8 lg:border-r lg:border-ink/10">
+    <div className="grid border-x border-b border-ink/10 bg-[#f8f3eb] lg:grid-cols-[1fr_0.9fr]">
+      <section className="p-5 sm:p-8">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-[#8b6444]">Choose a date</p>

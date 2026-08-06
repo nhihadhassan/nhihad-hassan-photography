@@ -18,6 +18,7 @@ const VARIABLE_LABELS: Record<string, string> = {
 };
 
 function formatVariableValue(param: string, value?: string): string | undefined {
+  if (value && param === "lateFeePercent" && !value.endsWith("%")) return `${value}%`;
   if (!value || !["effectiveDate", "balanceDueDate"].includes(param) || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return value;
   }
@@ -142,6 +143,29 @@ function VariableList({ rows, bullets = false }: { rows: DetailRow[]; bullets?: 
   );
 }
 
+function FeeList({ rows, depositTerm }: { rows: DetailRow[]; depositTerm: "Retainer" | "Deposit" }) {
+  const value = (param: string) => rows.find((row) => row.param === param)?.value ?? undefined;
+  const lineClass = "text-[14px] leading-7 text-ink/78 print:text-[8.5pt]";
+
+  return (
+    <ul className="list-disc space-y-0.5 pl-7">
+      <li className={lineClass}>
+        Total Fee for Services: <VariableValue value={value("total")} label="total fee for services" />
+      </li>
+      <li className={lineClass}>
+        Additional Hourly Pricing: <VariableValue value={value("hourly")} label="additional hourly pricing" />
+      </li>
+      <li className={lineClass}>
+        {depositTerm} due upon signing: <VariableValue value={value("deposit")} label={`${depositTerm.toLowerCase()} due upon signing`} />
+      </li>
+      <li className={lineClass}>
+        Remaining amount due on <VariableValue value={value("balanceDueDate")} label="final due date" />:{" "}
+        <VariableValue value={value("balance")} label="remaining amount" />
+      </li>
+    </ul>
+  );
+}
+
 /**
  * The rendered booking-agreement contract: header, intro, the per-client
  * details table, and the clause sections. Shared by the public
@@ -158,6 +182,7 @@ export function AgreementDocument({
   feeRows,
   agreementValues = {},
   referenceFormatting = false,
+  depositTerm = "Retainer",
   actionSlot,
   signatureSlot,
 }: {
@@ -169,6 +194,7 @@ export function AgreementDocument({
   feeRows?: DetailRow[];
   agreementValues?: Record<string, string | undefined>;
   referenceFormatting?: boolean;
+  depositTerm?: "Retainer" | "Deposit";
   actionSlot?: ReactNode;
   signatureSlot?: ReactNode;
 }) {
@@ -245,7 +271,7 @@ export function AgreementDocument({
                     ) : null}
                     {section.heading.startsWith("2.") && i === 0 && feeRows?.length ? (
                       <div className="py-2">
-                        {referenceFormatting ? <VariableList rows={feeRows} bullets /> : <DetailTable rows={feeRows} />}
+                        {referenceFormatting ? <FeeList rows={feeRows} depositTerm={depositTerm} /> : <DetailTable rows={feeRows} />}
                       </div>
                     ) : null}
                   </Fragment>

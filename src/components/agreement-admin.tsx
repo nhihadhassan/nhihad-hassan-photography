@@ -750,7 +750,7 @@ function CreateForm({
           <input className={inputClass} name="hourly" value={hourly} onChange={(event) => setHourly(event.target.value)} placeholder="$0 per hour" inputMode="decimal" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
-          Deposit due upon signing (CAD)
+          {templateId === "wedding" ? "Deposit" : "Retainer"} due upon signing (CAD)
           <input className={inputClass} name="deposit" value={deposit} onChange={(event) => setDeposit(event.target.value)} placeholder="$0" inputMode="decimal" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">

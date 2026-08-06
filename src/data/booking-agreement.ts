@@ -89,11 +89,11 @@ export const agreementSections: AgreementSection[] = [
     ],
   },
   {
-    heading: "2. Fees and Deposit",
+    heading: "2. Fees and Payment",
     clauses: [
       "2.1 Fees. The Client will pay the Photographer the fees set out in this Section 2.1 (the “Fees”), including any applicable federal or provincial sales taxes due on the Fees.",
-      "2.2 Deposit. The deposit shown above is due when this Agreement is signed and is non-refundable because the Photographer commits time to the Services and may turn down other work. The deposit is credited toward the total Fees payable by the Client. The booking is not confirmed until the signed Agreement and deposit are received.",
-      "2.3 Invoice. The Photographer will issue an invoice when the Services are agreed. The Client will pay all outstanding Fees on or before the due dates shown above. A payment made after its due date will incur the monthly late fee shown above on the outstanding balance, subject to applicable law. The final invoice may include additional services or reasonable expenses authorized under this Agreement and will state the final amount payable.",
+      "2.2 Retainer. The retainer shown above is due when this Agreement is signed and is non-refundable because the Photographer commits time to the Services and may turn down other work. The retainer is credited toward the total Fees payable by the Client. The booking is not confirmed until the signed Agreement and retainer are received.",
+      "2.3 Invoice. The Photographer will issue an invoice when the Services are agreed. The Client will pay all outstanding Fees on or before the due dates shown above. A payment made after its due date will incur a late fee of {{lateFeePercent}} per month on the outstanding balance, subject to applicable law. The final invoice may include additional services or reasonable expenses authorized under this Agreement and will state the final amount payable.",
     ],
   },
   {

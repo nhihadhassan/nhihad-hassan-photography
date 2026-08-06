@@ -58,6 +58,12 @@ assert.deepEqual(
   ["total", "hourly", "deposit", "balanceDueDate", "balance", "lateFeePercent"],
 );
 assert.doesNotMatch(generalText, /25% deposit/i);
+assert.match(generalText, /2\. Fees and Payment/);
+assert.match(generalText, /2\.2 Retainer/);
+assert.match(generalText, /\{\{lateFeePercent\}\} per month/);
+assert.match(weddingText, /2\. Fees and Deposit/);
+assert.match(weddingText, /2\.2 Deposit/);
+assert.doesNotMatch(weddingText, /2\.2 Retainer/);
 
 for (const requiredConcept of [
   /2\.3 Invoice/i,

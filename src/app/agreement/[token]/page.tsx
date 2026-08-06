@@ -283,6 +283,7 @@ export default async function AgreementSigningPage({
             feeRows={feeRows}
             agreementValues={values}
             referenceFormatting={referenceFormatting}
+            depositTerm={templateId === "wedding" ? "Deposit" : "Retainer"}
             signatureSlot={signatureSlot}
           />
         </div>

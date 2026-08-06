@@ -78,6 +78,7 @@ export default async function BookingAgreementPage({ searchParams }: Props) {
             feeRows={feeRows}
             agreementValues={values}
             referenceFormatting
+            depositTerm={templateId === "wedding" ? "Deposit" : "Retainer"}
             actionSlot={<PrintButton />}
             signatureSlot={<BlankSignatureBlock />}
           />

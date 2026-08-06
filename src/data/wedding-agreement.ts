@@ -59,6 +59,15 @@ export function applyWeddingAgreement(
       };
     }
 
+    if (section.heading.startsWith("2.")) {
+      return {
+        heading: "2. Fees and Deposit",
+        clauses: section.clauses.map((clause) =>
+          clause.replaceAll("Retainer", "Deposit").replaceAll("retainer", "deposit"),
+        ),
+      };
+    }
+
     if (section.heading.startsWith("3.")) {
       const [access, travel, cooperation, authorizedUse, ...rest] = section.clauses;
       return {

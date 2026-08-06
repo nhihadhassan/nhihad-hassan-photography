@@ -2,18 +2,21 @@
 
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, ExternalLink, Loader2, Mail, Plus, Search, Sparkles, X } from "lucide-react";
+import { BellRing, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, ExternalLink, Loader2, Mail, Plus, Search, Settings2, ShieldCheck, Sparkles, X } from "lucide-react";
 import type { GalleryRecord } from "@/lib/admin-data";
 import type { AgreementRequest } from "@/lib/agreements";
+import { isAgreementPastExpiry } from "@/lib/agreement-status";
 import type { ClientSummary } from "@/lib/clients";
 import type { PricingCategory } from "@/data/pricing";
 import {
   createAgreementRequestAction,
   revokeAgreementRequestAction,
   sendAgreementRequestEmailAction,
+  updateAgreementAutomationAction,
   type AgreementActionState,
 } from "@/app/admin/(protected)/agreements/actions";
 import { formatCompactDate } from "@/lib/utils";
+import { utcToTorontoLocalInput } from "@/lib/ics";
 
 const initialState: AgreementActionState = { status: "idle", message: "" };
 
@@ -70,8 +73,9 @@ function CopyLink({ value, label = "Copy link" }: { value: string; label?: strin
 }
 
 function statusFor(request: AgreementRequest): { label: string; className: string } {
-  if (request.revoked_at) return { label: "Revoked", className: "bg-admin-danger/10 text-admin-danger" };
   if (request.signed_at) return { label: "Signed", className: "bg-admin-success/10 text-admin-success" };
+  if (request.revoked_at) return { label: "Revoked", className: "bg-admin-danger/10 text-admin-danger" };
+  if (isAgreementPastExpiry(request)) return { label: "Expired", className: "bg-admin-danger/10 text-admin-danger" };
   if (request.viewed_at) return { label: "Viewed", className: "bg-admin-info/10 text-admin-info" };
   if (request.sent_at) return { label: "Sent", className: "bg-admin-ink/8 text-admin-ink/65" };
   return { label: "Draft", className: "bg-admin-ink/8 text-admin-ink/65" };
@@ -348,6 +352,17 @@ function contractDateTime(date: string, time: string): string {
   return time ? `${longDate} at ${displayTime(time)}` : longDate;
 }
 
+function localDateTimeValue(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function defaultExpiryValue(): string {
+  const date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  date.setHours(23, 59, 0, 0);
+  return localDateTimeValue(date);
+}
+
 function ShootSchedulePicker({
   date,
   time,
@@ -535,6 +550,9 @@ function CreateForm({
   const [location, setLocation] = useState("");
   const [total, setTotal] = useState("");
   const [emailNow, setEmailNow] = useState(true);
+  const [expiryEnabled, setExpiryEnabled] = useState(false);
+  const [expiryAt, setExpiryAt] = useState("");
+  const [remindersEnabled, setRemindersEnabled] = useState(true);
 
   const deposit = moneyPart(total, 0.25);
   const balance = moneyPart(total, 0.75);
@@ -667,6 +685,98 @@ function CreateForm({
           Internal note <span className="font-normal text-admin-ink/65">(not shown to client)</span>
           <input className={inputClass} name="message" placeholder="Add a private reminder or context" />
         </label>
+        <fieldset className="sm:col-span-2">
+          <legend className="text-sm font-semibold text-admin-ink">Signing controls</legend>
+          <div className="mt-2 divide-y divide-admin-ink/10 rounded-md border border-admin-ink/10 bg-white/35">
+            <div className="grid gap-4 p-4 sm:grid-cols-[1fr_18rem] sm:items-center">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-admin-accent" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-medium text-admin-ink">Contract expiry</p>
+                  <p className="mt-0.5 text-xs leading-5 text-admin-ink/55">
+                    Close the signing link automatically if it is still unsigned at the deadline.
+                  </p>
+                </div>
+              </div>
+              <div className="grid gap-2 sm:justify-items-end">
+                <label className="inline-flex items-center gap-2 text-xs font-medium text-admin-ink/65">
+                  <input
+                    type="checkbox"
+                    checked={expiryEnabled}
+                    onChange={(event) => {
+                      const enabled = event.target.checked;
+                      setExpiryEnabled(enabled);
+                      if (enabled && !expiryAt) setExpiryAt(defaultExpiryValue());
+                    }}
+                    className="size-4 accent-admin-accent"
+                  />
+                  Set expiry
+                </label>
+                {expiryEnabled ? (
+                  <label className="grid w-full gap-1 text-xs font-medium text-admin-ink/55 sm:w-72">
+                    Deadline (Toronto time)
+                    <input
+                      type="datetime-local"
+                      name="expires_at"
+                      value={expiryAt}
+                      onChange={(event) => setExpiryAt(event.target.value)}
+                      required
+                      className={`${inputClass} w-full`}
+                    />
+                  </label>
+                ) : null}
+              </div>
+            </div>
+            <div className="grid gap-4 p-4 sm:grid-cols-[1fr_18rem] sm:items-center">
+              <div className="flex items-start gap-3">
+                <BellRing className="mt-0.5 size-4 shrink-0 text-admin-accent" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-medium text-admin-ink">Signature reminders</p>
+                  <p className="mt-0.5 text-xs leading-5 text-admin-ink/55">
+                    Email the client until they sign, the contract expires, or the send limit is reached.
+                  </p>
+                </div>
+              </div>
+              <div className="grid gap-2 sm:justify-items-end">
+                <label className="inline-flex items-center gap-2 text-xs font-medium text-admin-ink/65">
+                  <input
+                    type="checkbox"
+                    name="reminders_enabled"
+                    checked={remindersEnabled}
+                    onChange={(event) => setRemindersEnabled(event.target.checked)}
+                    className="size-4 accent-admin-accent"
+                  />
+                  Send reminders
+                </label>
+                {remindersEnabled ? (
+                  <div className="grid w-full grid-cols-2 gap-2 sm:w-72">
+                    <label className="grid gap-1 text-xs font-medium text-admin-ink/55">
+                      Every
+                      <select name="reminder_interval_days" defaultValue="3" className={inputClass}>
+                        <option value="2">2 days</option>
+                        <option value="3">3 days</option>
+                        <option value="5">5 days</option>
+                        <option value="7">7 days</option>
+                      </select>
+                    </label>
+                    <label className="grid gap-1 text-xs font-medium text-admin-ink/55">
+                      Stop after
+                      <select name="reminder_max_sends" defaultValue="3" className={inputClass}>
+                        <option value="1">1 email</option>
+                        <option value="2">2 emails</option>
+                        <option value="3">3 emails</option>
+                        <option value="5">5 emails</option>
+                      </select>
+                    </label>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-admin-ink/50">
+            Reminders begin after the first contract email is sent and run on the daily reminder schedule.
+          </p>
+        </fieldset>
       </div>
       <label className="mt-4 inline-flex items-center gap-2 text-sm text-admin-ink/65">
         <input
@@ -710,7 +820,15 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
   const [pending, startTransition] = useTransition();
   const [revoked, setRevoked] = useState(Boolean(request.revoked_at));
   const [feedback, setFeedback] = useState<{ ok: boolean; message: string } | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [rowExpiryEnabled, setRowExpiryEnabled] = useState(Boolean(request.expires_at));
+  const [rowExpiryAt, setRowExpiryAt] = useState(utcToTorontoLocalInput(request.expires_at));
+  const [rowRemindersEnabled, setRowRemindersEnabled] = useState(request.reminders_enabled);
+  const [rowInterval, setRowInterval] = useState(request.reminder_interval_days);
+  const [rowMaxSends, setRowMaxSends] = useState(request.reminder_max_sends);
   const url = `${siteOrigin}/agreement/${request.token}`;
+  const expired = isAgreementPastExpiry(request);
+  const active = !revoked && !expired && !request.signed_at;
   const status = revoked ? { label: "Revoked", className: "bg-admin-danger/10 text-admin-danger" } : statusFor(request);
 
   return (
@@ -729,9 +847,20 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
             <span>{deliveryLabel(request)}</span>
             <span>Viewed: {request.viewed_at ? formatCompactDate(request.viewed_at) : "No"}</span>
             <span>Signed: {request.signed_at ? formatCompactDate(request.signed_at) : "No"}</span>
+            {request.expires_at ? (
+              <span>Expires: {formatCompactDate(request.expires_at)}</span>
+            ) : null}
+            {request.reminders_enabled ? (
+              <span>Reminders: {request.reminder_count}/{request.reminder_max_sends}</span>
+            ) : null}
           </div>
           {request.latest_delivery?.failure_reason ? (
             <p className="mt-2 text-xs text-admin-danger">{request.latest_delivery.failure_reason}</p>
+          ) : null}
+          {request.last_reminder_error ? (
+            <p className="mt-2 text-xs text-admin-danger">
+              Last reminder failed: {request.last_reminder_error}
+            </p>
           ) : null}
           {feedback ? (
             <p className={`mt-2 text-xs ${feedback.ok ? "text-admin-success" : "text-admin-danger"}`}>
@@ -750,7 +879,18 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
             <ExternalLink className="size-3.5" />
             {request.signed_at ? "View signed" : "Open"}
           </a>
-          {!revoked && !request.signed_at ? (
+          {active ? (
+            <button
+              type="button"
+              onClick={() => setSettingsOpen((value) => !value)}
+              aria-expanded={settingsOpen}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-ink/12 px-3 text-xs font-medium text-admin-ink/70 hover:bg-admin-ink/6"
+            >
+              <Settings2 className="size-3.5" aria-hidden="true" />
+              Automation
+            </button>
+          ) : null}
+          {active ? (
             <button
               disabled={pending}
               onClick={() => {
@@ -767,7 +907,7 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
               {request.latest_delivery ? "Resend email" : "Send email"}
             </button>
           ) : null}
-          {!revoked && !request.signed_at ? (
+          {active ? (
             <button
               disabled={pending}
               onClick={() => {
@@ -784,6 +924,101 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
           ) : null}
         </div>
       </div>
+      {settingsOpen && active ? (
+        <div className="mt-4 border-t border-admin-ink/10 pt-4">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div>
+              <label className="inline-flex items-center gap-2 text-sm font-medium text-admin-ink">
+                <input
+                  type="checkbox"
+                  checked={rowExpiryEnabled}
+                  onChange={(event) => {
+                    const enabled = event.target.checked;
+                    setRowExpiryEnabled(enabled);
+                    if (enabled && !rowExpiryAt) setRowExpiryAt(defaultExpiryValue());
+                  }}
+                  className="size-4 accent-admin-accent"
+                />
+                Auto-expire unsigned contract
+              </label>
+              {rowExpiryEnabled ? (
+                <input
+                  type="datetime-local"
+                  value={rowExpiryAt}
+                  onChange={(event) => setRowExpiryAt(event.target.value)}
+                  className={`${inputClass} mt-2 w-full`}
+                />
+              ) : null}
+            </div>
+            <div>
+              <label className="inline-flex items-center gap-2 text-sm font-medium text-admin-ink">
+                <input
+                  type="checkbox"
+                  checked={rowRemindersEnabled}
+                  onChange={(event) => setRowRemindersEnabled(event.target.checked)}
+                  className="size-4 accent-admin-accent"
+                />
+                Send signature reminders
+              </label>
+              {rowRemindersEnabled ? (
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <select
+                    value={rowInterval}
+                    onChange={(event) => setRowInterval(Number(event.target.value))}
+                    aria-label="Reminder interval"
+                    className={`${inputClass} w-full`}
+                  >
+                    {[2, 3, 5, 7].map((days) => (
+                      <option key={days} value={days}>Every {days} days</option>
+                    ))}
+                  </select>
+                  <select
+                    value={rowMaxSends}
+                    onChange={(event) => setRowMaxSends(Number(event.target.value))}
+                    aria-label="Maximum reminder emails"
+                    className={`${inputClass} w-full`}
+                  >
+                    {[1, 2, 3, 5].map((count) => (
+                      <option key={count} value={count}>Up to {count}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              disabled={pending || (rowExpiryEnabled && !rowExpiryAt)}
+              onClick={() => {
+                startTransition(async () => {
+                  setFeedback(null);
+                  const result = await updateAgreementAutomationAction(request.id, {
+                    expiresAt: rowExpiryEnabled ? rowExpiryAt : null,
+                    remindersEnabled: rowRemindersEnabled,
+                    reminderIntervalDays: rowInterval,
+                    reminderMaxSends: rowMaxSends,
+                  });
+                  setFeedback(result);
+                  if (result.ok) {
+                    setSettingsOpen(false);
+                    router.refresh();
+                  }
+                });
+              }}
+              className="inline-flex min-h-9 items-center gap-2 rounded-md bg-admin-ink px-3 text-xs font-semibold text-admin-surface disabled:opacity-40"
+            >
+              {pending ? <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> : null}
+              Save automation
+            </button>
+            {request.last_reminder_at ? (
+              <span className="text-xs text-admin-ink/50">
+                Last reminder {formatCompactDate(request.last_reminder_at)}
+              </span>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </article>
   );
 }

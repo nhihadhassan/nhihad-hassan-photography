@@ -14,6 +14,8 @@ export type ContractRow = {
   viewed_at: string | null;
   signed_at: string | null;
   revoked_at: string | null;
+  expires_at: string | null;
+  expired_at: string | null;
   created_at: string;
 };
 
@@ -36,9 +38,10 @@ export function ContractsTable({ rows }: { rows: ContractRow[] }) {
   ];
 
   const tabs: FilterTab<ContractRow>[] = [
-    { key: "awaiting", label: "Awaiting signature", predicate: (r) => Boolean(r.sent_at) && !r.signed_at && !r.revoked_at },
+    { key: "awaiting", label: "Awaiting signature", predicate: (r) => Boolean(r.sent_at) && !r.signed_at && !r.revoked_at && !r.expired_at && (!r.expires_at || new Date(r.expires_at).getTime() > Date.now()) },
     { key: "signed", label: "Signed", predicate: (r) => Boolean(r.signed_at) },
-    { key: "draft", label: "Draft", predicate: (r) => !r.sent_at && !r.revoked_at },
+    { key: "expired", label: "Expired", predicate: (r) => !r.signed_at && Boolean(r.expired_at || (r.expires_at && new Date(r.expires_at).getTime() <= Date.now())) },
+    { key: "draft", label: "Draft", predicate: (r) => !r.sent_at && !r.revoked_at && !r.expired_at && (!r.expires_at || new Date(r.expires_at).getTime() > Date.now()) },
     { key: "all", label: "All", predicate: () => true },
   ];
 

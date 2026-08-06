@@ -6,11 +6,14 @@ import {
   createAgreementRequest,
   getAgreementRequestById,
   revokeAgreementRequest,
+  updateAgreementAutomationSettings,
   type AgreementDetails,
 } from "@/lib/agreements";
+import { isAgreementPastExpiry } from "@/lib/agreement-status";
 import { sendAgreementRequestEmail } from "@/lib/agreement-deliveries";
 import { getAdminGallery } from "@/lib/admin-data";
 import { siteUrl } from "@/lib/seo";
+import { torontoLocalToUtc } from "@/lib/ics";
 
 export type AgreementActionState = {
   status: "idle" | "success" | "error";
@@ -41,6 +44,11 @@ function signUrlFor(token: string) {
   return `${origin}/agreement/${token}`;
 }
 
+function integerSetting(formData: FormData, key: string, fallback: number, min: number, max: number) {
+  const value = Number(clean(formData.get(key)));
+  return Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : fallback;
+}
+
 export async function createAgreementRequestAction(
   _prev: AgreementActionState,
   formData: FormData,
@@ -50,12 +58,25 @@ export async function createAgreementRequestAction(
     const clientName = clean(formData.get("client_name"));
     const clientEmail = clean(formData.get("client_email"));
     const emailNow = formData.get("mark_sent") === "on";
+    const remindersEnabled = formData.get("reminders_enabled") === "on";
+    const expiryInput = clean(formData.get("expires_at"));
+    const expiryDate = expiryInput ? torontoLocalToUtc(expiryInput) : null;
+    if (expiryInput && (!expiryDate || expiryDate.getTime() <= Date.now())) {
+      return {
+        status: "error",
+        message: "Choose an expiry date and time in the future.",
+      };
+    }
     const { id, token } = await createAgreementRequest({
       galleryId: clean(formData.get("gallery_id")),
       clientName,
       clientEmail,
       message: clean(formData.get("message")),
       details: detailsFromForm(formData),
+      expiresAt: expiryDate?.toISOString() ?? null,
+      remindersEnabled,
+      reminderIntervalDays: integerSetting(formData, "reminder_interval_days", 3, 1, 30),
+      reminderMaxSends: integerSetting(formData, "reminder_max_sends", 3, 1, 10),
     });
     const signUrl = signUrlFor(token);
 
@@ -73,6 +94,7 @@ export async function createAgreementRequestAction(
         clientEmail,
         clientName,
         agreementUrl: signUrl,
+        expiresAt: expiryDate?.toISOString() ?? null,
       });
       revalidatePath("/admin/agreements");
       return {
@@ -113,6 +135,7 @@ export async function createGalleryAgreementRequestAction(
         type: gallery.title,
         date: gallery.event_date ?? undefined,
       },
+      remindersEnabled: Boolean(gallery.client_email),
     });
     const signUrl = signUrlFor(token);
     if (!gallery.client_email) {
@@ -129,6 +152,7 @@ export async function createGalleryAgreementRequestAction(
       clientEmail: gallery.client_email,
       clientName: gallery.client_name,
       agreementUrl: signUrl,
+      expiresAt: null,
     });
     revalidatePath("/admin/agreements");
     revalidatePath("/admin/galleries");
@@ -150,6 +174,9 @@ export async function sendAgreementRequestEmailAction(
     if (!request) return { ok: false, message: "Agreement request not found." };
     if (request.revoked_at) return { ok: false, message: "This signing link has been revoked." };
     if (request.signed_at) return { ok: false, message: "This agreement is already signed." };
+    if (isAgreementPastExpiry(request)) {
+      return { ok: false, message: "This agreement has expired and can no longer be emailed." };
+    }
     if (!request.client_email) {
       return { ok: false, message: "This agreement has no client email. Add one before sending." };
     }
@@ -159,6 +186,7 @@ export async function sendAgreementRequestEmailAction(
       clientEmail: request.client_email,
       clientName: request.client_name,
       agreementUrl: signUrlFor(request.token),
+      expiresAt: request.expires_at,
     });
     revalidatePath("/admin/agreements");
     return { ok: result.ok, message: result.message };
@@ -182,6 +210,37 @@ export async function revokeAgreementRequestAction(
     return {
       ok: false,
       message: error instanceof Error ? error.message : "Could not revoke link.",
+    };
+  }
+}
+
+export async function updateAgreementAutomationAction(
+  id: string,
+  input: {
+    expiresAt: string | null;
+    remindersEnabled: boolean;
+    reminderIntervalDays: number;
+    reminderMaxSends: number;
+  },
+): Promise<{ ok: boolean; message: string }> {
+  await requireAdmin();
+  try {
+    const expiresAt = input.expiresAt ? torontoLocalToUtc(input.expiresAt) : null;
+    if (input.expiresAt && (!expiresAt || expiresAt.getTime() <= Date.now())) {
+      return { ok: false, message: "Choose an expiry date and time in the future." };
+    }
+    await updateAgreementAutomationSettings(id, {
+      expiresAt: expiresAt?.toISOString() ?? null,
+      remindersEnabled: input.remindersEnabled,
+      reminderIntervalDays: Math.min(30, Math.max(1, Math.round(input.reminderIntervalDays))),
+      reminderMaxSends: Math.min(10, Math.max(1, Math.round(input.reminderMaxSends))),
+    });
+    revalidatePath("/admin/agreements");
+    return { ok: true, message: "Contract automation updated." };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Could not update contract automation.",
     };
   }
 }

@@ -97,6 +97,7 @@ export async function sendAgreementRequestEmail(input: {
   clientEmail: string;
   clientName: string | null;
   agreementUrl: string;
+  expiresAt?: string | null;
 }): Promise<{ ok: boolean; message: string; deliveryId?: string }> {
   const subject = `Your photography agreement · ${brandConfig.name}`;
 
@@ -123,6 +124,7 @@ export async function sendAgreementRequestEmail(input: {
     to: input.clientEmail,
     clientName: input.clientName,
     agreementUrl: input.agreementUrl,
+    expiresAt: input.expiresAt,
     idempotencyKey: `agreement-${deliveryId}`,
   });
 

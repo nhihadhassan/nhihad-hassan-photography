@@ -3,7 +3,7 @@ import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import { getAdminGalleries } from "@/lib/admin-data";
 import { getAdminBookings } from "@/lib/bookings";
 import { listPayments } from "@/lib/finance";
-import { sendReminderEmail } from "@/lib/notify-email";
+import { sendAgreementReminderEmail, sendReminderEmail } from "@/lib/notify-email";
 import { logBookingEvent } from "@/lib/events";
 import { getReminderRules, getMutedBookings, type ReminderKind } from "@/lib/reminder-rules";
 import { parseAmount, formatMoney } from "@/lib/utils";
@@ -16,6 +16,8 @@ export type ReminderSummary = {
   enabled: boolean;
   sent: number;
   byKind: Record<ReminderKind, number>;
+  contractSignature: number;
+  expiredContracts: number;
 };
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -38,6 +40,96 @@ async function loadSettings(admin: ReturnType<typeof getServiceRoleSupabaseClien
   };
 }
 
+async function expireDueAgreements(
+  admin: ReturnType<typeof getServiceRoleSupabaseClient>,
+  nowIso: string,
+): Promise<number> {
+  const { data, error } = await admin
+    .from("agreement_requests")
+    .update({ expired_at: nowIso, updated_at: nowIso })
+    .is("signed_at", null)
+    .is("revoked_at", null)
+    .is("expired_at", null)
+    .not("expires_at", "is", null)
+    .lte("expires_at", nowIso)
+    .select("id");
+  if (error) throw new Error(error.message);
+  return data?.length ?? 0;
+}
+
+async function sendDueAgreementReminders(
+  admin: ReturnType<typeof getServiceRoleSupabaseClient>,
+  now: number,
+): Promise<number> {
+  const { data, error } = await admin
+    .from("agreement_requests")
+    .select("id,token,client_name,client_email,sent_at,expires_at,reminder_interval_days,reminder_max_sends,reminder_count,last_reminder_at")
+    .eq("reminders_enabled", true)
+    .is("signed_at", null)
+    .is("revoked_at", null)
+    .is("expired_at", null)
+    .not("sent_at", "is", null);
+  if (error) throw new Error(error.message);
+
+  let sent = 0;
+  const base = origin();
+  for (const row of data ?? []) {
+    if (!row.client_email || !row.sent_at) continue;
+    const count = Math.max(0, Number(row.reminder_count) || 0);
+    const maxSends = Math.max(1, Number(row.reminder_max_sends) || 3);
+    if (count >= maxSends) continue;
+
+    const expiresAt = row.expires_at ? new Date(row.expires_at).getTime() : null;
+    if (expiresAt && expiresAt <= now) continue;
+    const anchor = new Date(row.last_reminder_at || row.sent_at).getTime();
+    const intervalDays = Math.max(1, Number(row.reminder_interval_days) || 3);
+    if (!Number.isFinite(anchor) || anchor + intervalDays * DAY > now) continue;
+
+    const attemptAt = new Date(now).toISOString();
+    await admin
+      .from("agreement_requests")
+      .update({ last_reminder_attempt_at: attemptAt, last_reminder_error: null, updated_at: attemptAt })
+      .eq("id", row.id)
+      .eq("reminder_count", count)
+      .is("signed_at", null)
+      .is("revoked_at", null)
+      .is("expired_at", null);
+
+    const result = await sendAgreementReminderEmail({
+      to: row.client_email,
+      clientName: row.client_name,
+      agreementUrl: `${base}/agreement/${row.token}`,
+      expiresAt: row.expires_at,
+      idempotencyKey: `agreement-reminder-${row.id}-${count + 1}`,
+    });
+    if (!result.ok) {
+      await admin
+        .from("agreement_requests")
+        .update({ last_reminder_error: result.message, updated_at: attemptAt })
+        .eq("id", row.id);
+      continue;
+    }
+
+    const { error: updateError } = await admin
+      .from("agreement_requests")
+      .update({
+        reminder_count: count + 1,
+        last_reminder_at: attemptAt,
+        last_reminder_attempt_at: attemptAt,
+        last_reminder_error: null,
+        last_reminder_message_id: result.messageId ?? null,
+        updated_at: attemptAt,
+      })
+      .eq("id", row.id)
+      .eq("reminder_count", count)
+      .is("signed_at", null)
+      .is("revoked_at", null)
+      .is("expired_at", null);
+    if (!updateError) sent += 1;
+  }
+  return sent;
+}
+
 /**
  * Send any due reminder emails, deduplicated via reminder_log. Timing comes
  * from the editable reminder_rules (with safe defaults when the table is
@@ -55,8 +147,15 @@ export async function runReminders(): Promise<ReminderSummary> {
     review_request: 0,
   };
 
+  const now = Date.now();
+  const expiredContracts = await expireDueAgreements(admin, new Date(now).toISOString());
+
   const settings = await loadSettings(admin);
-  if (!settings.reminders_enabled) return { enabled: false, sent: 0, byKind };
+  if (!settings.reminders_enabled) {
+    return { enabled: false, sent: 0, byKind, contractSignature: 0, expiredContracts };
+  }
+
+  const contractSignature = await sendDueAgreementReminders(admin, now);
 
   const [bookings, galleries, payments, logRes, rules, muted] = await Promise.all([
     getAdminBookings(),
@@ -73,7 +172,6 @@ export async function runReminders(): Promise<ReminderSummary> {
     if (p.booking_id) paidByBooking.set(p.booking_id, (paidByBooking.get(p.booking_id) ?? 0) + p.amount);
   }
 
-  const now = Date.now();
   const base = origin();
 
   // occurrence 0 keeps the legacy key so existing dedup still holds.
@@ -214,8 +312,8 @@ export async function runReminders(): Promise<ReminderSummary> {
     }
   }
 
-  const sent = Object.values(byKind).reduce((a, b) => a + b, 0);
-  return { enabled: true, sent, byKind };
+  const sent = Object.values(byKind).reduce((a, b) => a + b, 0) + contractSignature;
+  return { enabled: true, sent, byKind, contractSignature, expiredContracts };
 }
 
 function labelFor(kind: ReminderKind): string {

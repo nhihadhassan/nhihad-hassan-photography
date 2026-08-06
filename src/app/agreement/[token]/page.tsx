@@ -150,7 +150,7 @@ export default async function AgreementSigningPage({
 
   return (
     <div className="min-h-[100dvh] bg-[#f1f0ed] text-ink print:bg-white">
-      <header className="relative h-[500px] overflow-hidden bg-charcoal text-soft-white print:hidden sm:h-[560px]">
+      <header className="relative h-[600px] overflow-hidden bg-charcoal text-soft-white print:hidden sm:h-[560px]">
         <Image
           src={cover?.url || "/portfolio/ma-baby-shower-couple.webp"}
           alt={cover?.alt || "An expecting couple photographed by Nhihad Hassan Photography"}
@@ -168,7 +168,7 @@ export default async function AgreementSigningPage({
             <p className="font-serif text-[clamp(1.05rem,5.5vw,2.8rem)] uppercase tracking-normal text-soft-white">
               {brandConfig.name}
             </p>
-            <h1 className="mt-20 font-serif text-[clamp(2.75rem,5vw,4.75rem)] font-medium leading-[0.92] sm:mt-[5.75rem]">
+            <h1 className="mt-40 font-serif text-[clamp(2.75rem,5vw,4.75rem)] font-medium leading-[0.92] sm:mt-[5.75rem]">
               Hi {firstName},
             </h1>
             <p className="mt-3 font-serif text-[clamp(1.65rem,3vw,2.75rem)] leading-[1.08] text-soft-white/92">

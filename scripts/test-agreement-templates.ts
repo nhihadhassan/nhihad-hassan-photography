@@ -48,8 +48,20 @@ for (const variable of [
   "clientName",
   "clientAddress",
   "city",
-  "cancellationNoticeDays",
+  "signerName",
+  "signerTitle",
+  "clientEmail",
+  "clientPhone",
+  "cancellationPolicy",
+  "reschedulePolicy",
   "galleryWindow",
+  "rehostingFee",
+  "revisionPolicy",
+  "archiveWindow",
+  "additionalCharges",
+  "licenseType",
+  "privacyOptOutFee",
+  "turnaroundBusinessDays",
 ]) {
   assert.match(generalText, new RegExp(`\\{\\{${variable}\\}\\}`));
 }
@@ -61,6 +73,9 @@ assert.doesNotMatch(generalText, /25% deposit/i);
 assert.match(generalText, /2\. Fees and Payment/);
 assert.match(generalText, /2\.2 Retainer/);
 assert.match(generalText, /\{\{lateFeePercent\}\} per month/);
+assert.match(generalText, /30 or more days|\{\{cancellationPolicy\}\}/);
+assert.match(generalText, /\{\{rehostingFee\}\}/);
+assert.match(generalText, /\{\{revisionPolicy\}\}/);
 assert.match(weddingText, /2\. Fees and Deposit/);
 assert.match(weddingText, /2\.2 Deposit/);
 assert.doesNotMatch(weddingText, /2\.2 Retainer/);

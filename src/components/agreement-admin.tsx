@@ -397,7 +397,8 @@ function ShootSchedulePicker({
   return (
     <div className="grid gap-1.5 sm:col-span-2">
       <span className="text-sm font-medium">Shoot date and time</span>
-      <input type="hidden" name="date" value={contractDateTime(date, time)} />
+      <input type="hidden" name="date" value={contractDateTime(date, "")} />
+      <input type="hidden" name="startTime" value={time ? displayTime(time) : ""} />
       <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-admin-ink/12 bg-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
         <button
           type="button"
@@ -563,14 +564,13 @@ function CreateForm({
   const [shootTime, setShootTime] = useState("");
   const [location, setLocation] = useState("");
   const [city, setCity] = useState("Toronto");
-  const [cancellationNoticeDays, setCancellationNoticeDays] = useState("");
   const [mealHours, setMealHours] = useState("6");
   const [total, setTotal] = useState("");
   const [hourly, setHourly] = useState("");
   const [deposit, setDeposit] = useState("");
   const [balance, setBalance] = useState("");
   const [balanceDueDate, setBalanceDueDate] = useState("");
-  const [lateFeePercent, setLateFeePercent] = useState("");
+  const [lateFeePercent, setLateFeePercent] = useState("1.5");
   const [emailNow, setEmailNow] = useState(true);
   const [expiryEnabled, setExpiryEnabled] = useState(false);
   const [expiryAt, setExpiryAt] = useState("");
@@ -647,7 +647,7 @@ function CreateForm({
           </select>
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
-          Client name
+          Full legal or company name
           <input className={inputClass} name="client_name" value={clientName} onChange={(event) => setClientName(event.target.value)} placeholder="Start typing a name" autoComplete="name" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
@@ -661,6 +661,14 @@ function CreateForm({
         <label className="grid gap-1.5 text-sm font-medium">
           Client address
           <input className={inputClass} name="clientAddress" value={clientAddress} onChange={(event) => setClientAddress(event.target.value)} placeholder="Street, city, province" autoComplete="street-address" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Authorized signer name
+          <input className={inputClass} name="signerName" placeholder="If different from client name" autoComplete="name" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Authorized signer title
+          <input className={inputClass} name="signerTitle" placeholder="Owner, Director, etc." />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
           Effective date
@@ -724,16 +732,44 @@ function CreateForm({
           onTimeChange={setShootTime}
         />
         <label className="grid gap-1.5 text-sm font-medium">
-          Location(s)
-          <input className={inputClass} name="location" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Venue, city" />
+          Coverage time
+          <input className={inputClass} name="coverageTime" placeholder="e.g. 5 hours" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Venue name and full address
+          <input className={inputClass} name="location" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Venue, street, city, province" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Second location
+          <input className={inputClass} name="secondLocation" placeholder="Name and full address, if applicable" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          On-site contact name
+          <input className={inputClass} name="onsiteContactName" placeholder="If different from client" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          On-site contact phone
+          <input className={inputClass} name="onsiteContactPhone" placeholder="(416) 555-0123" autoComplete="tel" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Second shooter
+          <select className={inputClass} name="secondShooter" defaultValue="No"><option>No</option><option>Yes</option></select>
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Minimum edited images
+          <input className={inputClass} name="minimumEditedImages" placeholder="e.g. 75" inputMode="numeric" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Turnaround (business days)
+          <input className={inputClass} name="turnaroundBusinessDays" placeholder="e.g. 15" inputMode="numeric" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+          Restrictions and special requests
+          <textarea className={`${inputClass} min-h-20 py-3`} name="specialRequests" placeholder="No flash, minors present, must-have shots, key people, or other known requirements" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
           Included travel city
           <input className={inputClass} name="city" value={city} onChange={(event) => setCity(event.target.value)} placeholder="Toronto" />
-        </label>
-        <label className="grid gap-1.5 text-sm font-medium">
-          Cancellation notice (days)
-          <input className={inputClass} name="cancellationNoticeDays" value={cancellationNoticeDays} onChange={(event) => setCancellationNoticeDays(event.target.value)} placeholder="e.g. 7" inputMode="numeric" />
         </label>
         {templateId === "wedding" ? (
           <label className="grid gap-1.5 text-sm font-medium">
@@ -750,12 +786,12 @@ function CreateForm({
           <input className={inputClass} name="hourly" value={hourly} onChange={(event) => setHourly(event.target.value)} placeholder="$0 per hour" inputMode="decimal" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
-          {templateId === "wedding" ? "Deposit" : "Retainer"} due upon signing (CAD)
-          <input className={inputClass} name="deposit" value={deposit} onChange={(event) => setDeposit(event.target.value)} placeholder="$0" inputMode="decimal" />
+          {templateId === "wedding" ? "Deposit" : "Retainer"} due upon signing
+          <input className={inputClass} name="deposit" value={deposit} onChange={(event) => setDeposit(event.target.value)} placeholder="$500 or 25%" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
-          Final due date
-          <input className={inputClass} name="balanceDueDate" type="date" value={balanceDueDate} onChange={(event) => setBalanceDueDate(event.target.value)} />
+          Balance due timing
+          <input className={inputClass} name="balanceDueDate" value={balanceDueDate} onChange={(event) => setBalanceDueDate(event.target.value)} placeholder="Before the shoot, on the day, on delivery, or a date" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
           Remaining amount due (CAD)
@@ -767,13 +803,45 @@ function CreateForm({
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
           Gallery availability window
-          <select className={inputClass} name="window" defaultValue="">
-            <option value="">Choose a window</option>
+          <select className={inputClass} name="window" defaultValue="1 year from delivery">
+            <option value="1 year from delivery">1 year from delivery</option>
             <option value="30 days from delivery">30 days from delivery</option>
             <option value="60 days from delivery">60 days from delivery</option>
             <option value="90 days from delivery">90 days from delivery</option>
             <option value="No expiry">No expiry</option>
           </select>
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Separately billed items
+          <input className={inputClass} name="additionalCharges" defaultValue="Travel outside the GTA, parking, permits, and rentals, if applicable" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Client licence type
+          <select className={inputClass} name="licenseType" defaultValue="Personal use only"><option>Personal use only</option><option>Commercial use for the Client’s own marketing</option></select>
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Gallery rehosting fee (CAD)
+          <input className={inputClass} name="rehostingFee" defaultValue="50" inputMode="decimal" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Image archive period
+          <input className={inputClass} name="archiveWindow" defaultValue="1 year after delivery" />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+          Cancellation tiers
+          <textarea className={`${inputClass} min-h-20 py-3`} name="cancellationPolicy" defaultValue="30 or more days before the shoot: retainer only; 15 to 29 days: 50% of total; 14 days or fewer: 100% of total." />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+          Rescheduling policy
+          <textarea className={`${inputClass} min-h-20 py-3`} name="reschedulePolicy" defaultValue="One free reschedule with at least 15 days' notice; the new date must be within 6 months." />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+          Revision allowance
+          <textarea className={`${inputClass} min-h-20 py-3`} name="revisionPolicy" defaultValue="Two rounds of minor revisions on up to 10 images, requested within 14 days of delivery." />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium">
+          Privacy opt-out surcharge
+          <input className={inputClass} name="privacyOptOutFee" defaultValue="Quoted on request" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
           Internal note <span className="font-normal text-admin-ink/65">(not shown to client)</span>

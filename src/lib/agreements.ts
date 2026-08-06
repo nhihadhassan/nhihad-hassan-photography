@@ -20,13 +20,24 @@ export type AgreementDetails = {
   presentationVersion?: string;
   template?: string;
   partner?: string;
+  signerName?: string;
+  signerTitle?: string;
   effectiveDate?: string;
   clientAddress?: string;
   phone?: string;
   type?: string;
   description?: string;
   date?: string;
+  startTime?: string;
+  coverageTime?: string;
   location?: string;
+  secondLocation?: string;
+  onsiteContactName?: string;
+  onsiteContactPhone?: string;
+  secondShooter?: string;
+  minimumEditedImages?: string;
+  turnaroundBusinessDays?: string;
+  specialRequests?: string;
   city?: string;
   cancellationNoticeDays?: string;
   mealHours?: string;
@@ -37,6 +48,14 @@ export type AgreementDetails = {
   balanceDueDate?: string;
   lateFeePercent?: string;
   window?: string;
+  rehostingFee?: string;
+  revisionPolicy?: string;
+  archiveWindow?: string;
+  cancellationPolicy?: string;
+  reschedulePolicy?: string;
+  additionalCharges?: string;
+  licenseType?: string;
+  privacyOptOutFee?: string;
 };
 
 export type AgreementRequest = {
@@ -113,13 +132,24 @@ function asDetails(value: unknown): AgreementDetails {
     presentationVersion: pick("presentationVersion"),
     template: pick("template"),
     partner: pick("partner"),
+    signerName: pick("signerName"),
+    signerTitle: pick("signerTitle"),
     effectiveDate: pick("effectiveDate"),
     clientAddress: pick("clientAddress"),
     phone: pick("phone"),
     type: pick("type"),
     description: pick("description"),
     date: pick("date"),
+    startTime: pick("startTime"),
+    coverageTime: pick("coverageTime"),
     location: pick("location"),
+    secondLocation: pick("secondLocation"),
+    onsiteContactName: pick("onsiteContactName"),
+    onsiteContactPhone: pick("onsiteContactPhone"),
+    secondShooter: pick("secondShooter"),
+    minimumEditedImages: pick("minimumEditedImages"),
+    turnaroundBusinessDays: pick("turnaroundBusinessDays"),
+    specialRequests: pick("specialRequests"),
     city: pick("city"),
     cancellationNoticeDays: pick("cancellationNoticeDays"),
     mealHours: pick("mealHours"),
@@ -130,6 +160,14 @@ function asDetails(value: unknown): AgreementDetails {
     balanceDueDate: pick("balanceDueDate"),
     lateFeePercent: pick("lateFeePercent"),
     window: pick("window"),
+    rehostingFee: pick("rehostingFee"),
+    revisionPolicy: pick("revisionPolicy"),
+    archiveWindow: pick("archiveWindow"),
+    cancellationPolicy: pick("cancellationPolicy"),
+    reschedulePolicy: pick("reschedulePolicy"),
+    additionalCharges: pick("additionalCharges"),
+    licenseType: pick("licenseType"),
+    privacyOptOutFee: pick("privacyOptOutFee"),
   };
 }
 

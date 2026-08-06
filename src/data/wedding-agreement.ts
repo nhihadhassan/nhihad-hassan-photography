@@ -99,7 +99,7 @@ export function applyWeddingAgreement(
 
   return {
     ...content,
-    intro: `THIS AGREEMENT is made as of {{effectiveDate}} (the “Effective Date”) between {{clientName}} (the “Client”) and Nhihad Hassan Photography (the “Photographer”).`,
+    intro: `THIS AGREEMENT is made as of {{effectiveDate}} (the “Effective Date”) between {{clientName}}, represented where applicable by {{signerName}}, {{signerTitle}}, with a mailing address of {{clientAddress}}, email {{clientEmail}}, and phone {{clientPhone}} (the “Client”), and Nhihad Hassan Photography (the “Photographer”).`,
     sections,
   };
 }

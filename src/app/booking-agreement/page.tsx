@@ -36,6 +36,7 @@ export default async function BookingAgreementPage({ searchParams }: Props) {
   values.partnerName = values.partner;
   values.galleryWindow = values.window;
   values.clientEmail = values.email;
+  values.clientPhone = values.phone;
   const templateId = resolveAgreementTemplateId(first(params.template));
   const { intro, sections } = await getBookingAgreement(
     templateId,

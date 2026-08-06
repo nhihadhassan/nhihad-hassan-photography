@@ -19,7 +19,9 @@ export type AgreementDetailField = {
 };
 
 export const agreementDetailFields: AgreementDetailField[] = [
-  { param: "client", label: "Client name" },
+  { param: "client", label: "Full legal or company name" },
+  { param: "signerName", label: "Authorized signer name" },
+  { param: "signerTitle", label: "Authorized signer title" },
   { param: "partner", label: "Partner name (weddings)" },
   { param: "effectiveDate", label: "Effective date" },
   { param: "clientAddress", label: "Client address" },
@@ -27,17 +29,43 @@ export const agreementDetailFields: AgreementDetailField[] = [
   { param: "phone", label: "Client phone" },
   { param: "type", label: "Shoot type / package" },
   { param: "description", label: "Description of services" },
-  { param: "date", label: "Shoot date(s) and time" },
-  { param: "location", label: "Location(s)" },
+  { param: "date", label: "Shoot date" },
+  { param: "startTime", label: "Start time" },
+  { param: "coverageTime", label: "Coverage time" },
+  { param: "location", label: "Venue name and full address" },
+  { param: "secondLocation", label: "Second location" },
+  { param: "onsiteContactName", label: "On-site contact name" },
+  { param: "onsiteContactPhone", label: "On-site contact phone" },
+  { param: "secondShooter", label: "Second shooter" },
+  { param: "minimumEditedImages", label: "Minimum edited images" },
+  { param: "turnaroundBusinessDays", label: "Turnaround (business days)" },
+  { param: "specialRequests", label: "Restrictions and special requests" },
   { param: "city", label: "Included travel city" },
-  { param: "cancellationNoticeDays", label: "Cancellation notice (days)" },
   { param: "mealHours", label: "Meal threshold (hours)" },
   { param: "window", label: "Gallery availability window" },
+  { param: "rehostingFee", label: "Gallery rehosting fee" },
+  { param: "revisionPolicy", label: "Revision allowance" },
+  { param: "archiveWindow", label: "Image archive period" },
+  { param: "cancellationPolicy", label: "Cancellation tiers" },
+  { param: "reschedulePolicy", label: "Rescheduling policy" },
+  { param: "additionalCharges", label: "Separately billed items" },
+  { param: "licenseType", label: "Client licence type" },
+  { param: "privacyOptOutFee", label: "Privacy opt-out surcharge" },
 ];
 
 export const agreementServiceFields: AgreementDetailField[] = [
+  { param: "type", label: "Type of shoot" },
   { param: "date", label: "Date of services" },
-  { param: "location", label: "Location of services" },
+  { param: "startTime", label: "Start time" },
+  { param: "coverageTime", label: "Coverage time" },
+  { param: "location", label: "Venue and full address" },
+  { param: "secondLocation", label: "Second location" },
+  { param: "onsiteContactName", label: "On-site contact" },
+  { param: "onsiteContactPhone", label: "On-site contact phone" },
+  { param: "secondShooter", label: "Second shooter" },
+  { param: "minimumEditedImages", label: "Minimum edited images" },
+  { param: "turnaroundBusinessDays", label: "Turnaround in business days" },
+  { param: "specialRequests", label: "Restrictions / special requests" },
   { param: "description", label: "Description of services" },
 ];
 
@@ -74,7 +102,7 @@ export const sectionTwoAgreementDetailFields = legacyAgreementDetailFields.filte
 export const agreementFields = [...agreementDetailFields, ...agreementFeeFields];
 
 export const agreementIntro =
-  "THIS AGREEMENT is made as of {{effectiveDate}} (the “Effective Date”) between {{clientName}} with a primary contact address of {{clientAddress}} (the “Client”), and Nhihad Hassan Photography (the “Photographer”).";
+  "THIS AGREEMENT is made as of {{effectiveDate}} (the “Effective Date”) between {{clientName}}, represented where applicable by {{signerName}}, {{signerTitle}}, with a mailing address of {{clientAddress}}, email {{clientEmail}}, and phone {{clientPhone}} (the “Client”), and Nhihad Hassan Photography (the “Photographer”).";
 
 export const agreementDisclaimer =
   "This agreement template is provided for convenience and is not legal advice. Consider having it reviewed by a licensed Ontario lawyer before relying on it.";
@@ -94,6 +122,7 @@ export const agreementSections: AgreementSection[] = [
       "2.1 Fees. The Client will pay the Photographer the fees set out in this Section 2.1 (the “Fees”), including any applicable federal or provincial sales taxes due on the Fees.",
       "2.2 Retainer. The retainer shown above is due when this Agreement is signed and is non-refundable because the Photographer commits time to the Services and may turn down other work. The retainer is credited toward the total Fees payable by the Client. The booking is not confirmed until the signed Agreement and retainer are received.",
       "2.3 Invoice. The Photographer will issue an invoice when the Services are agreed. The Client will pay all outstanding Fees on or before the due dates shown above. A payment made after its due date will incur a late fee of {{lateFeePercent}} per month on the outstanding balance, subject to applicable law. The final invoice may include additional services or reasonable expenses authorized under this Agreement and will state the final amount payable.",
+      "2.4 Additional charges. Items billed separately from the base package are: {{additionalCharges}}. No other additional charge will be incurred without the Client's approval, except where this Agreement expressly provides otherwise.",
     ],
   },
   {
@@ -125,8 +154,8 @@ export const agreementSections: AgreementSection[] = [
     heading: "6. Term, Cancellation and Rescheduling",
     clauses: [
       "6.1 Term. This Agreement begins when signed and ends when the parties have completed their obligations, except for terms that are intended to continue after completion.",
-      "6.2 Client cancellation. The Client may cancel by written notice. Amounts already paid, including the deposit, are non-refundable. If cancellation occurs within {{cancellationNoticeDays}} days of the shoot, the full remaining balance is payable because the reserved time may not be replaceable, unless the parties agree otherwise in writing.",
-      "6.3 Rescheduling. The Client may request one reschedule with at least 7 days' written notice, subject to the Photographer's availability. If the Photographer cannot reasonably accommodate the new date, the request is treated as a Client cancellation. Further changes may require a new deposit or updated fee agreed in writing.",
+      "6.2 Client cancellation. The Client may cancel by written notice. The following cancellation terms apply: {{cancellationPolicy}}",
+      "6.3 Rescheduling. The following rescheduling terms apply, subject to the Photographer's availability: {{reschedulePolicy}} If the Photographer cannot reasonably accommodate the new date, the request is treated as a Client cancellation.",
       "6.4 Photographer cancellation or replacement. If the Photographer cannot perform, the Photographer may propose a qualified replacement, subject to the Client's reasonable approval. If no approved replacement is available, the Client may choose an available rescheduled date or a refund of the deposit and every other payment for services not provided.",
     ],
   },
@@ -134,16 +163,18 @@ export const agreementSections: AgreementSection[] = [
     heading: "7. Ownership and Promotional Use",
     clauses: [
       "7.1 Copyright. The Photographer retains copyright and ownership of the Work Product, subject to the limited license granted to the Client below. No copyright is transferred unless the Photographer signs a separate written assignment.",
-      "7.2 Portfolio permission. The Client grants the Photographer permission to use the Images for portfolio, website, social media, studio samples, competition entries, marketing, advertising, and self-promotion in any format or medium. The Client may opt out by notifying the Photographer in writing before the shoot or before an Image is first published. Reasonable privacy requests will be honoured, and the Photographer will not sell or license the Client's likeness to an unrelated third party for that party's commercial use without written consent.",
+      "7.2 Portfolio permission. The Client grants the Photographer permission to use the Images for portfolio, website, social media, studio samples, competition entries, marketing, advertising, and self-promotion in any format or medium. The Client may opt out by notifying the Photographer in writing before the shoot and paying the privacy opt-out surcharge of {{privacyOptOutFee}}. Reasonable privacy requests will be honoured, and the Photographer will not sell or license the Client's likeness to an unrelated third party for that party's commercial use without written consent.",
       "7.3 Client materials. The Client gives the Photographer a royalty-free license to use Client-supplied materials, such as a logo, written brief, or reference material, only as reasonably necessary to perform the services or make a promotional use authorized by this Agreement. The Client confirms that they have the right to provide those materials.",
     ],
   },
   {
     heading: "8. Limited License and Delivery",
     clauses: [
-      "8.1 Personal-use license. After full payment, the Client receives a limited, non-exclusive, perpetual, worldwide, royalty-free, non-transferable, and non-sublicensable license to download, print, share, and display the delivered Images for personal use, including personal social media, albums, gifts, non-commercial display, and personal communications. Commercial resale, paid licensing, material alteration, removal of a copyright notice, or use by a business requires the Photographer's written permission, except for ordinary cropping required by a social platform.",
-      "8.2 Delivery. Edited, full-resolution Images are delivered through a private online gallery. Typical turnaround is about two weeks for portraits and lifestyle sessions, two to three weeks for events, and up to four weeks for nightlife coverage, unless otherwise agreed in writing.",
-      "8.3 Gallery availability. The gallery remains available for {{galleryWindow}}. The Client is responsible for downloading and backing up the Images before the gallery closes. Restoring an expired gallery may incur a fee disclosed in advance.",
+      "8.1 Client license. After full payment, the Client receives the following licence: {{licenseType}}. The licence is limited, non-exclusive, perpetual, worldwide, royalty-free, non-transferable, and non-sublicensable. Commercial resale, paid licensing, material alteration, or removal of a copyright notice requires the Photographer's written permission.",
+      "8.2 Delivery. Edited, full-resolution Images are delivered through a private online gallery within {{turnaroundBusinessDays}} business days after the shoot, unless otherwise agreed in writing.",
+      "8.3 Gallery availability. The gallery remains available for {{galleryWindow}}. The Client is responsible for downloading and backing up the Images before the gallery closes. Restoring an expired gallery will incur a rehosting fee of {{rehostingFee}}.",
+      "8.4 Revisions. The included revision allowance is: {{revisionPolicy}}",
+      "8.5 Archive. The Photographer will archive the delivered Images for {{archiveWindow}}. Continued storage after that period is not guaranteed.",
     ],
   },
   {
@@ -159,7 +190,7 @@ export const agreementSections: AgreementSection[] = [
   {
     heading: "10. General",
     clauses: [
-      "10.1 Notices. Booking-related notices must be sent to the Photographer at nhihadhassanphotography@gmail.com and to the Client at {{clientEmail}}. A notice is effective when sent unless the sender receives a delivery-failure notice. Each party is responsible for keeping their contact information current.",
+      "10.1 Notices. Booking-related notices must be sent to the Photographer at nhihadhassanphotography@gmail.com and to the Client at {{clientEmail}} or {{clientPhone}}. A notice is effective when sent unless the sender receives a delivery-failure notice. Each party is responsible for keeping their contact information current.",
       "10.2 Privacy. The Client's contact details are used to coordinate the booking, provide the services, process payment, deliver the Images, and maintain required business records. They are not sold and are shared only with service providers as reasonably necessary for those purposes or as required by law.",
       "10.3 Governing law. This Agreement is governed by the laws of the Province of Ontario and the applicable federal laws of Canada. The parties submit to the courts of Ontario.",
       "10.4 Amendments. Any change to this Agreement must be recorded in writing and accepted by both parties.",

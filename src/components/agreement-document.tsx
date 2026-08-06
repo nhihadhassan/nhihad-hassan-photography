@@ -10,15 +10,28 @@ const VARIABLE_LABELS: Record<string, string> = {
   clientName: "client name",
   partnerName: "partner name",
   clientAddress: "client address",
+  signerName: "authorized signer name",
+  signerTitle: "authorized signer title",
+  clientPhone: "client phone",
   city: "city name",
   cancellationNoticeDays: "number of days",
   mealHours: "number of hours",
   galleryWindow: "gallery availability window",
+  turnaroundBusinessDays: "turnaround in business days",
+  rehostingFee: "gallery rehosting fee",
+  revisionPolicy: "revision allowance",
+  archiveWindow: "image archive period",
+  cancellationPolicy: "cancellation tiers",
+  reschedulePolicy: "rescheduling policy",
+  additionalCharges: "separately billed items",
+  licenseType: "client licence type",
+  privacyOptOutFee: "privacy opt-out surcharge",
   clientEmail: "client email",
 };
 
 function formatVariableValue(param: string, value?: string): string | undefined {
   if (value && param === "lateFeePercent" && !value.endsWith("%")) return `${value}%`;
+  if (value && param === "rehostingFee" && /^\d[\d,.]*(?:\.\d+)?$/.test(value)) return `$${value}`;
   if (!value || !["effectiveDate", "balanceDueDate"].includes(param) || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return value;
   }
@@ -323,7 +336,7 @@ export function buildDetailRows(
   return fields.map((field) => {
     const raw = (values[field.param] ?? "").trim();
     let value = raw;
-    if (value && moneyParams.has(field.param) && !value.startsWith("$")) value = `$${value}`;
+    if (value && moneyParams.has(field.param) && /^\d[\d,.]*(?:\.\d+)?$/.test(value)) value = `$${value}`;
     if (value && field.param === "hourly" && !/\/\s*hour$/i.test(value)) value = `${value}/hour`;
     if (value && field.param === "lateFeePercent" && !value.endsWith("%")) value = `${value}%`;
     value = formatVariableValue(field.param, value) ?? "";

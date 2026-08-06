@@ -110,6 +110,7 @@ export default async function AgreementSigningPage({
   const contractTitle = `${clientName?.trim() || agreementDetails.type?.trim() || "Photography"} Contract`;
 
   const values: Record<string, string | undefined> = {
+    ...agreementDetails,
     client: clientName ?? undefined,
     partner: agreementDetails.partner,
     effectiveDate: agreementDetails.effectiveDate,
@@ -134,9 +135,10 @@ export default async function AgreementSigningPage({
     partnerName: agreementDetails.partner,
     galleryWindow: agreementDetails.window,
     clientEmail: clientEmail ?? undefined,
+    clientPhone: agreementDetails.phone,
   };
   const templateId = resolveAgreementTemplateId(agreementDetails.template);
-  const referenceFormatting = !signedTerms || agreementDetails.presentationVersion === "reference-v1";
+  const referenceFormatting = !signedTerms || ["reference-v1", "reference-v2"].includes(agreementDetails.presentationVersion ?? "");
   const usesSectionTwoFees = !signedTerms || agreementDetails.feeStructureVersion === "section-2";
   const fieldsForLayout = referenceFormatting
     ? agreementDetailFields

@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { BookingServicePicker } from "@/components/booking-service-picker";
+import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { EditPencil } from "@/components/edit-mode";
 import { getSiteSettings } from "@/lib/site-settings";
 import { getContent } from "@/lib/site-content";
@@ -67,15 +68,29 @@ export default async function ContactPage() {
           <Reveal delay={0.1}>
             <div className="max-w-xl lg:justify-self-end">
               <p className="font-serif text-3xl leading-tight text-soft-white sm:text-4xl">
-                First, choose the session that fits.
+                Start with a quick look at what may be open.
               </p>
               <p className="mt-5 text-sm leading-6 text-soft-white/60">
-                You&apos;ll choose an available date and time next, then share your contact details. Nothing is charged online.
+                Review availability below, then choose the session that fits. You&apos;ll select an exact date and time in the next step.
               </p>
             </div>
           </Reveal>
         </section>
-        <section className="mx-auto mt-14 max-w-7xl">
+        <div className="-mx-4 mt-14 sm:-mx-6 lg:-mx-8">
+          <AvailabilityCalendar interactive={false} />
+        </div>
+        <section id="sessions" className="mx-auto mt-20 max-w-7xl scroll-mt-28">
+          <div className="mb-12 grid gap-4 border-b border-soft-white/12 pb-7 sm:grid-cols-[0.7fr_1.3fr] sm:items-end">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-copper">Sessions</p>
+              <h2 className="mt-3 font-serif text-4xl leading-none text-soft-white sm:text-5xl">
+                Choose what fits your shoot.
+              </h2>
+            </div>
+            <p className="max-w-xl text-sm leading-6 text-soft-white/58 sm:justify-self-end sm:text-right">
+              Your session length determines the exact start times available for the date you have in mind.
+            </p>
+          </div>
           <BookingServicePicker categories={pricing} />
         </section>
       </main>

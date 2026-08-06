@@ -20,10 +20,11 @@ import { Reveal } from "@/components/reveal";
 type Props = {
   availability: [string, DayStatus][];
   headline: string;
+  interactive?: boolean;
   months: { year: number; month: number; index: number }[];
 };
 
-export function AvailabilityCalendarClient({ availability, headline, months }: Props) {
+export function AvailabilityCalendarClient({ availability, headline, interactive = true, months }: Props) {
   const availMap = useMemo(() => new Map(availability), [availability]);
   const { selectedDate, setSelectedDate } = useSelectedDate();
 
@@ -48,8 +49,9 @@ export function AvailabilityCalendarClient({ availability, headline, months }: P
               </h2>
             </div>
             <p className="max-w-xl text-sm leading-6 text-soft-white/60 lg:justify-self-end lg:text-right">
-              Click an open or tentative day to pick it for your inquiry.
-              Tentative dates I usually confirm within two business days.
+              {interactive
+                ? "Click an open or tentative day to pick it for your inquiry. Tentative dates I usually confirm within two business days."
+                : "Use this as a quick guide before choosing a session. You’ll select an exact date and time next. Tentative dates are usually confirmed within two business days."}
             </p>
           </div>
         </Reveal>
@@ -61,6 +63,7 @@ export function AvailabilityCalendarClient({ availability, headline, months }: P
                 year={m.year}
                 month={m.month}
                 availability={availMap}
+                interactive={interactive}
                 selectedDate={selectedDate}
                 onSelect={handleSelect}
               />
@@ -83,12 +86,14 @@ function MonthGrid({
   year,
   month,
   availability,
+  interactive,
   selectedDate,
   onSelect,
 }: {
   year: number;
   month: number;
   availability: Map<string, DayStatus>;
+  interactive: boolean;
   selectedDate: string | null;
   onSelect: (date: string | null) => void;
 }) {
@@ -126,9 +131,9 @@ function MonthGrid({
             availability.get(iso) ?? { day: "open", night: "open" };
           const isPast = iso < todayIso;
           const isToday = iso === todayIso;
-          const isSelected = iso === selectedDate;
+          const isSelected = interactive && iso === selectedDate;
           const fullyHeld = status.day === "held" && status.night === "held";
-          const isInteractive = !isPast && !fullyHeld;
+          const isSelectable = interactive && !isPast && !fullyHeld;
 
           return (
             <DayCell
@@ -141,7 +146,7 @@ function MonthGrid({
               isToday={isToday}
               isSelected={isSelected}
               fullyHeld={fullyHeld}
-              isInteractive={isInteractive}
+              isSelectable={isSelectable}
               onSelect={() => onSelect(iso)}
             />
           );
@@ -161,7 +166,7 @@ function DayCell({
   isToday,
   isSelected,
   fullyHeld,
-  isInteractive,
+  isSelectable,
   onSelect,
 }: {
   iso: string;
@@ -172,7 +177,7 @@ function DayCell({
   isToday: boolean;
   isSelected: boolean;
   fullyHeld: boolean;
-  isInteractive: boolean;
+  isSelectable: boolean;
   onSelect: () => void;
 }) {
   const fullyTentative =
@@ -183,7 +188,7 @@ function DayCell({
 
   // Number color reacts to overall state.
   let numberClass = "text-soft-white/85";
-  if (isPast) numberClass = "text-soft-white/25";
+  if (isPast) numberClass = "text-soft-white/50";
   else if (fullyHeld) numberClass = "text-soft-white/50 line-through";
   else if (fullyTentative) numberClass = "text-soft-white/65";
 
@@ -194,12 +199,13 @@ function DayCell({
   if (isSelected) {
     containerClass += " bg-copper/85 text-ink ring-2 ring-copper";
     numberClass = "text-ink font-medium";
-  } else if (isInteractive && hasOpenSlot) {
+  } else if (!isPast && hasOpenSlot) {
     const ring = isToday ? "ring-copper/70" : "ring-copper/30";
-    containerClass += ` bg-copper/10 ring-1 ${ring} hover:bg-copper/20`;
+    containerClass += ` bg-copper/10 ring-1 ${ring}`;
+    if (isSelectable) containerClass += " hover:bg-copper/20";
   } else if (isToday && !isPast) {
     containerClass += " ring-1 ring-copper/70";
-  } else if (isInteractive) {
+  } else if (isSelectable) {
     containerClass += " hover:bg-soft-white/8";
   }
 
@@ -217,7 +223,7 @@ function DayCell({
     </>
   );
 
-  if (isInteractive) {
+  if (isSelectable) {
     return (
       <button
         type="button"
@@ -232,7 +238,7 @@ function DayCell({
   }
 
   return (
-    <div className={containerClass} aria-label={ariaLabel}>
+    <div className={containerClass} role="group" aria-label={ariaLabel}>
       {inner}
     </div>
   );

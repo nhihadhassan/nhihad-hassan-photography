@@ -9,7 +9,7 @@ import { AvailabilityCalendarClient } from "@/components/availability-calendar-c
  *
  * Returns null when GOOGLE_CALENDAR_ICAL_URL is not configured.
  */
-export async function AvailabilityCalendar() {
+export async function AvailabilityCalendar({ interactive = true }: { interactive?: boolean } = {}) {
   const availability = await fetchAvailability();
   if (!availability) return null;
 
@@ -20,6 +20,7 @@ export async function AvailabilityCalendar() {
     <AvailabilityCalendarClient
       availability={serialized}
       headline={headline}
+      interactive={interactive}
       months={months}
     />
   );

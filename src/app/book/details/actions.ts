@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendInquiryAdminAlert, sendInquiryAutoReply } from "@/lib/notify-email";
 import { findBookingSelection } from "@/lib/booking-options";
@@ -21,7 +22,7 @@ const schema = z.object({
 });
 
 export type BookingInquiryState = {
-  status: "idle" | "success" | "error";
+  status: "idle" | "error";
   message: string;
   fieldErrors?: Partial<Record<keyof z.infer<typeof schema>, string[]>>;
 };
@@ -79,14 +80,18 @@ export async function submitBookingInquiry(
       }),
     ]);
 
-    return {
-      status: "success",
-      message: "Your date and time request is in. I’ll reply personally to confirm availability and the deposit details.",
-    };
   } catch {
     return {
       status: "error",
       message: "Your request could not be sent. Please try again or email me directly.",
     };
   }
+
+  const query = new URLSearchParams({
+    service: selection.category.id,
+    package: selection.tier.name,
+    date: parsed.data.eventDate,
+    time: parsed.data.eventTime,
+  });
+  redirect(`/book/confirmation?${query.toString()}`);
 }

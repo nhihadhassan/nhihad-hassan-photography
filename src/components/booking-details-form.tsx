@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { CheckCircle2, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { submitBookingInquiry, type BookingInquiryState } from "@/app/book/details/actions";
 import { Button } from "@/components/ui/button";
 
@@ -15,19 +15,6 @@ export function BookingDetailsForm(props: {
   eventTime: string;
 }) {
   const [state, action, pending] = useActionState(submitBookingInquiry, initialState);
-
-  if (state.status === "success") {
-    return (
-      <div className="grid min-h-[520px] place-items-center bg-[#f8f3eb] p-8 text-center">
-        <div className="max-w-md">
-          <CheckCircle2 className="mx-auto size-10 text-copper" aria-hidden="true" />
-          <p className="mt-5 text-xs uppercase tracking-[0.2em] text-[#8b6444]">Request received</p>
-          <h2 className="mt-3 font-serif text-5xl leading-none text-ink">Your date is on my radar.</h2>
-          <p className="mt-5 text-base leading-7 text-ink/62">{state.message}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <form action={action} className="grid gap-5 bg-[#f8f3eb] p-5 sm:p-8">

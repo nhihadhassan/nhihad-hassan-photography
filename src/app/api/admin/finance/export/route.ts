@@ -23,14 +23,14 @@ export async function GET(request: Request) {
   if (type === "payments") {
     const payments = await listPayments();
     rows = [
-      ["paid_on", "amount", "kind", "method", "booking_id", "note", "created_at"],
-      ...payments.map((p) => [p.paid_on, p.amount, p.kind, p.method, p.booking_id, p.note, p.created_at]),
+      ["paid_on", "paid_time", "amount", "kind", "method", "booking_id", "note", "created_at"],
+      ...payments.map((p) => [p.paid_on, p.paid_time, p.amount, p.kind, p.method, p.booking_id, p.note, p.created_at]),
     ];
   } else {
     const expenses = await listExpenses();
     rows = [
-      ["expense_date", "amount", "category", "vendor", "note", "created_at"],
-      ...expenses.map((e) => [e.expense_date, e.amount, e.category, e.vendor, e.note, e.created_at]),
+      ["expense_date", "expense_time", "amount", "category", "vendor", "note", "created_at"],
+      ...expenses.map((e) => [e.expense_date, e.expense_time, e.amount, e.category, e.vendor, e.note, e.created_at]),
     ];
   }
 

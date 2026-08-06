@@ -13,6 +13,7 @@ export type Payment = {
   amount: number;
   kind: PaymentKind;
   paid_on: string;
+  paid_time: string | null;
   method: string | null;
   note: string | null;
   created_at: string;
@@ -21,6 +22,7 @@ export type Payment = {
 export type Expense = {
   id: string;
   expense_date: string;
+  expense_time: string | null;
   category: string | null;
   vendor: string | null;
   amount: number;
@@ -105,6 +107,7 @@ export async function createPayment(input: {
   amount: number;
   kind: PaymentKind;
   paidOn?: string | null;
+  paidTime?: string | null;
   method?: string | null;
   note?: string | null;
 }) {
@@ -116,6 +119,7 @@ export async function createPayment(input: {
     amount: input.amount,
     kind: input.kind,
     paid_on: input.paidOn || new Date().toISOString().slice(0, 10),
+    paid_time: input.paidTime ?? null,
     method: input.method ?? "interac",
     note: input.note ?? null,
   });
@@ -130,6 +134,7 @@ export async function deletePayment(id: string) {
 
 export async function createExpense(input: {
   expenseDate?: string | null;
+  expenseTime?: string | null;
   category?: string | null;
   vendor?: string | null;
   amount: number;
@@ -138,6 +143,7 @@ export async function createExpense(input: {
   const admin = getServiceRoleSupabaseClient();
   const { error } = await admin.from("expenses").insert({
     expense_date: input.expenseDate || new Date().toISOString().slice(0, 10),
+    expense_time: input.expenseTime ?? null,
     category: input.category ?? null,
     vendor: input.vendor ?? null,
     amount: input.amount,

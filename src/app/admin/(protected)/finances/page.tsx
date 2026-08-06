@@ -12,9 +12,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
-function SummaryCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function SummaryMetric({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={"rounded-md border p-5 " + (accent ? "border-admin-accent/40 bg-admin-copper/10" : "border-admin-ink/10 bg-admin-surface")}>
+    <div className={"p-5 " + (accent ? "bg-admin-copper/10" : "bg-admin-surface")}>
       <p className="text-sm text-admin-ink/65">{label}</p>
       <p className="mt-3 text-2xl font-semibold tracking-tight">{value}</p>
     </div>
@@ -71,6 +71,9 @@ export default async function AdminFinancesPage() {
     label: [b.client_name ?? b.shoot_type ?? "Booking", b.start_at ? formatCompactDate(b.start_at) : null]
       .filter(Boolean)
       .join(" · "),
+    total: parseAmount(b.total) ?? 0,
+    paid: paidByBooking.get(b.id) ?? 0,
+    balance: Math.max(0, (parseAmount(b.total) ?? 0) - (paidByBooking.get(b.id) ?? 0)),
   }));
 
   return (
@@ -84,12 +87,12 @@ export default async function AdminFinancesPage() {
         </p>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <SummaryCard label="Income this month" value={formatMoney(summary.incomeThisMonth)} />
-        <SummaryCard label="Income this year" value={formatMoney(summary.incomeThisYear)} />
-        <SummaryCard label="Expenses this year" value={formatMoney(summary.expensesThisYear)} />
-        <SummaryCard label="Net this year" value={formatMoney(summary.netThisYear)} />
-        <SummaryCard label="Outstanding" value={formatMoney(summary.outstandingTotal)} accent={summary.outstandingTotal > 0} />
+      <div className="mt-8 grid overflow-hidden rounded-lg border border-admin-ink/10 bg-admin-surface sm:grid-cols-2 lg:grid-cols-5 [&>*]:border-admin-ink/10 [&>*:not(:last-child)]:border-b lg:[&>*:not(:last-child)]:border-b-0 lg:[&>*:not(:last-child)]:border-r">
+        <SummaryMetric label="Income this month" value={formatMoney(summary.incomeThisMonth)} />
+        <SummaryMetric label="Income this year" value={formatMoney(summary.incomeThisYear)} />
+        <SummaryMetric label="Expenses this year" value={formatMoney(summary.expensesThisYear)} />
+        <SummaryMetric label="Net this year" value={formatMoney(summary.netThisYear)} />
+        <SummaryMetric label="Outstanding" value={formatMoney(summary.outstandingTotal)} accent={summary.outstandingTotal > 0} />
       </div>
 
       <section className="mt-8">

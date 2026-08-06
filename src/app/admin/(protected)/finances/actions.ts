@@ -40,6 +40,7 @@ export async function addPaymentAction(_prev: FinanceState, formData: FormData):
       amount,
       kind,
       paidOn: clean(formData.get("paid_on")),
+      paidTime: clean(formData.get("paid_time")),
       method: clean(formData.get("method")) ?? "interac",
       note: clean(formData.get("note")),
     });
@@ -67,6 +68,7 @@ export async function addExpenseAction(_prev: FinanceState, formData: FormData):
   try {
     await createExpense({
       expenseDate: clean(formData.get("expense_date")),
+      expenseTime: clean(formData.get("expense_time")),
       category: clean(formData.get("category")),
       vendor: clean(formData.get("vendor")),
       amount,

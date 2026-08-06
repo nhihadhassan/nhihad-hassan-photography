@@ -7,6 +7,7 @@ import {
   getAgreementRequestById,
   revokeAgreementRequest,
   updateAgreementAutomationSettings,
+  updateAgreementDetails,
   type AgreementDetails,
 } from "@/lib/agreements";
 import { isAgreementPastExpiry } from "@/lib/agreement-status";
@@ -346,6 +347,28 @@ export async function updateAgreementAutomationAction(
     return {
       ok: false,
       message: error instanceof Error ? error.message : "Could not update contract automation.",
+    };
+  }
+}
+
+export async function updateAgreementClientAddressAction(
+  id: string,
+  clientAddress: string,
+): Promise<{ ok: boolean; message: string }> {
+  await requireAdmin();
+  try {
+    const request = await getAgreementRequestById(id);
+    if (!request) return { ok: false, message: "Agreement request not found." };
+    await updateAgreementDetails(id, {
+      ...request.details,
+      clientAddress: clientAddress.trim() || undefined,
+    });
+    revalidatePath("/admin/agreements");
+    return { ok: true, message: "Client mailing address updated." };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Could not update the client address.",
     };
   }
 }

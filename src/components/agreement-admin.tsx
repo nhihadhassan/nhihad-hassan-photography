@@ -18,6 +18,7 @@ import {
   revokeAgreementRequestAction,
   sendAgreementRequestEmailAction,
   updateAgreementAutomationAction,
+  updateAgreementClientAddressAction,
   type AgreementActionState,
 } from "@/app/admin/(protected)/agreements/actions";
 import { formatCompactDate } from "@/lib/utils";
@@ -1002,6 +1003,7 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
   const [rowRemindersEnabled, setRowRemindersEnabled] = useState(request.reminders_enabled);
   const [rowInterval, setRowInterval] = useState(request.reminder_interval_days);
   const [rowMaxSends, setRowMaxSends] = useState(request.reminder_max_sends);
+  const [rowClientAddress, setRowClientAddress] = useState(request.details.clientAddress ?? "");
   const url = `${siteOrigin}/agreement/${request.token}`;
   const expired = isAgreementPastExpiry(request);
   const active = !revoked && !expired && !request.signed_at;
@@ -1063,7 +1065,7 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
               className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-ink/12 px-3 text-xs font-medium text-admin-ink/70 hover:bg-admin-ink/6"
             >
               <Settings2 className="size-3.5" aria-hidden="true" />
-              Automation
+              Edit & automation
             </button>
           ) : null}
           {active ? (
@@ -1102,6 +1104,33 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
       </div>
       {settingsOpen && active ? (
         <div className="mt-4 border-t border-admin-ink/10 pt-4">
+          <div className="mb-5 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+            <label className="grid gap-1.5 text-sm font-medium text-admin-ink">
+              Client mailing address
+              <input
+                value={rowClientAddress}
+                onChange={(event) => setRowClientAddress(event.target.value)}
+                placeholder="Street, city, province, postal code"
+                className={`${inputClass} w-full`}
+              />
+            </label>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => {
+                startTransition(async () => {
+                  setFeedback(null);
+                  const result = await updateAgreementClientAddressAction(request.id, rowClientAddress);
+                  setFeedback(result);
+                  if (result.ok) router.refresh();
+                });
+              }}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-admin-ink px-4 text-xs font-semibold text-admin-surface disabled:opacity-40"
+            >
+              {pending ? <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> : null}
+              Save address
+            </button>
+          </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <div>
               <label className="inline-flex items-center gap-2 text-sm font-medium text-admin-ink">

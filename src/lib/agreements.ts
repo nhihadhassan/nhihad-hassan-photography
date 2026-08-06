@@ -447,6 +447,22 @@ export async function updateAgreementAutomationSettings(
   if (!data) throw new Error("Only an active, unsigned contract can be changed.");
 }
 
+export async function updateAgreementDetails(id: string, details: AgreementDetails) {
+  const admin = getServiceRoleSupabaseClient();
+  const now = new Date().toISOString();
+  const { data, error } = await admin
+    .from("agreement_requests")
+    .update({ details, updated_at: now })
+    .eq("id", id)
+    .is("signed_at", null)
+    .is("revoked_at", null)
+    .is("expired_at", null)
+    .select("id")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Only an active, unsigned contract can be edited.");
+}
+
 export async function signAgreement(input: {
   token: string;
   signerName: string;

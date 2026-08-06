@@ -59,7 +59,7 @@ export default async function BookingDetailsPage({ searchParams }: Props) {
         <div className="mt-8">
           <p className="text-xs uppercase tracking-[0.22em] text-[#8b6444]">Step 2 of 3</p>
           <h1 className="mt-4 font-serif text-5xl leading-[0.94] sm:text-7xl">Complete your inquiry.</h1>
-          <p className="mt-5 max-w-xl text-base leading-7 text-ink/62">Share your details and I&apos;ll confirm the date personally.</p>
+          <p className="mt-5 max-w-xl text-base leading-7 text-ink/62">Please enter your contact information to proceed.</p>
         </div>
 
         <div className="mt-10 grid items-start gap-6 lg:grid-cols-[1.15fr_0.85fr]">
@@ -71,12 +71,12 @@ export default async function BookingDetailsPage({ searchParams }: Props) {
           />
           <aside className="overflow-hidden bg-ink text-soft-white lg:sticky lg:top-28">
             {image ? (
-              <div className="relative aspect-[16/7]">
+              <div className="relative aspect-[4/3]">
                 <Image
                   src={image.imageUrl}
                   alt={image.alt}
                   fill
-                  sizes="(min-width: 1024px) 36vw, 100vw"
+                  sizes="(min-width: 1280px) 32rem, (min-width: 1024px) 42vw, 100vw"
                   quality={92}
                   unoptimized={image.imageUrl.startsWith("http")}
                   className="object-cover"

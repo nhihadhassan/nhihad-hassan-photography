@@ -66,12 +66,12 @@ export default async function BookingConfirmationPage({ searchParams }: Props) {
           <BookingPaymentConfirmation deposit={deposit} transferEmail={settings.contactEmail} isStartingPrice={isStartingPrice} />
           <aside className="overflow-hidden bg-ink text-soft-white lg:sticky lg:top-28">
             {image ? (
-              <div className="relative aspect-[16/7]">
+              <div className="relative aspect-[4/3]">
                 <Image
                   src={image.imageUrl}
                   alt={image.alt}
                   fill
-                  sizes="(min-width: 1024px) 36vw, 100vw"
+                  sizes="(min-width: 1280px) 32rem, (min-width: 1024px) 42vw, 100vw"
                   quality={92}
                   unoptimized={image.imageUrl.startsWith("http")}
                   className="object-cover"

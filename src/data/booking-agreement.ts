@@ -156,7 +156,8 @@ export const agreementSections: AgreementSection[] = [
       "6.1 Term. This Agreement begins when signed and ends when the parties have completed their obligations, except for terms that are intended to continue after completion.",
       "6.2 Client cancellation. The Client may cancel by written notice. The following cancellation terms apply: {{cancellationPolicy}}",
       "6.3 Rescheduling. The following rescheduling terms apply, subject to the Photographer's availability: {{reschedulePolicy}} If the Photographer cannot reasonably accommodate the new date, the request is treated as a Client cancellation.",
-      "6.4 Photographer cancellation or replacement. If the Photographer cannot perform, the Photographer may propose a qualified replacement, subject to the Client's reasonable approval. If no approved replacement is available, the Client may choose an available rescheduled date or a refund of the deposit and every other payment for services not provided.",
+      "6.4 No Refund. The Client acknowledges and agrees that cancellation by the Client will not result in a refund of any fees paid on or before the date of cancellation by the Client.",
+      "6.5 Photographer cancellation or replacement. If the Photographer cannot perform, the Photographer may propose a qualified replacement, subject to the Client's reasonable approval. If no approved replacement is available, the Client may choose an available rescheduled date or a refund of the deposit and every other payment for services not provided.",
     ],
   },
   {

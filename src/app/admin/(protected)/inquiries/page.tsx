@@ -51,14 +51,21 @@ export default async function AdminInquiriesPage() {
                 </div>
                 <p className="text-sm text-admin-ink/65">{formatCompactDate(inquiry.created_at)}</p>
               </div>
-              <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-5">
+              <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <dt className="text-admin-ink/65">Event type</dt>
                   <dd className="mt-1">{inquiry.event_type ?? "Not provided"}</dd>
                 </div>
                 <div>
-                  <dt className="text-admin-ink/65">Event date</dt>
-                  <dd className="mt-1">{formatCompactDate(inquiry.event_date)}</dd>
+                  <dt className="text-admin-ink/65">Package</dt>
+                  <dd className="mt-1">{inquiry.package_name ?? "Not provided"}</dd>
+                </div>
+                <div>
+                  <dt className="text-admin-ink/65">Requested date and time</dt>
+                  <dd className="mt-1">
+                    {formatCompactDate(inquiry.event_date)}
+                    {inquiry.event_time ? ` at ${inquiry.event_time}` : ""}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-admin-ink/65">Location</dt>

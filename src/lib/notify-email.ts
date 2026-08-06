@@ -87,7 +87,9 @@ export async function sendInquiryAdminAlert(input: {
   email: string;
   phone?: string | null;
   eventType?: string | null;
+  packageName?: string | null;
   eventDate?: string | null;
+  eventTime?: string | null;
   location?: string | null;
   budget?: string | null;
   message: string;
@@ -100,7 +102,9 @@ export async function sendInquiryAdminAlert(input: {
       <tr><td style="padding:5px 0;color:rgba(23,19,15,0.55);">Email</td><td style="padding:5px 0;"><a href="mailto:${escapeHtml(input.email)}" style="color:#9b744f;text-decoration:none;">${escapeHtml(input.email)}</a></td></tr>
       ${row("Phone", input.phone)}
       ${row("Type", input.eventType)}
+      ${row("Package", input.packageName)}
       ${row("Date", input.eventDate)}
+      ${row("Time", input.eventTime)}
       ${row("Location", input.location)}
       ${row("Budget", input.budget)}
     </table>
@@ -110,7 +114,7 @@ export async function sendInquiryAdminAlert(input: {
     to: adminRecipient(),
     replyTo: input.email,
     subject: `New inquiry from ${input.name}`,
-    text: `New inquiry\n\nName: ${input.name}\nEmail: ${input.email}\nPhone: ${input.phone ?? "-"}\nType: ${input.eventType ?? "-"}\nDate: ${input.eventDate ?? "-"}\nLocation: ${input.location ?? "-"}\nBudget: ${input.budget ?? "-"}\n\nMessage:\n${input.message}`,
+    text: `New inquiry\n\nName: ${input.name}\nEmail: ${input.email}\nPhone: ${input.phone ?? "-"}\nType: ${input.eventType ?? "-"}\nPackage: ${input.packageName ?? "-"}\nDate: ${input.eventDate ?? "-"}\nTime: ${input.eventTime ?? "-"}\nLocation: ${input.location ?? "-"}\nBudget: ${input.budget ?? "-"}\n\nMessage:\n${input.message}`,
     html: emailShell({ eyebrow: "New inquiry", heading: `${input.name} got in touch.`, bodyHtml }),
   });
 }

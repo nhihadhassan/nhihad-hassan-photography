@@ -2,14 +2,12 @@ import type { Metadata } from "next";
 import { AtSign, Mail } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { ContactForm } from "@/components/contact-form";
 import { Reveal } from "@/components/reveal";
-import { HowBookingWorks } from "@/components/how-booking-works";
-import { AvailabilityCalendar } from "@/components/availability-calendar";
-import { SelectedDateProvider } from "@/components/selected-date-context";
+import { BookingServicePicker } from "@/components/booking-service-picker";
 import { EditPencil } from "@/components/edit-mode";
 import { getSiteSettings } from "@/lib/site-settings";
 import { getContent } from "@/lib/site-content";
+import { getPricing } from "@/lib/pricing";
 import { withDefaultSocialImages } from "@/lib/seo";
 
 export const metadata: Metadata = withDefaultSocialImages({
@@ -27,16 +25,16 @@ export default async function ContactPage() {
   const settings = await getSiteSettings();
   const heading = await getContent("contact.hero.heading");
   const subtext = await getContent("contact.hero.subtext");
+  const pricing = await getPricing();
   return (
     <div className="min-h-[100dvh] bg-ink text-soft-white">
       <SiteHeader />
-      <SelectedDateProvider>
-      <main id="inquiry" className="scroll-mt-24 px-4 pb-20 pt-32 sm:px-6 sm:pt-40 lg:px-8">
-        <section className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.72fr_1fr]">
+      <main id="inquiry" className="scroll-mt-24 px-4 pb-24 pt-32 sm:px-6 sm:pt-40 lg:px-8">
+        <section className="mx-auto grid max-w-7xl gap-10 border-b border-soft-white/12 pb-14 lg:grid-cols-[0.72fr_1fr] lg:items-end">
           <Reveal>
-            <div className="relative lg:sticky lg:top-28">
+            <div className="relative">
               <EditPencil href="/admin/settings" label="Edit text" className="absolute right-0 top-0" />
-              <p className="text-xs uppercase tracking-[0.22em] text-copper">Book / inquire</p>
+              <p className="text-xs uppercase tracking-[0.22em] text-copper">Book a session</p>
               <h1 className="mt-4 font-serif text-6xl leading-[0.9] text-soft-white sm:text-8xl">
                 {heading}
               </h1>
@@ -67,17 +65,20 @@ export default async function ContactPage() {
             </div>
           </Reveal>
           <Reveal delay={0.1}>
-            <div className="rounded-[2px] bg-[#f3eee5] p-5 text-ink shadow-[0_24px_80px_-48px_rgba(0,0,0,0.7)] sm:p-8">
-              <ContactForm />
+            <div className="max-w-xl lg:justify-self-end">
+              <p className="font-serif text-3xl leading-tight text-soft-white sm:text-4xl">
+                First, choose the session that fits.
+              </p>
+              <p className="mt-5 text-sm leading-6 text-soft-white/60">
+                You&apos;ll choose an available date and time next, then share your contact details. Nothing is charged online.
+              </p>
             </div>
           </Reveal>
         </section>
-
-        {/* How booking works (shared with the pricing page) */}
-        <HowBookingWorks className="mt-16 lg:mt-20" cardClassName="border-ink/10 bg-[#f3eee5]" />
+        <section className="mx-auto mt-14 max-w-7xl">
+          <BookingServicePicker categories={pricing} />
+        </section>
       </main>
-      <AvailabilityCalendar />
-      </SelectedDateProvider>
       <SiteFooter />
     </div>
   );

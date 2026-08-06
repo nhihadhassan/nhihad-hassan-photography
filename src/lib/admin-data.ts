@@ -82,7 +82,9 @@ export type InquiryRecord = {
   email: string;
   phone: string | null;
   event_type: string | null;
+  package_name: string | null;
   event_date: string | null;
+  event_time: string | null;
   location: string | null;
   budget: string | null;
   referral_source: string | null;
@@ -279,7 +281,7 @@ export async function getAdminInquiries() {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("inquiries")
-    .select("id,name,email,phone,event_type,event_date,location,budget,referral_source,message,created_at")
+    .select("id,name,email,phone,event_type,package_name,event_date,event_time,location,budget,referral_source,message,created_at")
     .order("created_at", { ascending: false });
 
   if (error) {

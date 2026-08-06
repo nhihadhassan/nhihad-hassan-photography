@@ -46,7 +46,10 @@ export async function fetchAvailability(): Promise<Availability | null> {
 
   let icsText: string;
   try {
-    const res = await fetch(url, { next: { revalidate: REVALIDATE_SECONDS } });
+    const res = await fetch(url, {
+      next: { revalidate: REVALIDATE_SECONDS },
+      signal: AbortSignal.timeout(5_000),
+    });
     if (!res.ok) return null;
     icsText = await res.text();
   } catch {

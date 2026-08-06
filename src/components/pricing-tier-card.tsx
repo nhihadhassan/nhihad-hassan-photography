@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import type { PricingTier } from "@/data/pricing";
+import { bookingHref } from "@/lib/booking-options";
 
 /**
  * Pricing card that expands in place to reveal extra detail and a quick
@@ -12,7 +13,7 @@ import type { PricingTier } from "@/data/pricing";
  * it. The reveal grows the card in flow (grid-rows 0fr -> 1fr), so the parent
  * grid must be items-start to avoid stretching neighbouring cards.
  */
-export function PricingTierCard({ tier }: { tier: PricingTier }) {
+export function PricingTierCard({ tier, serviceId }: { tier: PricingTier; serviceId: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -49,11 +50,11 @@ export function PricingTierCard({ tier }: { tier: PricingTier }) {
               <p className="text-sm leading-6 text-ink/68">{tier.details}</p>
             ) : null}
             <a
-              href="/contact#inquiry"
+              href={bookingHref(serviceId, tier.name)}
               onClick={(e) => e.stopPropagation()}
               className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-[#8b6444] transition hover:gap-2.5 hover:text-ink"
             >
-              Inquire
+              Check dates
               <ArrowRight className="size-4" aria-hidden="true" />
             </a>
           </div>

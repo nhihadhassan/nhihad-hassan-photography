@@ -97,7 +97,7 @@ export default async function PricingPage() {
               <div className="mt-6 grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {category.tiers.map((tier, index) => (
                   <Reveal key={tier.name} delay={index * 0.05}>
-                    <PricingTierCard tier={tier} />
+                    <PricingTierCard tier={tier} serviceId={category.id} />
                   </Reveal>
                 ))}
               </div>

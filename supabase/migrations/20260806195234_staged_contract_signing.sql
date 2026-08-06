@@ -9,6 +9,8 @@
 -- exist from 20260806055705_contract_expiry_reminders.sql (expires_at,
 -- reminders_enabled, reminder_interval_days, ...) and that scheme stays
 -- authoritative.
+--
+-- Applied to the live project on 2026-08-06 and recorded under this version.
 
 alter table public.agreement_requests
   add column if not exists client_details jsonb not null default '{}'::jsonb,

@@ -87,7 +87,17 @@ export default async function AgreementSigningPage({
     getAgreementCover(request.gallery_id),
   ]);
   const view = await buildAgreementView(request, signatures);
-  const { clientName, contractTitle, firstName, fullySigned, remainingSigners } = view;
+  const {
+    clientName,
+    contractTitle,
+    firstName,
+    fullySigned,
+    remainingSigners,
+    clientSigningComplete,
+    awaitingCountersignature,
+    countersignature,
+  } = view;
+  const photographerName = brandConfig.name;
   const signatureSlot = (
     <section className="mt-14 break-inside-avoid">
       {signatures.length ? <>
@@ -104,9 +114,33 @@ export default async function AgreementSigningPage({
               ) : null}
             </div>
           ))}
+          {countersignature?.photographer_signed_at ? (
+            <div className="border border-ink/12 bg-white/55 p-4">
+              <p className="text-sm leading-6 text-ink/75">
+                Countersigned by <strong className="font-semibold text-ink">{countersignature.photographer_signer_name ?? photographerName}</strong><br />
+                {formatDateTime(countersignature.photographer_signed_at)}
+              </p>
+              {countersignature.photographer_signature_data_url ? (
+                <Image src={countersignature.photographer_signature_data_url} alt={`Signature of ${countersignature.photographer_signer_name ?? photographerName}`} width={360} height={120} unoptimized className="mt-3 h-20 w-auto" />
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </> : null}
-      {!fullySigned && remainingSigners.length ? <AgreementSignForm token={token} signers={remainingSigners} /> : null}
+      {awaitingCountersignature ? (
+        <p className="mt-6 border border-[#8b6444]/25 bg-white/55 px-4 py-3 text-sm leading-6 text-ink/75">
+          Your details and signature are complete. {photographerName} will countersign shortly, and
+          your finalized copy will be emailed to you once that is done.
+        </p>
+      ) : null}
+      {!clientSigningComplete && remainingSigners.length ? (
+        <AgreementSignForm
+          token={token}
+          signers={remainingSigners}
+          photographerName={photographerName}
+          clientDetails={request.client_details}
+        />
+      ) : null}
       {fullySigned ? <p className="mt-4 text-xs text-ink/45">This record is kept by the photographer as confirmation of the completed agreement.</p> : null}
     </section>
   );
@@ -149,7 +183,13 @@ export default async function AgreementSigningPage({
                 <h2 className="font-serif text-3xl font-medium leading-none sm:text-4xl">{contractTitle}</h2>
                 <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${fullySigned ? "bg-[#66805d]/8 text-[#52694b]" : "bg-copper/8 text-[#776f98]"}`}>
                   {fullySigned ? <Check className="size-3" aria-hidden="true" /> : null}
-                  {fullySigned ? "Signed" : signatures.length ? `Awaiting ${remainingSigners.length} signature` : "Awaiting signatures"}
+                  {fullySigned
+                    ? "Signed"
+                    : awaitingCountersignature
+                      ? "Awaiting countersignature"
+                      : signatures.length
+                        ? `Awaiting ${remainingSigners.length} signature`
+                        : "Awaiting signatures"}
                 </span>
               </div>
             </div>
@@ -183,11 +223,17 @@ export default async function AgreementSigningPage({
 
           <a
             href="#sign-contract"
-            aria-disabled={fullySigned}
-            className={`mt-12 flex min-h-[60px] w-full items-center justify-center px-5 text-xs font-semibold uppercase tracking-[0.18em] transition ${fullySigned ? "pointer-events-none bg-[#66805d] text-soft-white" : "bg-ink text-soft-white hover:bg-ink/88"}`}
+            aria-disabled={fullySigned || awaitingCountersignature}
+            className={`mt-12 flex min-h-[60px] w-full items-center justify-center px-5 text-xs font-semibold uppercase tracking-[0.18em] transition ${fullySigned ? "pointer-events-none bg-[#66805d] text-soft-white" : awaitingCountersignature ? "pointer-events-none bg-ink/45 text-soft-white" : "bg-ink text-soft-white hover:bg-ink/88"}`}
           >
             {fullySigned ? <Check className="mr-2 size-4" aria-hidden="true" /> : null}
-            {fullySigned ? "Contract signed" : signatures.length ? "Complete remaining signature" : "Sign contract"}
+            {fullySigned
+              ? "Contract signed"
+              : awaitingCountersignature
+                ? "Awaiting countersignature"
+                : signatures.length
+                  ? "Complete remaining signature"
+                  : "Sign contract"}
           </a>
         </section>
 

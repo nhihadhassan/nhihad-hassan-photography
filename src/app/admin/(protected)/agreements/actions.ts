@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import {
-  countersignAgreement,
   createAgreementRequest,
   getAgreementRequestById,
   revokeAgreementRequest,
@@ -14,7 +13,7 @@ import {
 import { isAgreementPastExpiry } from "@/lib/agreement-status";
 import { sendAgreementRequestEmail } from "@/lib/agreement-deliveries";
 import { getAdminGallery } from "@/lib/admin-data";
-import { siteUrl } from "@/lib/seo";
+import { agreementSignUrl } from "@/lib/agreement-url";
 import { torontoLocalToUtc } from "@/lib/ics";
 import { isWeddingAgreementType } from "@/data/wedding-agreement";
 
@@ -85,11 +84,6 @@ function detailsFromForm(formData: FormData): AgreementDetails {
     licenseType: pick("licenseType"),
     privacyOptOutFee: pick("privacyOptOutFee"),
   };
-}
-
-function signUrlFor(token: string) {
-  const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
-  return `${origin}/agreement/${token}`;
 }
 
 function integerSetting(formData: FormData, key: string, fallback: number, min: number, max: number) {
@@ -164,7 +158,7 @@ export async function createAgreementRequestAction(
       reminderIntervalDays: integerSetting(formData, "reminder_interval_days", 3, 1, 30),
       reminderMaxSends: integerSetting(formData, "reminder_max_sends", 3, 1, 10),
     });
-    const signUrl = signUrlFor(token);
+    const signUrl = agreementSignUrl(token);
 
     if (emailNow) {
       if (!clientEmail) {
@@ -246,7 +240,7 @@ export async function createGalleryAgreementRequestAction(
       },
       remindersEnabled: Boolean(gallery.client_email),
     });
-    const signUrl = signUrlFor(token);
+    const signUrl = agreementSignUrl(token);
     if (!gallery.client_email) {
       revalidatePath("/admin/agreements");
       revalidatePath("/admin/galleries");
@@ -292,7 +286,7 @@ export async function sendAgreementRequestEmailAction(
 
     const result = await emailAgreementSigners({
       agreementRequestId: request.id,
-      agreementUrl: signUrlFor(request.token),
+      agreementUrl: agreementSignUrl(request.token),
       expiresAt: request.expires_at,
       primaryName: request.client_name,
       primaryEmail: request.client_email,
@@ -352,38 +346,6 @@ export async function updateAgreementAutomationAction(
     return {
       ok: false,
       message: error instanceof Error ? error.message : "Could not update contract automation.",
-    };
-  }
-}
-
-export async function countersignAgreementAction(
-  id: string,
-  input: { signerName: string; signatureDataUrl: string | null },
-): Promise<{ ok: boolean; message: string }> {
-  await requireAdmin();
-  const signerName = input.signerName.trim();
-  if (signerName.length < 2) {
-    return { ok: false, message: "Type your full legal name to countersign." };
-  }
-  if (!input.signatureDataUrl || !input.signatureDataUrl.startsWith("data:image/")) {
-    return { ok: false, message: "Draw your signature before countersigning." };
-  }
-  if (input.signatureDataUrl.length > 1_500_000) {
-    return { ok: false, message: "Signature image is too large. Clear it and try again." };
-  }
-  try {
-    const result = await countersignAgreement({
-      id,
-      signerName,
-      signatureDataUrl: input.signatureDataUrl,
-    });
-    if (!result.ok) return { ok: false, message: result.message };
-    revalidatePath("/admin/agreements");
-    return { ok: true, message: "Agreement countersigned. The client has been sent their copy." };
-  } catch (error) {
-    return {
-      ok: false,
-      message: error instanceof Error ? error.message : "Could not countersign the agreement.",
     };
   }
 }

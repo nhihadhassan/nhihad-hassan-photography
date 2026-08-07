@@ -3,14 +3,11 @@ import { randomBytes } from "node:crypto";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import { getBookingAgreement } from "@/lib/booking-agreement";
 import { advanceBookingStage } from "@/lib/bookings";
-import {
-  sendSignedAgreementEmails,
-  sendAgreementAwaitingCountersignatureEmail,
-} from "@/lib/notify-email";
+import { sendSignedAgreementEmails } from "@/lib/notify-email";
 import { brandConfig } from "@/lib/config";
 import { hasR2Config } from "@/lib/env";
 import { getSignedReadUrl } from "@/lib/r2";
-import { siteUrl } from "@/lib/seo";
+import { agreementSignUrl, adminAgreementsUrl } from "@/lib/agreement-url";
 import {
   listAgreementDeliveries,
   type AgreementDelivery,
@@ -528,9 +525,6 @@ export async function signAgreement(input: {
   const request = mapRequest(row as Record<string, unknown>);
   if (request.revoked_at) return { ok: false, message: "This signing link has been turned off." };
   if (request.signed_at) return { ok: false, message: "This agreement has already been signed." };
-  if (request.client_submitted_at) {
-    return { ok: false, message: "This agreement is already with the photographer for countersignature." };
-  }
   if (isAgreementPastExpiry(request)) {
     const expiredAt = new Date().toISOString();
     await admin
@@ -601,108 +595,56 @@ export async function signAgreement(input: {
   });
   if (insertError) return { ok: false, message: insertError.message };
 
-  // Every required client signature is in. The contract now returns to the
-  // photographer for review; only the countersignature finalizes it, so
-  // signed_at stays null and the booking does not advance yet.
+  // Every required client signature is in. The photographer's own signature is
+  // the standing signature.png block shown on every sent contract (dated to
+  // sent_at), not a second interactive step, so completion finalizes the
+  // agreement immediately: no manual countersign gate.
   const complete = (existingRows?.length ?? 0) + 1 >= Math.max(1, requiredSigners.length);
   const now = new Date().toISOString();
-  await admin
+  const { data: finalized, error: finalizeError } = await admin
     .from("agreement_requests")
     .update({
       client_details: clientDetails,
-      ...(complete ? { client_submitted_at: now } : {}),
+      ...(complete
+        ? { client_submitted_at: now, finalized_at: now, signed_at: now }
+        : {}),
       updated_at: now,
     })
-    .eq("id", request.id);
+    .eq("id", request.id)
+    .select("id")
+    .maybeSingle();
+  if (finalizeError) return { ok: false, message: finalizeError.message };
+  if (complete && !finalized) return { ok: false, message: "This agreement could not be finalized." };
 
-  const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
   if (complete) {
-    await sendAgreementAwaitingCountersignatureEmail({
-      signerName: input.signerName,
-      clientEmail: input.signerEmail ?? request.client_email,
-      adminUrl: `${origin}/admin/agreements`,
+    // Auto-advance the linked booking. A finalized contract moves the job to
+    // Booked when a deposit is already on file, otherwise to Contract out.
+    const { data: linkedBooking } = await admin
+      .from("bookings")
+      .select("id")
+      .eq("agreement_request_id", request.id)
+      .maybeSingle();
+    if (linkedBooking?.id) {
+      const bookingId = linkedBooking.id as string;
+      const { count } = await admin
+        .from("payments")
+        .select("id", { count: "exact", head: true })
+        .eq("booking_id", bookingId);
+      await advanceBookingStage(bookingId, (count ?? 0) > 0 ? "booked" : "contract_out");
+    }
+
+    // Release the completed copy to the client and notify the photographer.
+    // The client CTA and the admin's own copy both link to the public
+    // agreement; the admin copy additionally offers a distinct admin link.
+    await sendSignedAgreementEmails({
+      signerName: request.client_name ?? input.signerName,
+      clientEmail: request.client_email,
+      url: agreementSignUrl(request.token),
+      adminUrl: adminAgreementsUrl(),
     }).catch(() => undefined);
   }
 
   return { ok: true, complete };
-}
-
-/**
- * Photographer countersignature. This is the only path that finalizes an
- * agreement: it stamps the staged timestamps, advances the linked booking and
- * releases the completed copy to the client.
- */
-export async function countersignAgreement(input: {
-  id: string;
-  signerName: string;
-  signatureDataUrl?: string | null;
-}): Promise<{ ok: true } | { ok: false; message: string }> {
-  const admin = getServiceRoleSupabaseClient();
-  const { data: row } = await admin
-    .from("agreement_requests")
-    .select("*,galleries(title)")
-    .eq("id", input.id)
-    .maybeSingle();
-  if (!row) return { ok: false, message: "This agreement no longer exists." };
-  const request = mapRequest(row as Record<string, unknown>);
-  if (request.revoked_at) return { ok: false, message: "This agreement has been revoked." };
-  if (request.finalized_at) return { ok: false, message: "This agreement is already final." };
-  if (!request.client_submitted_at) {
-    return { ok: false, message: "The client has not signed and returned this agreement yet." };
-  }
-
-  const now = new Date().toISOString();
-  const { error: signedError } = await admin
-    .from("signed_agreements")
-    .update({
-      photographer_signer_name: input.signerName,
-      photographer_signature_data_url: input.signatureDataUrl ?? null,
-      photographer_signed_at: now,
-    })
-    .eq("agreement_request_id", request.id);
-  if (signedError) return { ok: false, message: signedError.message };
-
-  const { data: updated, error: updateError } = await admin
-    .from("agreement_requests")
-    .update({
-      photographer_signed_at: now,
-      finalized_at: now,
-      signed_at: now,
-      updated_at: now,
-    })
-    .eq("id", request.id)
-    .is("finalized_at", null)
-    .is("revoked_at", null)
-    .select("id")
-    .maybeSingle();
-  if (updateError) return { ok: false, message: updateError.message };
-  if (!updated) return { ok: false, message: "This agreement could not be finalized." };
-
-  // Auto-advance the linked booking. A finalized contract moves the job to
-  // Booked when a deposit is already on file, otherwise to Contract out.
-  const { data: linkedBooking } = await admin
-    .from("bookings")
-    .select("id")
-    .eq("agreement_request_id", request.id)
-    .maybeSingle();
-  if (linkedBooking?.id) {
-    const bookingId = linkedBooking.id as string;
-    const { count } = await admin
-      .from("payments")
-      .select("id", { count: "exact", head: true })
-      .eq("booking_id", bookingId);
-    await advanceBookingStage(bookingId, (count ?? 0) > 0 ? "booked" : "contract_out");
-  }
-
-  // Release the completed copy to the client now that both parties have signed.
-  const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
-  await sendSignedAgreementEmails({
-    signerName: request.client_name ?? input.signerName,
-    clientEmail: request.client_email,
-    url: `${origin}/agreement/${request.token}`,
-  }).catch(() => undefined);
-
-  return { ok: true };
 }
 
 export async function getAdminSignedAgreements(): Promise<SignedAgreement[]> {

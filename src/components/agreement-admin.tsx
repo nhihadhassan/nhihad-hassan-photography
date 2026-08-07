@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BellRing, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, ExternalLink, Loader2, Mail, Plus, Search, Settings2, ShieldCheck, Sparkles, X } from "lucide-react";
+import { BellRing, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, ExternalLink, Eye, Loader2, Mail, Plus, Search, Settings2, ShieldCheck, Sparkles, X } from "lucide-react";
 import type { GalleryRecord } from "@/lib/admin-data";
 import type { AgreementRequest } from "@/lib/agreements";
 import { isAgreementPastExpiry } from "@/lib/agreement-status";
@@ -572,7 +573,7 @@ function CreateForm({
   const [balance, setBalance] = useState("");
   const [balanceDueDate, setBalanceDueDate] = useState("");
   const [lateFeePercent, setLateFeePercent] = useState("1.5");
-  const [emailNow, setEmailNow] = useState(true);
+  const [emailNow, setEmailNow] = useState(false);
   const [expiryEnabled, setExpiryEnabled] = useState(false);
   const [expiryAt, setExpiryAt] = useState("");
   const [remindersEnabled, setRemindersEnabled] = useState(true);
@@ -963,8 +964,12 @@ function CreateForm({
           onChange={(event) => setEmailNow(event.target.checked)}
           className="size-4 accent-admin-accent"
         />
-        Email the signing link to the client now
+        Skip the preview and email the signing link right away
       </label>
+      <p className="mt-1 text-xs text-admin-ink/50">
+        Leave this off to create a draft first, then read the email and the contract before anything
+        reaches the client.
+      </p>
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <button className="inline-flex min-h-11 items-center rounded-md bg-admin-ink px-4 text-sm font-medium text-admin-surface">
           {emailNow ? "Create and email signing link" : "Create signing link"}
@@ -975,6 +980,15 @@ function CreateForm({
         <div className="mt-4 rounded-md border border-admin-ink/10 bg-white/60 p-3">
           <p className="font-mono text-xs text-admin-ink/65">{state.signUrl}</p>
           <div className="mt-3 flex flex-wrap gap-2">
+            {state.requestId ? (
+              <Link
+                href={`/admin/agreements/${state.requestId}/preview`}
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-accent/25 bg-admin-accent/8 px-3 text-xs font-semibold text-admin-accent transition hover:bg-admin-accent/12"
+              >
+                <Eye className="size-3.5" aria-hidden="true" />
+                Preview email & contract
+              </Link>
+            ) : null}
             <CopyLink value={state.signUrl} />
             <a
               href={state.signUrl}
@@ -1069,6 +1083,15 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
             </button>
           ) : null}
           {active ? (
+            <Link
+              href={`/admin/agreements/${request.id}/preview`}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-accent/25 px-3 text-xs font-medium text-admin-accent hover:bg-admin-accent/8"
+            >
+              <Eye className="size-3.5" aria-hidden="true" />
+              {request.latest_delivery ? "Preview & resend" : "Preview & send"}
+            </Link>
+          ) : null}
+          {active ? (
             <button
               disabled={pending}
               onClick={() => {
@@ -1079,10 +1102,10 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
                   if (result.ok) router.refresh();
                 });
               }}
-              className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-accent/25 px-3 text-xs font-medium text-admin-accent hover:bg-admin-accent/8 disabled:opacity-50"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-ink/12 px-3 text-xs font-medium text-admin-ink/70 hover:bg-admin-ink/6 disabled:opacity-50"
             >
               {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Mail className="size-3.5" />}
-              {request.latest_delivery ? "Resend email" : "Send email"}
+              {request.latest_delivery ? "Resend now" : "Send now"}
             </button>
           ) : null}
           {active ? (

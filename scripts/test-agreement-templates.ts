@@ -59,7 +59,6 @@ for (const variable of [
   "rehostingFee",
   "revisionPolicy",
   "archiveWindow",
-  "additionalCharges",
   "licenseType",
   "privacyOptOutFee",
   "turnaroundBusinessDays",
@@ -73,7 +72,14 @@ assert.deepEqual(
 assert.doesNotMatch(generalText, /25% deposit/i);
 assert.match(generalText, /2\. Fees and Payment/);
 assert.match(generalText, /2\.2 Retainer/);
-assert.match(generalText, /\{\{lateFeePercent\}\} per month/);
+assert.match(generalText, /late fee of 2% per month/);
+assert.match(generalText, /Interac e-Transfer to nhihadhassanphotography@gmail\.com/);
+assert.match(generalText, /2\.4 Additional charges\. No items are billed separately/);
+assert.match(generalText, /2\.5 Additional time\./);
+assert.match(generalText, /up to 30 minutes beyond the scheduled end of coverage/);
+assert.match(generalText, /9\.6 Safety\./);
+assert.match(weddingText, /2\.5 Additional time\./);
+assert.match(weddingText, /9\.6 Safety\./);
 assert.match(generalText, /30 or more days|\{\{cancellationPolicy\}\}/);
 assert.match(generalText, /\{\{rehostingFee\}\}/);
 assert.match(generalText, /\{\{revisionPolicy\}\}/);

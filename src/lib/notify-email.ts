@@ -4,6 +4,7 @@ import { getGalleryInviteConfig, hasGalleryInviteConfig } from "@/lib/env";
 import { env } from "@/lib/env";
 import { brandConfig } from "@/lib/config";
 import { emailShell, escapeHtml } from "@/lib/emails/shell";
+import { buildInquiryAdminAlert, type InquiryAlertInput } from "@/lib/emails/inquiry-alert";
 
 export type SendResult = { ok: boolean; message: string; messageId?: string };
 
@@ -94,40 +95,14 @@ export async function sendInquiryAutoReply(input: {
 }
 
 /** Alert sent to the photographer when a new inquiry arrives. */
-export async function sendInquiryAdminAlert(input: {
-  name: string;
-  email: string;
-  phone?: string | null;
-  eventType?: string | null;
-  packageName?: string | null;
-  eventDate?: string | null;
-  eventTime?: string | null;
-  location?: string | null;
-  budget?: string | null;
-  message: string;
-}): Promise<SendResult> {
-  const row = (label: string, value: string | null | undefined) =>
-    value ? `<tr><td style="padding:5px 0;color:rgba(23,19,15,0.55);width:110px;">${escapeHtml(label)}</td><td style="padding:5px 0;">${escapeHtml(value)}</td></tr>` : "";
-  const bodyHtml = `
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size:14px;line-height:1.5;">
-      ${row("Name", input.name)}
-      <tr><td style="padding:5px 0;color:rgba(23,19,15,0.55);">Email</td><td style="padding:5px 0;"><a href="mailto:${escapeHtml(input.email)}" style="color:#9b744f;text-decoration:none;">${escapeHtml(input.email)}</a></td></tr>
-      ${row("Phone", input.phone)}
-      ${row("Type", input.eventType)}
-      ${row("Package", input.packageName)}
-      ${row("Date", input.eventDate)}
-      ${row("Time", input.eventTime)}
-      ${row("Location", input.location)}
-      ${row("Budget", input.budget)}
-    </table>
-    <p style="margin:16px 0 6px 0;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(23,19,15,0.55);">Message</p>
-    <div style="padding:14px 16px;background:#ffffff;border:1px solid rgba(23,19,15,0.08);border-radius:4px;white-space:pre-wrap;">${escapeHtml(input.message)}</div>`;
+export async function sendInquiryAdminAlert(input: InquiryAlertInput): Promise<SendResult> {
+  const content = buildInquiryAdminAlert(input);
   return sendMail({
     to: adminRecipient(),
     replyTo: input.email,
-    subject: `New inquiry from ${input.name}`,
-    text: `New inquiry\n\nName: ${input.name}\nEmail: ${input.email}\nPhone: ${input.phone ?? "-"}\nType: ${input.eventType ?? "-"}\nPackage: ${input.packageName ?? "-"}\nDate: ${input.eventDate ?? "-"}\nTime: ${input.eventTime ?? "-"}\nLocation: ${input.location ?? "-"}\nBudget: ${input.budget ?? "-"}\n\nMessage:\n${input.message}`,
-    html: emailShell({ eyebrow: "New inquiry", heading: `${input.name} got in touch.`, bodyHtml }),
+    subject: content.subject,
+    text: content.text,
+    html: content.html,
   });
 }
 
@@ -207,13 +182,17 @@ export async function sendSignedAgreementEmails(input: {
 }
 
 /** Send a client their standalone agreement link for review and signature. */
-export async function sendAgreementEmail(input: {
-  to: string;
+export type AgreementEmailContent = { subject: string; html: string; text: string };
+
+/**
+ * The exact subject and body of the contract email. Split out from the send so
+ * the admin can preview the real message before it goes to the signers.
+ */
+export function buildAgreementEmail(input: {
   clientName: string | null;
   agreementUrl: string;
-  idempotencyKey: string;
   expiresAt?: string | null;
-}): Promise<SendResult> {
+}): AgreementEmailContent {
   const first = input.clientName?.trim().split(/\s+/)[0];
   const greeting = first ? `Hi ${escapeHtml(first)},` : "Hello,";
   const expiry = input.expiresAt ? formatTorontoDateTime(input.expiresAt) : null;
@@ -228,9 +207,7 @@ export async function sendAgreementEmail(input: {
     <p style="margin:0 0 14px 0;">Your photography agreement with ${escapeHtml(brandConfig.name)} is ready to review and sign.</p>
     ${expiryHtml}
     <p style="margin:0;">Please read the agreement carefully, confirm the booking details, and use the signature form at the bottom when you are ready.</p>`;
-  return sendMail({
-    to: input.to,
-    replyTo: brandConfig.contactEmail,
+  return {
     subject: `Your photography agreement · ${brandConfig.name}`,
     text: `${first ? `Hi ${first},` : "Hello,"}\n\nYour photography agreement with ${brandConfig.name} is ready to review and sign.${expiryText}\n\n${input.agreementUrl}\n\nPlease read the agreement carefully and confirm the booking details before signing.`,
     html: emailShell({
@@ -240,6 +217,23 @@ export async function sendAgreementEmail(input: {
       ctaLabel: "Review and sign agreement",
       ctaUrl: input.agreementUrl,
     }),
+  };
+}
+
+export async function sendAgreementEmail(input: {
+  to: string;
+  clientName: string | null;
+  agreementUrl: string;
+  idempotencyKey: string;
+  expiresAt?: string | null;
+}): Promise<SendResult> {
+  const content = buildAgreementEmail(input);
+  return sendMail({
+    to: input.to,
+    replyTo: brandConfig.contactEmail,
+    subject: content.subject,
+    text: content.text,
+    html: content.html,
     tags: [{ name: "category", value: "agreement" }],
     idempotencyKey: input.idempotencyKey,
   });

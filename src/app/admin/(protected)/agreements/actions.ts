@@ -21,6 +21,7 @@ export type AgreementActionState = {
   status: "idle" | "success" | "error";
   message: string;
   signUrl?: string;
+  requestId?: string;
 };
 
 const clean = (value: FormDataEntryValue | null) => {
@@ -171,6 +172,7 @@ export async function createAgreementRequestAction(
           status: "error",
           message: "Signing link created, but no email was sent because the client email is missing.",
           signUrl,
+          requestId: id,
         };
       }
       const delivery = await emailAgreementSigners({
@@ -187,14 +189,16 @@ export async function createAgreementRequestAction(
         status: delivery.ok ? "success" : "error",
         message: delivery.message,
         signUrl,
+        requestId: id,
       };
     }
 
     revalidatePath("/admin/agreements");
     return {
       status: "success",
-      message: "Signing link created as a draft. No email was sent.",
+      message: "Signing link created as a draft. Preview it below, then send when it looks right.",
       signUrl,
+      requestId: id,
     };
   } catch (error) {
     return {

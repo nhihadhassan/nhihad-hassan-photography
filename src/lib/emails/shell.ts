@@ -42,12 +42,19 @@ const INK = "#17130f";
 const COPPER = "#9b744f";
 
 /**
- * Full logo lockup (NH monogram + "Nhihad Hassan Photography"), shown on a dark
- * band at the top of every email. The artwork is light, so it needs the dark
- * background to read. Served from the live site's public/ folder, so the URL is
- * absolute and stable for email clients.
+ * Full logo lockup (NH monogram + "Nhihad Hassan Photography") at the top of
+ * every email.
+ *
+ * This is the email-only variant with the dark band baked into the image rather
+ * than applied as a cell background. The artwork is near-white and transparent,
+ * so painting the dark behind it in CSS breaks in any client that force-inverts
+ * dark mode: the cell flips to light, the image does not, and the logo vanishes
+ * into the background. Clients never colour-invert image pixels, so an opaque
+ * PNG stays legible in both light and dark mode.
+ *
+ * Served from the live site's public/ folder, so the URL is absolute and stable.
  */
-const BRAND_LOGO_URL = "https://www.nhihadhassan.ca/logo-lockup.png";
+const BRAND_LOGO_URL = "https://www.nhihadhassan.ca/logo-lockup-email.png";
 
 /** Branded HTML shell matching the site: cream paper, serif heading, one button. */
 export function emailShell({
@@ -69,30 +76,45 @@ export function emailShell({
 
   const cta =
     ctaLabel && ctaUrl
-      ? `<tr><td style="padding:24px 34px 30px 34px;">
+      ? `<tr><td class="nh-pad" style="padding:24px 34px 30px 34px;">
           <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;background:${INK};color:${CARD};padding:13px 24px;border-radius:6px;font-size:15px;font-weight:500;text-decoration:none;">${escapeHtml(ctaLabel)}</a>
         </td></tr>`
-      : `<tr><td style="padding:6px 34px 30px 34px;"></td></tr>`;
+      : `<tr><td class="nh-pad" style="padding:6px 34px 30px 34px;"></td></tr>`;
 
   const footer =
     footerHtml ?? `Nhihad Hassan Photography &nbsp;·&nbsp; Toronto, Ontario`;
 
   return `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(heading)}</title></head>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light only">
+<title>${escapeHtml(heading)}</title>
+<style>
+  :root { color-scheme: light only; supported-color-schemes: light only; }
+  /* Phones: the 34px gutters eat most of a narrow screen, which is what
+     squeezes long values onto too many lines and pushes content out of view. */
+  @media only screen and (max-width:600px) {
+    .nh-pad { padding-left:20px !important; padding-right:20px !important; }
+    .nh-heading { font-size:22px !important; }
+  }
+</style>
+</head>
 <body style="margin:0;padding:0;background:${PAPER};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:${INK};">
   <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:${PAPER};padding:32px 16px;">
     <tr><td align="center">
       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="560" style="max-width:560px;width:100%;background:${CARD};border-radius:10px;overflow:hidden;">
-        <tr><td style="background:${INK};padding:26px 0;text-align:center;">
-          <img src="${BRAND_LOGO_URL}" alt="Nhihad Hassan Photography" width="180" style="display:inline-block;width:180px;max-width:55%;height:auto;border:0;outline:none;text-decoration:none;">
+        <tr><td style="background:${INK};padding:0;font-size:0;line-height:0;text-align:center;">
+          <img src="${BRAND_LOGO_URL}" alt="Nhihad Hassan Photography" width="560" style="display:block;width:100%;max-width:560px;height:auto;border:0;outline:none;text-decoration:none;font-size:15px;color:${CARD};">
         </td></tr>
         ${cover}
-        <tr><td style="padding:30px 34px 4px 34px;">
+        <tr><td class="nh-pad" style="padding:30px 34px 4px 34px;">
           ${eyebrowHtml}
-          <h1 style="margin:0;font-size:25px;line-height:1.2;font-weight:600;font-family:Georgia,'Times New Roman',serif;color:${INK};">${escapeHtml(heading)}</h1>
+          <h1 class="nh-heading" style="margin:0;font-size:25px;line-height:1.2;font-weight:600;font-family:Georgia,'Times New Roman',serif;color:${INK};">${escapeHtml(heading)}</h1>
         </td></tr>
-        <tr><td style="padding:14px 34px 0 34px;font-size:15px;line-height:1.65;color:rgba(23,19,15,0.80);">
+        <tr><td class="nh-pad" style="padding:14px 34px 0 34px;font-size:15px;line-height:1.65;color:rgba(23,19,15,0.80);">
           ${bodyHtml}
         </td></tr>
         ${cta}

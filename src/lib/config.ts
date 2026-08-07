@@ -1,5 +1,7 @@
 export const brandConfig = {
   name: "Nhihad Hassan Photography",
+  /** The person, distinct from `name` (the business), for contexts like a signature block. */
+  ownerName: "Nhihad Hassan",
   shortName: "NHP",
   tagline: "Wedding, couples, portrait, and event photography based in Toronto.",
   contactEmail: "nhihadhassanphotography@gmail.com",

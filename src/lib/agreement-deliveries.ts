@@ -143,10 +143,14 @@ export async function sendAgreementRequestEmail(input: {
     await markAgreementDeliverySent(deliveryId, result.messageId);
     const now = new Date().toISOString();
     const admin = getServiceRoleSupabaseClient();
+    // Set once, on the first successful send. This date doubles as the
+    // photographer's effective signing date on the client-facing contract, so
+    // a later resend must not push it forward.
     const { error } = await admin
       .from("agreement_requests")
       .update({ sent_at: now, updated_at: now })
-      .eq("id", input.agreementRequestId);
+      .eq("id", input.agreementRequestId)
+      .is("sent_at", null);
     if (error) throw new Error(error.message);
   } catch (error) {
     return {

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
@@ -16,6 +17,7 @@ type MobileNavProps = {
 
 export function MobileNav({ items, tone = "dark" }: MobileNavProps) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -90,17 +92,25 @@ export function MobileNav({ items, tone = "dark" }: MobileNavProps) {
                 className="mt-12 flex flex-1 flex-col justify-center"
               >
                 <ul className="flex flex-col gap-2">
-                  {items.map((item) => (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        onClick={close}
-                        className="block font-serif text-5xl leading-tight text-soft-white transition hover:text-copper"
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
+                  {items.map((item) => {
+                    const isActive =
+                      item.href !== "/" &&
+                      (pathname === item.href || pathname.startsWith(`${item.href}/`));
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          onClick={close}
+                          aria-current={isActive ? "page" : undefined}
+                          className={`block font-serif text-5xl leading-tight transition hover:text-copper ${
+                            isActive ? "text-copper" : "text-soft-white"
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
 
                 <div className="mt-12">

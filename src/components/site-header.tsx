@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { brandConfig } from "@/lib/config";
 import { MobileNav, type MobileNavItem } from "@/components/mobile-nav";
+import { NavLink } from "@/components/nav-link";
 
 const navItems: MobileNavItem[] = [
   { href: "/portfolio", label: "Portfolio" },
@@ -21,9 +22,6 @@ type SiteHeaderProps = {
  */
 export function SiteHeader({ tone = "dark" }: SiteHeaderProps) {
   const isLight = tone === "light";
-  const navClass = isLight
-    ? "transition hover:text-ink/60"
-    : "transition hover:text-soft-white/70";
   const navGroupClass = `hidden items-center gap-7 text-xs uppercase tracking-[0.18em] md:flex ${
     isLight ? "text-ink" : "text-soft-white"
   }`;
@@ -36,9 +34,7 @@ export function SiteHeader({ tone = "dark" }: SiteHeaderProps) {
       <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
         <nav className={`col-start-1 ${navGroupClass}`}>
           {navItems.slice(0, 2).map((item) => (
-            <Link key={item.href} href={item.href} className={navClass}>
-              {item.label}
-            </Link>
+            <NavLink key={item.href} href={item.href} label={item.label} tone={tone} />
           ))}
         </nav>
 
@@ -49,9 +45,7 @@ export function SiteHeader({ tone = "dark" }: SiteHeaderProps) {
         <div className="col-start-3 flex items-center justify-end gap-7">
           <nav className={navGroupClass}>
             {navItems.slice(2).map((item) => (
-              <Link key={item.href} href={item.href} className={navClass}>
-                {item.label}
-              </Link>
+              <NavLink key={item.href} href={item.href} label={item.label} tone={tone} />
             ))}
           </nav>
           <div className="md:hidden">

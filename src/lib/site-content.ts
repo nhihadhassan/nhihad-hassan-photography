@@ -41,13 +41,13 @@ export const CONTENT_FIELDS: ContentField[] = [
   {
     key: "contact.hero.heading",
     label: "Contact · heading",
-    fallback: "Tell me about the day you want remembered.",
+    fallback: "Tell me about your session.",
   },
   {
     key: "contact.hero.subtext",
     label: "Contact · subtext",
     fallback:
-      "Tell me the date, the location, and what you want the photos to feel like. If email is easier, that works too.",
+      "Choose a service if you know what you're looking for, or send an inquiry if you're not sure yet.",
     multiline: true,
   },
 ];

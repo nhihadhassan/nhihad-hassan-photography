@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Eraser } from "lucide-react";
+import { Eraser, PenLine } from "lucide-react";
 
 /**
  * A canvas the client draws their signature on. Calls `onChange` with a PNG
@@ -75,31 +75,34 @@ export function SignaturePad({ onChange }: { onChange: (dataUrl: string | null) 
 
   return (
     <div>
-      <div className="relative overflow-hidden rounded-md border border-ink/20 bg-white">
+      <div className="relative overflow-hidden rounded-sm border-b border-ink/20 bg-ink/[0.035]">
         <canvas
           ref={canvasRef}
           onPointerDown={start}
           onPointerMove={move}
           onPointerUp={end}
           onPointerLeave={end}
-          className="block h-44 w-full touch-none"
+          className="block h-24 w-full touch-none"
         />
         {empty ? (
-          <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-ink/30">
-            Draw your signature here
+          <span className="pointer-events-none absolute inset-0 flex items-center gap-2 px-4 text-sm text-ink/40">
+            <PenLine className="size-3.5 shrink-0" aria-hidden="true" />
+            Click here to sign
           </span>
         ) : null}
       </div>
-      <div className="mt-2 flex justify-end">
-        <button
-          type="button"
-          onClick={clear}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-ink/55 transition hover:text-ink"
-        >
-          <Eraser className="size-3.5" aria-hidden="true" />
-          Clear
-        </button>
-      </div>
+      {!empty ? (
+        <div className="mt-2 flex justify-end">
+          <button
+            type="button"
+            onClick={clear}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-ink/55 transition hover:text-ink"
+          >
+            <Eraser className="size-3.5" aria-hidden="true" />
+            Clear
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

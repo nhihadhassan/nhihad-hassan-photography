@@ -4,18 +4,15 @@ import Image from "next/image";
 import { ArrowLeft, Check } from "lucide-react";
 import { SiteFooter } from "@/components/site-footer";
 import { PrintButton } from "@/components/print-button";
-import { AgreementDocument, buildDetailRows } from "@/components/agreement-document";
+import { AgreementDocument } from "@/components/agreement-document";
 import { AgreementSignForm } from "@/components/agreement-sign-form";
-import { agreementDetailFields, agreementFeeFields, agreementServiceFields, legacyAgreementDetailFields, sectionTwoAgreementDetailFields } from "@/data/booking-agreement";
-import { resolveAgreementTemplateId } from "@/data/wedding-agreement";
-import { getBookingAgreement } from "@/lib/booking-agreement";
 import { brandConfig } from "@/lib/config";
 import {
   getAgreementCover,
   getAgreementRequestByToken,
   getSignedAgreementsByToken,
 } from "@/lib/agreements";
-import { remainingAgreementSigners, requiredAgreementSigners } from "@/lib/agreement-signers";
+import { buildAgreementView } from "@/lib/agreement-view";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +20,6 @@ export const metadata: Metadata = {
   title: "Sign your booking agreement",
   robots: { index: false, follow: false },
 };
-
-const MONEY_FIELDS = new Set(["total", "hourly", "deposit", "balance"]);
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("en-CA", {
@@ -91,85 +86,8 @@ export default async function AgreementSigningPage({
     getSignedAgreementsByToken(token),
     getAgreementCover(request.gallery_id),
   ]);
-  const snapshot = signatures[0]?.agreement_snapshot;
-  const signedTerms = snapshot?.sections?.length ? snapshot : null;
-  const agreementDetails = signedTerms ? signedTerms.details : request.details;
-  const clientName = signedTerms ? signedTerms.clientName : request.client_name;
-  const clientEmail = signedTerms ? signedTerms.clientEmail : request.client_email;
-  const terms = signedTerms
-    ? {
-        intro: signedTerms.intro,
-        disclaimer: signedTerms.disclaimer,
-        sections: signedTerms.sections,
-      }
-    : await getBookingAgreement(
-        agreementDetails.template,
-        clientName ?? "",
-        agreementDetails.partner,
-        agreementDetails.secondSignerName,
-        agreementDetails.rehostingFee === "0",
-      );
-  const firstName = clientName?.trim().split(/\s+/)[0] || "there";
-  const contractTitle = `${clientName?.trim() || agreementDetails.type?.trim() || "Photography"} Contract`;
-
-  const values: Record<string, string | undefined> = {
-    ...agreementDetails,
-    client: clientName ?? undefined,
-    partner: agreementDetails.partner,
-    effectiveDate: agreementDetails.effectiveDate,
-    clientAddress: agreementDetails.clientAddress,
-    email: clientEmail ?? undefined,
-    phone: agreementDetails.phone,
-    type: agreementDetails.type,
-    description: agreementDetails.description ?? agreementDetails.type,
-    date: agreementDetails.date,
-    location: agreementDetails.location,
-    city: agreementDetails.city,
-    cancellationNoticeDays: agreementDetails.cancellationNoticeDays,
-    mealHours: agreementDetails.mealHours,
-    total: agreementDetails.total,
-    hourly: agreementDetails.hourly,
-    deposit: agreementDetails.deposit,
-    balance: agreementDetails.balance,
-    balanceDueDate: agreementDetails.balanceDueDate,
-    lateFeePercent: agreementDetails.lateFeePercent,
-    window: agreementDetails.window,
-    clientName: clientName ?? undefined,
-    partnerName: agreementDetails.partner,
-    galleryWindow: agreementDetails.window,
-    clientEmail: clientEmail ?? undefined,
-    clientPhone: agreementDetails.phone,
-    secondSignerName: agreementDetails.secondSignerName,
-    secondSignerEmail: agreementDetails.secondSignerEmail,
-    secondSignerPhone: agreementDetails.secondSignerPhone,
-  };
-  const templateId = resolveAgreementTemplateId(agreementDetails.template);
-  const referenceFormatting = !signedTerms || ["reference-v1", "reference-v2"].includes(agreementDetails.presentationVersion ?? "");
-  const usesSectionTwoFees = !signedTerms || agreementDetails.feeStructureVersion === "section-2";
-  const fieldsForLayout = referenceFormatting
-    ? agreementDetailFields
-    : usesSectionTwoFees
-      ? sectionTwoAgreementDetailFields
-      : legacyAgreementDetailFields;
-  const detailFields = templateId === "wedding"
-    ? fieldsForLayout
-    : fieldsForLayout.filter((field) => field.param !== "partner");
-  const detailRows = buildDetailRows(detailFields, values, MONEY_FIELDS);
-  const feeRows = usesSectionTwoFees ? buildDetailRows(agreementFeeFields, values, MONEY_FIELDS) : undefined;
-  const serviceFields = agreementServiceFields.map((field) =>
-    templateId === "wedding" && field.param === "date"
-      ? { ...field, label: "Date of wedding" }
-      : templateId === "wedding" && field.param === "location"
-        ? { ...field, label: "Location of wedding" }
-        : field,
-  );
-  const serviceRows = referenceFormatting
-    ? buildDetailRows(serviceFields, values, MONEY_FIELDS)
-    : undefined;
-
-  const requiredSigners = requiredAgreementSigners(request);
-  const remainingSigners = remainingAgreementSigners(requiredSigners, signatures.map((signature) => signature.signer_email));
-  const fullySigned = Boolean(request.signed_at) || (requiredSigners.length > 0 && remainingSigners.length === 0);
+  const view = await buildAgreementView(request, signatures);
+  const { clientName, contractTitle, firstName, fullySigned, remainingSigners } = view;
   const signatureSlot = (
     <section className="mt-14 break-inside-avoid">
       {signatures.length ? <>
@@ -275,19 +193,15 @@ export default async function AgreementSigningPage({
 
         <div className="mx-auto mt-4 max-w-[800px] bg-[#fbfaf7] shadow-[0_14px_40px_rgba(31,25,19,0.06)] print:mt-0 print:max-w-none print:shadow-none sm:mt-5">
           <AgreementDocument
-            title={
-              templateId === "wedding"
-                ? "Wedding Photography Services Agreement"
-                : "Photography Services Agreement"
-            }
-            intro={terms.intro}
-            sections={terms.sections}
-            detailRows={detailRows}
-            serviceRows={serviceRows}
-            feeRows={feeRows}
-            agreementValues={values}
-            referenceFormatting={referenceFormatting}
-            depositTerm={templateId === "wedding" ? "Deposit" : "Retainer"}
+            title={view.title}
+            intro={view.intro}
+            sections={view.sections}
+            detailRows={view.detailRows}
+            serviceRows={view.serviceRows}
+            feeRows={view.feeRows}
+            agreementValues={view.values}
+            referenceFormatting={view.referenceFormatting}
+            depositTerm={view.depositTerm}
             signatureSlot={signatureSlot}
           />
         </div>

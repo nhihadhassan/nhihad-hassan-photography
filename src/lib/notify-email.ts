@@ -207,13 +207,17 @@ export async function sendSignedAgreementEmails(input: {
 }
 
 /** Send a client their standalone agreement link for review and signature. */
-export async function sendAgreementEmail(input: {
-  to: string;
+export type AgreementEmailContent = { subject: string; html: string; text: string };
+
+/**
+ * The exact subject and body of the contract email. Split out from the send so
+ * the admin can preview the real message before it goes to the signers.
+ */
+export function buildAgreementEmail(input: {
   clientName: string | null;
   agreementUrl: string;
-  idempotencyKey: string;
   expiresAt?: string | null;
-}): Promise<SendResult> {
+}): AgreementEmailContent {
   const first = input.clientName?.trim().split(/\s+/)[0];
   const greeting = first ? `Hi ${escapeHtml(first)},` : "Hello,";
   const expiry = input.expiresAt ? formatTorontoDateTime(input.expiresAt) : null;
@@ -228,9 +232,7 @@ export async function sendAgreementEmail(input: {
     <p style="margin:0 0 14px 0;">Your photography agreement with ${escapeHtml(brandConfig.name)} is ready to review and sign.</p>
     ${expiryHtml}
     <p style="margin:0;">Please read the agreement carefully, confirm the booking details, and use the signature form at the bottom when you are ready.</p>`;
-  return sendMail({
-    to: input.to,
-    replyTo: brandConfig.contactEmail,
+  return {
     subject: `Your photography agreement · ${brandConfig.name}`,
     text: `${first ? `Hi ${first},` : "Hello,"}\n\nYour photography agreement with ${brandConfig.name} is ready to review and sign.${expiryText}\n\n${input.agreementUrl}\n\nPlease read the agreement carefully and confirm the booking details before signing.`,
     html: emailShell({
@@ -240,6 +242,23 @@ export async function sendAgreementEmail(input: {
       ctaLabel: "Review and sign agreement",
       ctaUrl: input.agreementUrl,
     }),
+  };
+}
+
+export async function sendAgreementEmail(input: {
+  to: string;
+  clientName: string | null;
+  agreementUrl: string;
+  idempotencyKey: string;
+  expiresAt?: string | null;
+}): Promise<SendResult> {
+  const content = buildAgreementEmail(input);
+  return sendMail({
+    to: input.to,
+    replyTo: brandConfig.contactEmail,
+    subject: content.subject,
+    text: content.text,
+    html: content.html,
     tags: [{ name: "category", value: "agreement" }],
     idempotencyKey: input.idempotencyKey,
   });

@@ -2,8 +2,8 @@
  * Standard photography booking agreement, rendered at /booking-agreement.
  * Single source of truth for the contract text. Edit clause wording here.
  *
- * This is a convenience template, not legal advice. The page shows a note
- * recommending review by a licensed Ontario lawyer.
+ * The clause wording has been through Ontario legal review, so the template no
+ * longer carries a disclaimer recommending one.
  */
 
 export type AgreementSection = {
@@ -107,8 +107,11 @@ export const agreementFields = [...agreementDetailFields, ...agreementFeeFields]
 export const agreementIntro =
   "THIS AGREEMENT is made as of {{effectiveDate}} (the “Effective Date”) between {{clientName}}, represented where applicable by {{signerName}}, {{signerTitle}}, with a mailing address of {{clientAddress}}, email {{clientEmail}}, and phone {{clientPhone}} (the “Client”), and Nhihad Hassan Photography (the “Photographer”).";
 
-export const agreementDisclaimer =
-  "This agreement template is provided for convenience and is not legal advice. Consider having it reviewed by a licensed Ontario lawyer before relying on it.";
+/**
+ * Empty by default. The admin content editor can still set a disclaimer per
+ * deployment; nothing is shown when it is blank.
+ */
+export const agreementDisclaimer = "";
 
 export const agreementSections: AgreementSection[] = [
   {

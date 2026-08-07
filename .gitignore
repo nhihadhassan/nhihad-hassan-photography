@@ -53,3 +53,7 @@ skills-lock.json
 
 # personal documents that are not part of the site
 /Invoice_*.pdf
+
+# scratch archives and generated output (not part of the site)
+/files.zip
+/tmp/

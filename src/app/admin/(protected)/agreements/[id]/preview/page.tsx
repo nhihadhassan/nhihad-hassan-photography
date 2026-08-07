@@ -9,7 +9,7 @@ import { buildAgreementView } from "@/lib/agreement-view";
 import { isAgreementPastExpiry } from "@/lib/agreement-status";
 import { getAgreementRequestById, getSignedAgreementsByToken } from "@/lib/agreements";
 import { buildAgreementEmail } from "@/lib/notify-email";
-import { siteUrl } from "@/lib/seo";
+import { agreementSignUrl } from "@/lib/agreement-url";
 
 export const dynamic = "force-dynamic";
 
@@ -47,8 +47,7 @@ export default async function AgreementPreviewPage({
 
   const signatures = await getSignedAgreementsByToken(request.token);
   const view = await buildAgreementView(request, signatures);
-  const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
-  const agreementUrl = `${origin}/agreement/${request.token}`;
+  const agreementUrl = agreementSignUrl(request.token);
 
   const recipients = [
     { name: request.client_name, email: request.client_email },

@@ -106,9 +106,6 @@ export default async function AgreementSigningPage({
     firstName,
     fullySigned,
     remainingSigners,
-    clientSigningComplete,
-    awaitingCountersignature,
-    countersignature,
   } = view;
   const photographerName = brandConfig.name;
   const printFilename = sanitizeFilename(
@@ -132,26 +129,9 @@ export default async function AgreementSigningPage({
               ) : null}
             </div>
           ))}
-          {countersignature?.photographer_signed_at ? (
-            <div className="break-inside-avoid border border-ink/12 bg-white/55 p-4">
-              <p className="text-sm leading-6 text-ink/75">
-                Countersigned by <strong className="font-semibold text-ink">{countersignature.photographer_signer_name ?? photographerName}</strong><br />
-                {formatDateTime(countersignature.photographer_signed_at)}
-              </p>
-              {countersignature.photographer_signature_data_url ? (
-                <Image src={countersignature.photographer_signature_data_url} alt={`Signature of ${countersignature.photographer_signer_name ?? photographerName}`} width={360} height={120} unoptimized loading="eager" className="mt-3 h-20 w-auto" />
-              ) : null}
-            </div>
-          ) : null}
         </div>
       </> : null}
-      {awaitingCountersignature ? (
-        <p className="mt-6 break-inside-avoid border border-[#8b6444]/25 bg-white/55 px-4 py-3 text-sm leading-6 text-ink/75">
-          Your details and signature are complete. {photographerName} will countersign shortly, and
-          your finalized copy will be emailed to you once that is done.
-        </p>
-      ) : null}
-      {!clientSigningComplete && remainingSigners.length ? (
+      {!fullySigned && remainingSigners.length ? (
         <AgreementSignForm
           token={token}
           signers={remainingSigners}
@@ -218,11 +198,9 @@ export default async function AgreementSigningPage({
                   {fullySigned ? <Check className="size-3" aria-hidden="true" /> : null}
                   {fullySigned
                     ? "Signed"
-                    : awaitingCountersignature
-                      ? "Awaiting countersignature"
-                      : signatures.length
-                        ? `Awaiting ${remainingSigners.length} signature`
-                        : "Awaiting signatures"}
+                    : signatures.length
+                      ? `Awaiting ${remainingSigners.length} signature`
+                      : "Awaiting signatures"}
                 </span>
               </div>
             </div>
@@ -259,17 +237,15 @@ export default async function AgreementSigningPage({
 
           <a
             href="#sign-contract"
-            aria-disabled={fullySigned || awaitingCountersignature}
-            className={`mt-12 flex min-h-[60px] w-full items-center justify-center px-5 text-xs font-semibold uppercase tracking-[0.18em] transition ${fullySigned ? "pointer-events-none bg-[#66805d] text-soft-white" : awaitingCountersignature ? "pointer-events-none bg-ink/45 text-soft-white" : "bg-ink text-soft-white hover:bg-ink/88"}`}
+            aria-disabled={fullySigned}
+            className={`mt-12 flex min-h-[60px] w-full items-center justify-center px-5 text-xs font-semibold uppercase tracking-[0.18em] transition ${fullySigned ? "pointer-events-none bg-[#66805d] text-soft-white" : "bg-ink text-soft-white hover:bg-ink/88"}`}
           >
             {fullySigned ? <Check className="mr-2 size-4" aria-hidden="true" /> : null}
             {fullySigned
               ? "Contract signed"
-              : awaitingCountersignature
-                ? "Awaiting countersignature"
-                : signatures.length
-                  ? "Complete remaining signature"
-                  : "Sign contract"}
+              : signatures.length
+                ? "Complete remaining signature"
+                : "Sign contract"}
           </a>
         </section>
 

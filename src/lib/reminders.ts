@@ -9,6 +9,7 @@ import { getReminderRules, getMutedBookings, type ReminderKind } from "@/lib/rem
 import { parseAmount, formatMoney } from "@/lib/utils";
 import { brandConfig } from "@/lib/config";
 import { siteUrl } from "@/lib/seo";
+import { agreementSignUrl } from "@/lib/agreement-url";
 
 export type { ReminderKind } from "@/lib/reminder-rules";
 
@@ -44,8 +45,9 @@ async function expireDueAgreements(
   admin: ReturnType<typeof getServiceRoleSupabaseClient>,
   nowIso: string,
 ): Promise<number> {
-  // A contract the client has already signed is waiting on the photographer,
-  // so it must never expire out from under the pending countersignature.
+  // client_submitted_at and signed_at are set together (signing finalizes an
+  // agreement immediately), so this guard is now belt-and-suspenders for the
+  // instant between those two writes rather than a real waiting state.
   const { data, error } = await admin
     .from("agreement_requests")
     .update({ expired_at: nowIso, updated_at: nowIso })
@@ -76,7 +78,6 @@ async function sendDueAgreementReminders(
   if (error) throw new Error(error.message);
 
   let sent = 0;
-  const base = origin();
   for (const row of data ?? []) {
     if (!row.client_email || !row.sent_at) continue;
     const count = Math.max(0, Number(row.reminder_count) || 0);
@@ -103,7 +104,7 @@ async function sendDueAgreementReminders(
     const result = await sendAgreementReminderEmail({
       to: row.client_email,
       clientName: row.client_name,
-      agreementUrl: `${base}/agreement/${row.token}`,
+      agreementUrl: agreementSignUrl(row.token),
       expiresAt: row.expires_at,
       idempotencyKey: `agreement-reminder-${row.id}-${count + 1}`,
     });

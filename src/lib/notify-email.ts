@@ -132,6 +132,11 @@ export async function sendReminderEmail(input: {
   });
 }
 
+/** Plain, visibly-clickable copy of a link under the main CTA button, for clients whose mail client drops the button styling. */
+function fallbackLinkHtml(url: string): string {
+  return `<p style="margin:14px 0 0 0;font-size:13px;color:#6b6459;">If the button doesn't work, open this link:<br /><a href="${escapeHtml(url)}" style="color:#6b6459;text-decoration:underline;">${escapeHtml(url)}</a></p>`;
+}
+
 /**
  * On signing, email a confirmation/copy to the client and a notification to the
  * photographer. Best-effort: each send is independent and never throws.
@@ -139,7 +144,10 @@ export async function sendReminderEmail(input: {
 export async function sendSignedAgreementEmails(input: {
   signerName: string;
   clientEmail: string | null;
+  /** Public /agreement/{token} URL. Never an /admin path. */
   url: string;
+  /** Admin's own contract list, offered as a secondary link in the photographer's copy only. */
+  adminUrl?: string;
 }): Promise<void> {
   const tasks: Promise<SendResult>[] = [];
 
@@ -154,7 +162,7 @@ export async function sendSignedAgreementEmails(input: {
         html: emailShell({
           eyebrow: "Agreement signed",
           heading: "Thanks for signing.",
-          bodyHtml: `<p style="margin:0 0 14px 0;">Hi ${escapeHtml(first)},</p><p style="margin:0 0 14px 0;">Thank you for signing your booking agreement with ${escapeHtml(brandConfig.name)}. You can view or print a copy anytime using the button below.</p>`,
+          bodyHtml: `<p style="margin:0 0 14px 0;">Hi ${escapeHtml(first)},</p><p style="margin:0 0 14px 0;">Thank you for signing your booking agreement with ${escapeHtml(brandConfig.name)}. You can view or print a copy anytime using the button below.</p>${fallbackLinkHtml(input.url)}`,
           ctaLabel: "View your signed agreement",
           ctaUrl: input.url,
         }),
@@ -162,47 +170,26 @@ export async function sendSignedAgreementEmails(input: {
     );
   }
 
+  const adminLinkHtml = input.adminUrl
+    ? `<p style="margin:6px 0 0 0;font-size:13px;"><a href="${escapeHtml(input.adminUrl)}" style="color:#6b6459;text-decoration:underline;">Open in admin</a></p>`
+    : "";
   tasks.push(
     sendMail({
       to: adminRecipient(),
       replyTo: input.clientEmail ?? undefined,
       subject: `${input.signerName} signed the agreement`,
-      text: `${input.signerName} just signed their booking agreement. View it here:\n\n${input.url}`,
+      text: `${input.signerName} just signed their booking agreement.\n\nView client agreement: ${input.url}${input.adminUrl ? `\nOpen in admin: ${input.adminUrl}` : ""}`,
       html: emailShell({
         eyebrow: "Agreement signed",
         heading: `${input.signerName} signed.`,
-        bodyHtml: `<p style="margin:0;">${escapeHtml(input.signerName)} just signed their booking agreement.</p>`,
-        ctaLabel: "View the signed agreement",
+        bodyHtml: `<p style="margin:0;">${escapeHtml(input.signerName)} just signed their booking agreement.</p>${adminLinkHtml}`,
+        ctaLabel: "View client agreement",
         ctaUrl: input.url,
       }),
     }),
   );
 
   await Promise.allSettled(tasks);
-}
-
-/**
- * Tell the photographer a client has signed and returned a contract. The
- * agreement is not final until it is countersigned, so no copy goes out yet.
- */
-export async function sendAgreementAwaitingCountersignatureEmail(input: {
-  signerName: string;
-  clientEmail: string | null;
-  adminUrl: string;
-}): Promise<void> {
-  await sendMail({
-    to: adminRecipient(),
-    replyTo: input.clientEmail ?? undefined,
-    subject: `${input.signerName} signed and returned the agreement`,
-    text: `${input.signerName} completed their details and signed their booking agreement. It is waiting for your countersignature before it becomes final:\n\n${input.adminUrl}`,
-    html: emailShell({
-      eyebrow: "Awaiting countersignature",
-      heading: `${input.signerName} signed and returned it.`,
-      bodyHtml: `<p style="margin:0 0 14px 0;">${escapeHtml(input.signerName)} completed their contact details and signed their booking agreement.</p><p style="margin:0;">It is waiting for your countersignature. The agreement becomes final and the client receives their copy once you sign.</p>`,
-      ctaLabel: "Review and countersign",
-      ctaUrl: input.adminUrl,
-    }),
-  }).catch(() => undefined);
 }
 
 /** Send a client their standalone agreement link for review and signature. */
@@ -230,7 +217,8 @@ export function buildAgreementEmail(input: {
     <p style="margin:0 0 14px 0;">${greeting}</p>
     <p style="margin:0 0 14px 0;">Your photography agreement with ${escapeHtml(brandConfig.name)} is ready to review and sign.</p>
     ${expiryHtml}
-    <p style="margin:0;">Please read the agreement carefully, confirm the booking details, and use the signature form at the bottom when you are ready.</p>`;
+    <p style="margin:0;">Please read the agreement carefully, confirm the booking details, and use the signature form at the bottom when you are ready.</p>
+    ${fallbackLinkHtml(input.agreementUrl)}`;
   return {
     subject: `Your photography agreement · ${brandConfig.name}`,
     text: `${first ? `Hi ${first},` : "Hello,"}\n\nYour photography agreement with ${brandConfig.name} is ready to review and sign.${expiryText}\n\n${input.agreementUrl}\n\nPlease read the agreement carefully and confirm the booking details before signing.`,
@@ -282,7 +270,8 @@ export async function sendAgreementReminderEmail(input: {
     <p style="margin:0 0 14px 0;">${greeting}</p>
     <p style="margin:0 0 14px 0;">A quick reminder that your photography agreement with ${escapeHtml(brandConfig.name)} is still waiting for your signature.</p>
     ${expiryHtml}
-    <p style="margin:0;">You can review the details and sign using the button below.</p>`;
+    <p style="margin:0;">You can review the details and sign using the button below.</p>
+    ${fallbackLinkHtml(input.agreementUrl)}`;
   return sendMail({
     to: input.to,
     replyTo: brandConfig.contactEmail,

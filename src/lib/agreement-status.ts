@@ -8,8 +8,8 @@ export type AgreementExpiryState = {
 /** Shared derived expiry state for server enforcement and admin display. */
 export function isAgreementPastExpiry(request: AgreementExpiryState, now = Date.now()) {
   if (request.signed_at) return false;
-  // Once the client has signed and returned it, the deadline has been met. The
-  // contract stays open while it waits for the photographer's countersignature.
+  // client_submitted_at and signed_at are set together, so this only matters
+  // for the instant between those two writes.
   if (request.client_submitted_at) return false;
   if (request.expired_at) return true;
   if (!request.expires_at) return false;

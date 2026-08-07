@@ -142,6 +142,21 @@ export default async function AgreementSigningPage({
         />
       ) : null}
       {fullySigned ? <p className="mt-4 text-xs text-ink/45">This record is kept by the photographer as confirmation of the completed agreement.</p> : null}
+      {request.sent_at ? (
+        <div className="mt-10 break-inside-avoid">
+          <Image
+            src="/signature.png"
+            alt={`${brandConfig.ownerName} signature`}
+            width={420}
+            height={140}
+            className="h-auto w-full max-w-[180px] object-contain"
+          />
+          <div className="mt-1 max-w-[180px] border-t border-ink/40" />
+          <p className="mt-2 text-sm font-medium text-ink">{brandConfig.ownerName}</p>
+          <p className="text-sm text-ink/70">{photographerName}</p>
+          <p className="mt-1 text-xs text-ink/50">Signed on {formatDate(request.sent_at)}</p>
+        </div>
+      ) : null}
     </section>
   );
 

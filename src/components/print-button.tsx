@@ -3,11 +3,39 @@
 import { Printer } from "lucide-react";
 
 /** Triggers the browser print dialog (Save as PDF). Hidden when printing. */
-export function PrintButton({ className, iconOnly = false }: { className?: string; iconOnly?: boolean }) {
+export function PrintButton({
+  className,
+  iconOnly = false,
+  filename,
+}: {
+  className?: string;
+  iconOnly?: boolean;
+  /**
+   * When set, becomes the document title for the duration of the print job so
+   * "Save as PDF" suggests it as the filename (browsers append .pdf
+   * themselves). Restored once the print dialog closes. Omit for the default,
+   * title-based filename.
+   */
+  filename?: string;
+}) {
+  const handleClick = () => {
+    if (!filename) {
+      window.print();
+      return;
+    }
+    const previousTitle = document.title;
+    document.title = filename;
+    const restore = () => {
+      document.title = previousTitle;
+    };
+    window.addEventListener("afterprint", restore, { once: true });
+    window.print();
+  };
+
   return (
     <button
       type="button"
-      onClick={() => window.print()}
+      onClick={handleClick}
       aria-label={iconOnly ? "Print invoice" : undefined}
       title={iconOnly ? "Print invoice" : undefined}
       className={

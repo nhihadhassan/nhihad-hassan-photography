@@ -129,9 +129,9 @@ function DetailTable({ rows }: { rows: DetailRow[] }) {
   return (
     <dl className="divide-y divide-ink/12 border-y border-ink/12">
       {rows.map((row) => (
-        <div key={row.label} className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[200px_1fr]">
-          <dt className="text-[13px] font-semibold text-ink/60 print:text-[8pt]">{row.label}</dt>
-          <dd className="text-[13px] text-ink/85 print:text-[8pt]">
+        <div key={row.label} className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[200px_1fr] break-inside-avoid">
+          <dt className="text-[13px] font-semibold text-ink/60 print:text-[10pt]">{row.label}</dt>
+          <dd className="text-[13px] text-ink/85 print:text-[10pt]">
             {row.value ? row.value : <span className="mt-3 block h-5 max-w-xs border-b border-dashed border-ink/30" />}
           </dd>
         </div>
@@ -149,11 +149,11 @@ function VariableList({ rows, bullets = false }: { rows: DetailRow[]; bullets?: 
   ));
 
   return bullets ? (
-    <ul className="list-disc space-y-0.5 pl-7 text-[14px] text-ink/78 print:text-[8.5pt]">
+    <ul className="list-disc space-y-0.5 pl-7 text-[14px] text-ink/78 break-inside-avoid print:text-[10.5pt]">
       {items.map((item, index) => <li key={rows[index].param}>{item}</li>)}
     </ul>
   ) : (
-    <div className="space-y-0.5 border-l-2 border-ink/10 pl-4 text-[14px] text-ink/78 print:text-[8.5pt]">
+    <div className="space-y-0.5 border-l-2 border-ink/10 pl-4 text-[14px] text-ink/78 break-inside-avoid print:text-[10.5pt]">
       {items}
     </div>
   );
@@ -161,10 +161,10 @@ function VariableList({ rows, bullets = false }: { rows: DetailRow[]; bullets?: 
 
 function FeeList({ rows, depositTerm }: { rows: DetailRow[]; depositTerm: "Retainer" | "Deposit" }) {
   const value = (param: string) => rows.find((row) => row.param === param)?.value ?? undefined;
-  const lineClass = "text-[14px] leading-7 text-ink/78 print:text-[8.5pt]";
+  const lineClass = "text-[14px] leading-7 text-ink/78 print:text-[10.5pt]";
 
   return (
-    <ul className="list-disc space-y-0.5 pl-7">
+    <ul className="list-disc space-y-0.5 pl-7 break-inside-avoid">
       <li className={lineClass}>
         Total Fee for Services: <VariableValue value={value("total")} label="total fee for services" />
       </li>
@@ -215,18 +215,18 @@ export function AgreementDocument({
   signatureSlot?: ReactNode;
 }) {
   return (
-    <article className="mx-auto max-w-none px-6 py-10 sm:px-12 sm:py-14 print:px-[0.72in] print:py-[0.62in]">
+    <article className="mx-auto max-w-none px-6 py-10 sm:px-12 sm:py-14 print:px-0 print:py-0">
       <Reveal>
-        <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink/50 print:text-[7.5pt]">
+        <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink/50 print:text-[8pt]">
           {brandConfig.name}
         </p>
         <h1 className={referenceFormatting
-          ? "mt-5 text-center text-3xl font-bold leading-tight tracking-[-0.02em] text-ink sm:text-4xl print:text-[17pt]"
-          : "mt-3 font-serif text-4xl font-medium leading-none sm:text-5xl print:text-[16pt] print:leading-[1.24]"
+          ? "mt-5 text-center text-3xl font-bold leading-tight tracking-[-0.02em] text-ink sm:text-4xl print:text-[20pt]"
+          : "mt-3 font-serif text-4xl font-medium leading-none sm:text-5xl print:text-[19pt] print:leading-[1.3]"
         }>
           {title}
         </h1>
-        <p className="mt-6 text-[14px] leading-[1.72] text-ink/78 print:text-[8.5pt] print:leading-[1.55]">
+        <p className="mt-6 text-[14px] leading-[1.72] text-ink/78 print:text-[10.5pt] print:leading-[1.5]">
           <AgreementIntro values={agreementValues} referenceFormatting={referenceFormatting}>{intro}</AgreementIntro>
         </p>
 
@@ -236,24 +236,24 @@ export function AgreementDocument({
       </Reveal>
 
       {!referenceFormatting ? <Reveal delay={0.05}>
-        <section className="mt-12">
-          <h2 className="font-serif text-3xl font-medium leading-none text-ink print:text-[12.5pt] print:leading-[1.3]">
+        <section className="mt-12 break-inside-avoid">
+          <h2 className="font-serif text-3xl font-medium leading-none text-ink break-after-avoid print:text-[14pt] print:leading-[1.3]">
             Agreement details
           </h2>
           <dl className="mt-4 divide-y divide-ink/12 border-y border-ink/12">
-            <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[200px_1fr]">
-              <dt className="text-[13px] font-semibold text-ink/60 print:text-[8pt]">Photographer</dt>
-              <dd className="text-[13px] text-ink/85 print:text-[8pt]">
+            <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[200px_1fr] break-inside-avoid">
+              <dt className="text-[13px] font-semibold text-ink/60 print:text-[10pt]">Photographer</dt>
+              <dd className="text-[13px] text-ink/85 print:text-[10pt]">
                 {brandConfig.name}, {brandConfig.contactEmail}, Toronto, Ontario
               </dd>
             </div>
             {detailRows.map((row) => (
               <div
                 key={row.label}
-                className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[200px_1fr]"
+                className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[200px_1fr] break-inside-avoid"
               >
-                <dt className="text-[13px] font-semibold text-ink/60 print:text-[8pt]">{row.label}</dt>
-                <dd className="text-[13px] text-ink/85 print:text-[8pt]">
+                <dt className="text-[13px] font-semibold text-ink/60 print:text-[10pt]">{row.label}</dt>
+                <dd className="text-[13px] text-ink/85 print:text-[10pt]">
                   {row.value ? (
                     row.value
                   ) : (
@@ -270,16 +270,16 @@ export function AgreementDocument({
         <div className="mt-12 space-y-9 print:space-y-6">
           {sections.map((section) => (
             <section key={section.heading} className="break-inside-avoid">
-              <h2 className={referenceFormatting
-                ? "text-[28px] font-bold leading-tight tracking-[-0.015em] text-ink print:text-[15pt]"
-                : "font-serif text-3xl font-medium leading-none text-ink print:text-[12.5pt] print:leading-[1.3]"
-              }>
+              <h2 className={(referenceFormatting
+                ? "text-[28px] font-bold leading-tight tracking-[-0.015em] text-ink print:text-[16pt]"
+                : "font-serif text-3xl font-medium leading-none text-ink print:text-[14pt] print:leading-[1.3]"
+              ) + " break-after-avoid"}>
                 {section.heading}
               </h2>
               <div className="mt-3 space-y-3">
                 {section.clauses.map((clause, i) => (
                   <Fragment key={i}>
-                    <p className="text-[14px] leading-[1.72] text-ink/78 print:text-[8.5pt] print:leading-[1.55]">
+                    <p className="text-[14px] leading-[1.72] text-ink/78 print:text-[10.5pt] print:leading-[1.5]">
                       <Clause values={agreementValues} referenceFormatting={referenceFormatting}>{clause}</Clause>
                     </p>
                     {referenceFormatting && section.heading.startsWith("1.") && i === 0 && serviceRows?.length ? (
@@ -307,10 +307,10 @@ export function AgreementDocument({
 export function BlankSignatureBlock() {
   return (
     <section className="mt-14 break-inside-avoid">
-      <h2 className="text-[20px] font-semibold tracking-[-0.01em] text-ink print:text-[12.5pt]">
+      <h2 className="text-[20px] font-semibold tracking-[-0.01em] text-ink break-after-avoid print:text-[14pt]">
         Signatures
       </h2>
-      <p className="mt-3 text-[14px] leading-6 text-ink/75 print:text-[8.5pt]">
+      <p className="mt-3 text-[14px] leading-6 text-ink/75 print:text-[10.5pt]">
         By signing below, both parties agree to the terms set out in this agreement.
       </p>
       <div className="mt-8 grid gap-10 sm:grid-cols-2">

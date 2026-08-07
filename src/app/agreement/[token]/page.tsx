@@ -138,7 +138,6 @@ export default async function AgreementSigningPage({
           token={token}
           signers={remainingSigners}
           photographerName={photographerName}
-          clientDetails={request.client_details}
         />
       ) : null}
       {fullySigned ? <p className="mt-4 text-xs text-ink/45">This record is kept by the photographer as confirmation of the completed agreement.</p> : null}

@@ -15,6 +15,10 @@ const initialState: SignState = { status: "idle", message: "" };
  * list. Signing one does not affect the other: the page re-derives the
  * remaining signers from the server after a refresh, so a completed card
  * simply stops appearing here and moves into "Signatures received" above.
+ *
+ * Interactive end to end (pad, checkbox, submit button), so it is print-hidden
+ * entirely; PrintableSignatureLine below is what an unsigned contract shows
+ * on paper instead.
  */
 function SignerCard({
   token,
@@ -38,7 +42,7 @@ function SignerCard({
 
   if (state.status === "success") {
     return (
-      <div className="border border-[#8b6444]/30 bg-white/60 p-6 text-center">
+      <div className="border border-[#8b6444]/30 bg-white/60 p-6 text-center print:hidden">
         <CheckCircle2 className="mx-auto size-8 text-[#5f7a52]" aria-hidden="true" />
         <p className="mt-3 font-serif text-xl text-ink">Sent back to {photographerName}.</p>
         <p className="mt-2 text-sm text-ink/65">{state.message}</p>
@@ -47,7 +51,7 @@ function SignerCard({
   }
 
   return (
-    <form action={formAction} className="border border-ink/12 bg-white/55 p-5">
+    <form action={formAction} className="border border-ink/12 bg-white/55 p-5 print:hidden">
       <input type="hidden" name="token" value={token} />
       <input type="hidden" name="signature" value={signature ?? ""} />
       <input type="hidden" name="signer_name" value={signer.name} />
@@ -83,6 +87,19 @@ function SignerCard({
   );
 }
 
+/** Print-only stand-in for an unsigned SignerCard: a name and blank lines to sign by hand. */
+function PrintableSignatureLine({ signer }: { signer: AgreementSigner }) {
+  return (
+    <div className="hidden break-inside-avoid print:block">
+      <p className="text-[10.5pt] font-semibold text-ink">{signer.name}</p>
+      <div className="mt-8 border-t border-ink/40" />
+      <p className="mt-1 text-[8pt] text-ink/55">Signature</p>
+      <div className="mt-8 border-t border-ink/40" />
+      <p className="mt-1 text-[8pt] text-ink/55">Date</p>
+    </div>
+  );
+}
+
 export function AgreementSignForm({
   token,
   signers,
@@ -96,9 +113,9 @@ export function AgreementSignForm({
   const names = signers.map((signer) => signer.name).filter(Boolean);
 
   return (
-    <section id="sign-contract" className="mt-14 scroll-mt-8 break-inside-avoid">
-      <h2 className="font-serif text-3xl font-medium leading-none text-ink">Signatures</h2>
-      <p className="mt-3 text-sm leading-7 text-ink/75">
+    <section id="sign-contract" className="mt-14 scroll-mt-8">
+      <h2 className="font-serif text-3xl font-medium leading-none text-ink print:hidden">Signatures</h2>
+      <p className="mt-3 text-sm leading-7 text-ink/75 print:hidden">
         {names.length > 1
           ? `This agreement needs signatures from ${names.join(" and ")}.`
           : `Sign below to send this contract back to ${photographerName}.`}{" "}
@@ -106,9 +123,22 @@ export function AgreementSignForm({
         with the same intent as a handwritten one.
       </p>
 
-      <div className="mt-6 space-y-5">
+      <h2 className="hidden break-after-avoid text-ink print:mt-14 print:block print:text-[14pt]">
+        Signatures
+      </h2>
+      <p className="hidden text-ink/75 print:mt-3 print:block print:text-[10.5pt] print:leading-[1.5]">
+        By signing below, {names.length > 1 ? names.join(" and ") : names[0]} agree
+        {names.length > 1 ? "" : "s"} to the terms set out in this agreement.
+      </p>
+
+      <div className="mt-6 space-y-5 print:hidden">
         {signers.map((signer) => (
           <SignerCard key={signer.email} token={token} signer={signer} photographerName={photographerName} />
+        ))}
+      </div>
+      <div className="hidden print:mt-8 print:grid print:grid-cols-2 print:gap-10">
+        {signers.map((signer) => (
+          <PrintableSignatureLine key={signer.email} signer={signer} />
         ))}
       </div>
     </section>

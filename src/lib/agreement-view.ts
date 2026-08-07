@@ -34,6 +34,8 @@ export type AgreementView = {
   clientName: string | null;
   /** Every client-side party on the contract, e.g. "Kawish Lakhani and Farkhunda Alef". */
   partyNames: string | null;
+  /** Same parties as partyNames, unjoined, for callers that need their own separator. */
+  partyNameList: string[];
   clientEmail: string | null;
   details: AgreementDetails;
   intro: string;
@@ -169,6 +171,7 @@ export async function buildAgreementView(
     firstName: clientName?.trim().split(/\s+/)[0] || "there",
     clientName,
     partyNames,
+    partyNameList,
     clientEmail,
     details,
     intro: terms.intro,

@@ -48,7 +48,7 @@ export function EditModeProvider({ children }: { children: React.ReactNode }) {
           type="button"
           onClick={() => setEditMode((v) => !v)}
           className={cn(
-            "fixed bottom-5 right-5 z-[200] inline-flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium shadow-lg transition",
+            "fixed bottom-5 right-5 z-[200] inline-flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium shadow-lg transition print:hidden",
             editMode
               ? "bg-copper text-ink hover:bg-copper/90"
               : "bg-ink text-soft-white hover:bg-ink/90",
@@ -84,7 +84,7 @@ export function EditPencil({
       href={href}
       title={label}
       className={cn(
-        "z-[120] inline-flex items-center gap-1.5 rounded-full border border-copper bg-ink/85 px-2.5 py-1 text-xs font-medium text-copper shadow-md backdrop-blur transition hover:bg-copper hover:text-ink",
+        "z-[120] inline-flex items-center gap-1.5 rounded-full border border-copper bg-ink/85 px-2.5 py-1 text-xs font-medium text-copper shadow-md backdrop-blur transition hover:bg-copper hover:text-ink print:hidden",
         className,
       )}
     >
@@ -99,7 +99,7 @@ export function EditDot() {
   const { editMode } = useEditMode();
   if (!editMode) return null;
   return (
-    <span className="ml-2 inline-flex items-center text-copper" aria-hidden="true">
+    <span className="ml-2 inline-flex items-center text-copper print:hidden" aria-hidden="true">
       <Check className="size-3" />
     </span>
   );

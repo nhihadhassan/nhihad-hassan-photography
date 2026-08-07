@@ -220,3 +220,27 @@ button:focus-visible {
     #080808 100%
   );
 }
+
+/*
+ * Print/PDF documents (contracts, invoices): Letter page with real margins,
+ * so print:px-0/py-0 on the document itself doesn't need to duplicate them.
+ * Component-level print:text-[Npt] sizes stay in each component; this covers
+ * only what plain Tailwind utilities can't express.
+ */
+@page {
+  size: letter;
+  margin: 0.7in;
+}
+
+@media print {
+  /* Typographic widow/orphan control for contract body copy. */
+  article p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Defensive: never let a print stylesheet append raw hrefs after links. */
+  a[href]::after {
+    content: "" !important;
+  }
+}

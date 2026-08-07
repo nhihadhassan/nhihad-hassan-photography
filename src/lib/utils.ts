@@ -92,6 +92,14 @@ export function formatAge(from: string | null): string {
   return `${days}d`;
 }
 
+/** Strip characters invalid in Windows/macOS filenames; collapse whitespace. */
+export function sanitizeFilename(value: string): string {
+  return value
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function slugify(value: string) {
   return value
     .toLowerCase()

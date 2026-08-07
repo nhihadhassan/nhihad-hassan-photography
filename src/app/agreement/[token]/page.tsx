@@ -13,6 +13,7 @@ import {
   getSignedAgreementsByToken,
 } from "@/lib/agreements";
 import { buildAgreementView } from "@/lib/agreement-view";
+import { sanitizeFilename } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,16 @@ function formatDate(iso: string) {
     month: "long",
     day: "numeric",
   });
+}
+
+/** YYYY-MM-DD in Toronto time, so filenames sort chronologically. */
+function formatFilenameDate(iso: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Toronto",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(iso));
 }
 
 function Unavailable() {
@@ -90,6 +101,7 @@ export default async function AgreementSigningPage({
   const {
     clientName,
     partyNames,
+    partyNameList,
     contractTitle,
     firstName,
     fullySigned,
@@ -99,37 +111,42 @@ export default async function AgreementSigningPage({
     countersignature,
   } = view;
   const photographerName = brandConfig.name;
+  const printFilename = sanitizeFilename(
+    `NHPhotography Services Agreement - ${
+      partyNameList.length ? partyNameList.join(" & ") : clientName || "Client"
+    } - ${formatFilenameDate(request.sent_at || request.created_at)}`,
+  );
   const signatureSlot = (
-    <section className="mt-14 break-inside-avoid">
+    <section className="mt-14">
       {signatures.length ? <>
-        <h2 className="font-serif text-2xl text-ink">{fullySigned ? "Signed" : "Signatures received"}</h2>
+        <h2 className="font-serif text-2xl text-ink break-after-avoid">{fullySigned ? "Signed" : "Signatures received"}</h2>
         <div className="mt-4 grid gap-5 sm:grid-cols-2">
           {signatures.map((signature) => (
-            <div key={signature.id} className="border border-ink/12 bg-white/55 p-4">
+            <div key={signature.id} className="break-inside-avoid border border-ink/12 bg-white/55 p-4">
               <p className="text-sm leading-6 text-ink/75">
                 Signed electronically by <strong className="font-semibold text-ink">{signature.signer_name}</strong><br />
                 {formatDateTime(signature.signed_at)}
               </p>
               {signature.signature_data_url ? (
-                <Image src={signature.signature_data_url} alt={`Signature of ${signature.signer_name}`} width={360} height={120} unoptimized className="mt-3 h-20 w-auto" />
+                <Image src={signature.signature_data_url} alt={`Signature of ${signature.signer_name}`} width={360} height={120} unoptimized loading="eager" className="mt-3 h-20 w-auto" />
               ) : null}
             </div>
           ))}
           {countersignature?.photographer_signed_at ? (
-            <div className="border border-ink/12 bg-white/55 p-4">
+            <div className="break-inside-avoid border border-ink/12 bg-white/55 p-4">
               <p className="text-sm leading-6 text-ink/75">
                 Countersigned by <strong className="font-semibold text-ink">{countersignature.photographer_signer_name ?? photographerName}</strong><br />
                 {formatDateTime(countersignature.photographer_signed_at)}
               </p>
               {countersignature.photographer_signature_data_url ? (
-                <Image src={countersignature.photographer_signature_data_url} alt={`Signature of ${countersignature.photographer_signer_name ?? photographerName}`} width={360} height={120} unoptimized className="mt-3 h-20 w-auto" />
+                <Image src={countersignature.photographer_signature_data_url} alt={`Signature of ${countersignature.photographer_signer_name ?? photographerName}`} width={360} height={120} unoptimized loading="eager" className="mt-3 h-20 w-auto" />
               ) : null}
             </div>
           ) : null}
         </div>
       </> : null}
       {awaitingCountersignature ? (
-        <p className="mt-6 border border-[#8b6444]/25 bg-white/55 px-4 py-3 text-sm leading-6 text-ink/75">
+        <p className="mt-6 break-inside-avoid border border-[#8b6444]/25 bg-white/55 px-4 py-3 text-sm leading-6 text-ink/75">
           Your details and signature are complete. {photographerName} will countersign shortly, and
           your finalized copy will be emailed to you once that is done.
         </p>
@@ -149,6 +166,7 @@ export default async function AgreementSigningPage({
             alt={`${brandConfig.ownerName} signature`}
             width={1536}
             height={1024}
+            loading="eager"
             className="h-auto w-full max-w-[180px] object-contain"
           />
           <div className="mt-1 max-w-[180px] border-t border-ink/40" />
@@ -208,7 +226,10 @@ export default async function AgreementSigningPage({
                 </span>
               </div>
             </div>
-            <PrintButton className="shrink-0 rounded-none border-0 px-0 underline decoration-ink/20 underline-offset-4 hover:border-0" />
+            <PrintButton
+              filename={printFilename}
+              className="shrink-0 rounded-none border-0 px-0 underline decoration-ink/20 underline-offset-4 hover:border-0"
+            />
           </div>
 
           <dl className={`mt-7 grid gap-5 ${request.expires_at && !fullySigned ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>

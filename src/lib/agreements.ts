@@ -3,7 +3,10 @@ import { randomBytes } from "node:crypto";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import { getBookingAgreement } from "@/lib/booking-agreement";
 import { advanceBookingStage } from "@/lib/bookings";
-import { sendSignedAgreementEmails } from "@/lib/notify-email";
+import {
+  sendSignedAgreementEmails,
+  sendAgreementAwaitingCountersignatureEmail,
+} from "@/lib/notify-email";
 import { brandConfig } from "@/lib/config";
 import { hasR2Config } from "@/lib/env";
 import { getSignedReadUrl } from "@/lib/r2";
@@ -14,6 +17,10 @@ import {
 } from "@/lib/agreement-deliveries";
 import { isAgreementPastExpiry } from "@/lib/agreement-status";
 import { requiredAgreementSigners } from "@/lib/agreement-signers";
+import {
+  asClientDetails,
+  type AgreementClientDetails,
+} from "@/lib/agreement-client-details";
 
 /** Per-client shoot details captured at request time and shown on the contract. */
 export type AgreementDetails = {
@@ -69,9 +76,13 @@ export type AgreementRequest = {
   client_name: string | null;
   client_email: string | null;
   details: AgreementDetails;
+  client_details: AgreementClientDetails;
   message: string | null;
   sent_at: string | null;
   viewed_at: string | null;
+  client_submitted_at: string | null;
+  photographer_signed_at: string | null;
+  finalized_at: string | null;
   signed_at: string | null;
   revoked_at: string | null;
   expires_at: string | null;
@@ -105,6 +116,10 @@ export type SignedAgreement = {
   signer_email: string | null;
   signature_data_url: string | null;
   agreement_snapshot: AgreementSnapshot;
+  client_details: AgreementClientDetails;
+  photographer_signer_name: string | null;
+  photographer_signature_data_url: string | null;
+  photographer_signed_at: string | null;
   signed_ip: string | null;
   user_agent: string | null;
   signed_at: string;
@@ -187,9 +202,13 @@ function mapRequest(row: Record<string, unknown>): AgreementRequest {
     client_name: (row.client_name as string | null) ?? null,
     client_email: (row.client_email as string | null) ?? null,
     details: asDetails(row.details),
+    client_details: asClientDetails(row.client_details),
     message: (row.message as string | null) ?? null,
     sent_at: (row.sent_at as string | null) ?? null,
     viewed_at: (row.viewed_at as string | null) ?? null,
+    client_submitted_at: (row.client_submitted_at as string | null) ?? null,
+    photographer_signed_at: (row.photographer_signed_at as string | null) ?? null,
+    finalized_at: (row.finalized_at as string | null) ?? null,
     signed_at: (row.signed_at as string | null) ?? null,
     revoked_at: (row.revoked_at as string | null) ?? null,
     expires_at: (row.expires_at as string | null) ?? null,
@@ -219,6 +238,10 @@ function mapSigned(row: Record<string, unknown>): SignedAgreement {
     signer_email: (row.signer_email as string | null) ?? null,
     signature_data_url: (row.signature_data_url as string | null) ?? null,
     agreement_snapshot: (row.agreement_snapshot as AgreementSnapshot) ?? null,
+    client_details: asClientDetails(row.client_details),
+    photographer_signer_name: (row.photographer_signer_name as string | null) ?? null,
+    photographer_signature_data_url: (row.photographer_signature_data_url as string | null) ?? null,
+    photographer_signed_at: (row.photographer_signed_at as string | null) ?? null,
     signed_ip: (row.signed_ip as string | null) ?? null,
     user_agent: (row.user_agent as string | null) ?? null,
     signed_at: String(row.signed_at),
@@ -314,7 +337,8 @@ export async function getAgreementRequestByToken(token: string): Promise<Agreeme
         .eq("id", request.id)
         .is("signed_at", null)
         .is("revoked_at", null)
-        .is("expired_at", null);
+        .is("expired_at", null)
+        .is("client_submitted_at", null);
     }
     return null;
   }
@@ -441,6 +465,7 @@ export async function updateAgreementAutomationSettings(
     .is("signed_at", null)
     .is("revoked_at", null)
     .is("expired_at", null)
+    .is("client_submitted_at", null)
     .select("id")
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -457,6 +482,7 @@ export async function updateAgreementDetails(id: string, details: AgreementDetai
     .is("signed_at", null)
     .is("revoked_at", null)
     .is("expired_at", null)
+    .is("client_submitted_at", null)
     .select("id")
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -468,6 +494,7 @@ export async function signAgreement(input: {
   signerName: string;
   signerEmail?: string | null;
   signatureDataUrl?: string | null;
+  clientDetails?: AgreementClientDetails;
   ip?: string | null;
   userAgent?: string | null;
 }): Promise<{ ok: true; complete: boolean } | { ok: false; message: string }> {
@@ -481,6 +508,9 @@ export async function signAgreement(input: {
   const request = mapRequest(row as Record<string, unknown>);
   if (request.revoked_at) return { ok: false, message: "This signing link has been turned off." };
   if (request.signed_at) return { ok: false, message: "This agreement has already been signed." };
+  if (request.client_submitted_at) {
+    return { ok: false, message: "This agreement is already with the photographer for countersignature." };
+  }
   if (isAgreementPastExpiry(request)) {
     const expiredAt = new Date().toISOString();
     await admin
@@ -536,6 +566,8 @@ export async function signAgreement(input: {
     };
   })();
 
+  const clientDetails = input.clientDetails ?? request.client_details;
+
   const { error: insertError } = await admin.from("signed_agreements").insert({
     agreement_request_id: request.id,
     gallery_id: request.gallery_id,
@@ -543,26 +575,96 @@ export async function signAgreement(input: {
     signer_email: assignedSigner?.email ?? input.signerEmail ?? request.client_email ?? null,
     signature_data_url: input.signatureDataUrl ?? null,
     agreement_snapshot: snapshot,
+    client_details: clientDetails,
     signed_ip: input.ip ?? null,
     user_agent: input.userAgent ?? null,
   });
   if (insertError) return { ok: false, message: insertError.message };
 
+  // Every required client signature is in. The contract now returns to the
+  // photographer for review; only the countersignature finalizes it, so
+  // signed_at stays null and the booking does not advance yet.
   const complete = (existingRows?.length ?? 0) + 1 >= Math.max(1, requiredSigners.length);
+  const now = new Date().toISOString();
+  await admin
+    .from("agreement_requests")
+    .update({
+      client_details: clientDetails,
+      ...(complete ? { client_submitted_at: now } : {}),
+      updated_at: now,
+    })
+    .eq("id", request.id);
+
+  const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
   if (complete) {
-    await admin
-      .from("agreement_requests")
-      .update({ signed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-      .eq("id", request.id);
+    await sendAgreementAwaitingCountersignatureEmail({
+      signerName: input.signerName,
+      clientEmail: input.signerEmail ?? request.client_email,
+      adminUrl: `${origin}/admin/agreements`,
+    }).catch(() => undefined);
   }
 
-  // Auto-advance the linked booking. A signed contract moves the job to
+  return { ok: true, complete };
+}
+
+/**
+ * Photographer countersignature. This is the only path that finalizes an
+ * agreement: it stamps the staged timestamps, advances the linked booking and
+ * releases the completed copy to the client.
+ */
+export async function countersignAgreement(input: {
+  id: string;
+  signerName: string;
+  signatureDataUrl?: string | null;
+}): Promise<{ ok: true } | { ok: false; message: string }> {
+  const admin = getServiceRoleSupabaseClient();
+  const { data: row } = await admin
+    .from("agreement_requests")
+    .select("*,galleries(title)")
+    .eq("id", input.id)
+    .maybeSingle();
+  if (!row) return { ok: false, message: "This agreement no longer exists." };
+  const request = mapRequest(row as Record<string, unknown>);
+  if (request.revoked_at) return { ok: false, message: "This agreement has been revoked." };
+  if (request.finalized_at) return { ok: false, message: "This agreement is already final." };
+  if (!request.client_submitted_at) {
+    return { ok: false, message: "The client has not signed and returned this agreement yet." };
+  }
+
+  const now = new Date().toISOString();
+  const { error: signedError } = await admin
+    .from("signed_agreements")
+    .update({
+      photographer_signer_name: input.signerName,
+      photographer_signature_data_url: input.signatureDataUrl ?? null,
+      photographer_signed_at: now,
+    })
+    .eq("agreement_request_id", request.id);
+  if (signedError) return { ok: false, message: signedError.message };
+
+  const { data: updated, error: updateError } = await admin
+    .from("agreement_requests")
+    .update({
+      photographer_signed_at: now,
+      finalized_at: now,
+      signed_at: now,
+      updated_at: now,
+    })
+    .eq("id", request.id)
+    .is("finalized_at", null)
+    .is("revoked_at", null)
+    .select("id")
+    .maybeSingle();
+  if (updateError) return { ok: false, message: updateError.message };
+  if (!updated) return { ok: false, message: "This agreement could not be finalized." };
+
+  // Auto-advance the linked booking. A finalized contract moves the job to
   // Booked when a deposit is already on file, otherwise to Contract out.
-  const { data: linkedBooking } = complete ? await admin
+  const { data: linkedBooking } = await admin
     .from("bookings")
     .select("id")
     .eq("agreement_request_id", request.id)
-    .maybeSingle() : { data: null };
+    .maybeSingle();
   if (linkedBooking?.id) {
     const bookingId = linkedBooking.id as string;
     const { count } = await admin
@@ -572,15 +674,15 @@ export async function signAgreement(input: {
     await advanceBookingStage(bookingId, (count ?? 0) > 0 ? "booked" : "contract_out");
   }
 
-  // Email a copy to the client and a notification to the photographer.
+  // Release the completed copy to the client now that both parties have signed.
   const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
   await sendSignedAgreementEmails({
-    signerName: input.signerName,
-    clientEmail: input.signerEmail ?? request.client_email,
-    url: `${origin}/agreement/${input.token}`,
+    signerName: request.client_name ?? input.signerName,
+    clientEmail: request.client_email,
+    url: `${origin}/agreement/${request.token}`,
   }).catch(() => undefined);
 
-  return { ok: true, complete };
+  return { ok: true };
 }
 
 export async function getAdminSignedAgreements(): Promise<SignedAgreement[]> {

@@ -41,7 +41,12 @@ export type AgreementView = {
   depositTerm: "Retainer" | "Deposit";
   requiredSigners: AgreementSigner[];
   remainingSigners: AgreementSigner[];
+  /** Client side is done; may still be waiting on the countersignature. */
+  clientSigningComplete: boolean;
+  /** Both parties have signed and the agreement is final. */
   fullySigned: boolean;
+  awaitingCountersignature: boolean;
+  countersignature: SignedAgreement | null;
 };
 
 /**
@@ -130,6 +135,11 @@ export async function buildAgreementView(
     requiredSigners,
     signatures.map((signature) => signature.signer_email),
   );
+  // Every required client signature is in. The contract has gone back to the
+  // photographer and is not final until they countersign it.
+  const clientSigningComplete =
+    Boolean(request.client_submitted_at) ||
+    (requiredSigners.length > 0 && remainingSigners.length === 0);
 
   return {
     templateId,
@@ -153,7 +163,10 @@ export async function buildAgreementView(
     depositTerm: templateId === "wedding" ? "Deposit" : "Retainer",
     requiredSigners,
     remainingSigners,
-    fullySigned:
-      Boolean(request.signed_at) || (requiredSigners.length > 0 && remainingSigners.length === 0),
+    clientSigningComplete,
+    // Only the photographer's countersignature makes an agreement final.
+    fullySigned: Boolean(request.signed_at),
+    awaitingCountersignature: clientSigningComplete && !request.signed_at,
+    countersignature: signatures.find((signature) => signature.photographer_signed_at) ?? null,
   };
 }

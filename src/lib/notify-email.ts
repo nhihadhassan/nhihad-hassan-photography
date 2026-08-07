@@ -181,6 +181,30 @@ export async function sendSignedAgreementEmails(input: {
   await Promise.allSettled(tasks);
 }
 
+/**
+ * Tell the photographer a client has signed and returned a contract. The
+ * agreement is not final until it is countersigned, so no copy goes out yet.
+ */
+export async function sendAgreementAwaitingCountersignatureEmail(input: {
+  signerName: string;
+  clientEmail: string | null;
+  adminUrl: string;
+}): Promise<void> {
+  await sendMail({
+    to: adminRecipient(),
+    replyTo: input.clientEmail ?? undefined,
+    subject: `${input.signerName} signed and returned the agreement`,
+    text: `${input.signerName} completed their details and signed their booking agreement. It is waiting for your countersignature before it becomes final:\n\n${input.adminUrl}`,
+    html: emailShell({
+      eyebrow: "Awaiting countersignature",
+      heading: `${input.signerName} signed and returned it.`,
+      bodyHtml: `<p style="margin:0 0 14px 0;">${escapeHtml(input.signerName)} completed their contact details and signed their booking agreement.</p><p style="margin:0;">It is waiting for your countersignature. The agreement becomes final and the client receives their copy once you sign.</p>`,
+      ctaLabel: "Review and countersign",
+      ctaUrl: input.adminUrl,
+    }),
+  }).catch(() => undefined);
+}
+
 /** Send a client their standalone agreement link for review and signature. */
 export type AgreementEmailContent = { subject: string; html: string; text: string };
 

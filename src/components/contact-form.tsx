@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useActionState } from "react";
-import { CalendarDays, Send } from "lucide-react";
+import { CalendarDays, Lock, Send } from "lucide-react";
 import { submitInquiry, type InquiryState } from "@/app/contact/actions";
 import { Button } from "@/components/ui/button";
 import { useSelectedDate } from "@/components/selected-date-context";
@@ -61,7 +61,7 @@ export function ContactForm() {
             Name
             <Required />
           </span>
-          <input className={inputClass} name="name" autoComplete="name" />
+          <input className={inputClass} name="name" autoComplete="name" placeholder="Your full name" />
           <FieldError errors={state.fieldErrors?.name} />
         </label>
         <label className="grid gap-2">
@@ -69,7 +69,13 @@ export function ContactForm() {
             Email
             <Required />
           </span>
-          <input className={inputClass} name="email" type="email" autoComplete="email" />
+          <input
+            className={inputClass}
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+          />
           <FieldError errors={state.fieldErrors?.email} />
         </label>
 
@@ -102,7 +108,13 @@ export function ContactForm() {
 
         <label className="grid gap-2">
           <span className={labelClass}>Phone</span>
-          <input className={inputClass} name="phone" type="tel" autoComplete="tel" />
+          <input
+            className={inputClass}
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            placeholder="(416) 123-4567"
+          />
         </label>
         <label className="grid gap-2">
           <span className={labelClass}>Location</span>
@@ -111,7 +123,7 @@ export function ContactForm() {
 
         <label className="grid gap-2">
           <span className={labelClass}>Budget</span>
-          <input className={inputClass} name="budget" placeholder="Optional" />
+          <input className={inputClass} name="budget" placeholder="e.g. $500 – $1,000" />
         </label>
         <label className="grid gap-2">
           <span className={labelClass}>How did you hear about me?</span>
@@ -141,11 +153,15 @@ export function ContactForm() {
         </p>
       ) : null}
 
-      <div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
         <Button type="submit" variant="primary" disabled={pending}>
           <Send className="size-4" aria-hidden="true" />
           {pending ? "Sending" : "Send inquiry"}
         </Button>
+        <p className="inline-flex items-center gap-2 text-xs text-soft-white/45">
+          <Lock className="size-3.5" aria-hidden="true" />
+          Your details are secure and private.
+        </p>
       </div>
     </form>
   );

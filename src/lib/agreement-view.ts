@@ -22,12 +22,18 @@ const MONEY_FIELDS = new Set(["total", "hourly", "deposit", "balance"]);
  */
 const OPTIONAL_SERVICE_FIELDS = new Set(["specialRequests", "secondLocation"]);
 
+function possessive(name: string) {
+  return /s$/i.test(name) ? `${name}'` : `${name}'s`;
+}
+
 export type AgreementView = {
   templateId: AgreementTemplateId;
   title: string;
   contractTitle: string;
   firstName: string;
   clientName: string | null;
+  /** Every client-side party on the contract, e.g. "Kawish Lakhani and Farkhunda Alef". */
+  partyNames: string | null;
   clientEmail: string | null;
   details: AgreementDetails;
   intro: string;
@@ -130,6 +136,16 @@ export async function buildAgreementView(
           : field,
     );
 
+  // Both people on a couple's contract are named in the heading and the To line,
+  // not just the primary contact the request was created under.
+  const partyNameList: string[] = [];
+  for (const name of [clientName?.trim(), details.secondSignerName?.trim()]) {
+    if (name && !partyNameList.some((existing) => existing.toLowerCase() === name.toLowerCase())) {
+      partyNameList.push(name);
+    }
+  }
+  const partyNames = partyNameList.length ? partyNameList.join(" and ") : null;
+
   const requiredSigners = requiredAgreementSigners(request);
   const remainingSigners = remainingAgreementSigners(
     requiredSigners,
@@ -147,9 +163,12 @@ export async function buildAgreementView(
       templateId === "wedding"
         ? "Wedding Photography Services Agreement"
         : "Photography Services Agreement",
-    contractTitle: `${clientName?.trim() || details.type?.trim() || "Photography"} Contract`,
+    contractTitle: partyNames
+      ? `${possessive(partyNames)} Contract`
+      : `${details.type?.trim() || "Photography"} Contract`,
     firstName: clientName?.trim().split(/\s+/)[0] || "there",
     clientName,
+    partyNames,
     clientEmail,
     details,
     intro: terms.intro,

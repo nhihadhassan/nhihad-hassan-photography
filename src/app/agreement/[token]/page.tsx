@@ -84,11 +84,12 @@ export default async function AgreementSigningPage({
 
   const [signatures, cover] = await Promise.all([
     getSignedAgreementsByToken(token),
-    getAgreementCover(request.gallery_id),
+    getAgreementCover(request),
   ]);
   const view = await buildAgreementView(request, signatures);
   const {
     clientName,
+    partyNames,
     contractTitle,
     firstName,
     fullySigned,
@@ -203,7 +204,7 @@ export default async function AgreementSigningPage({
             </div>
             <div>
               <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink/45">To</dt>
-              <dd className="mt-1.5 text-sm font-medium text-ink/85">{clientName || "Client"}</dd>
+              <dd className="mt-1.5 text-sm font-medium text-ink/85">{partyNames || clientName || "Client"}</dd>
             </div>
             <div>
               <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink/45">Issue date</dt>

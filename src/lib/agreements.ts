@@ -97,6 +97,10 @@ export type AgreementRequest = {
   last_reminder_message_id: string | null;
   created_at: string;
   updated_at: string;
+  cover_image_url: string | null;
+  cover_image_alt: string | null;
+  cover_focal_x: number | null;
+  cover_focal_y: number | null;
   gallery_title?: string | null;
   latest_delivery: AgreementDelivery | null;
 };
@@ -223,6 +227,10 @@ function mapRequest(row: Record<string, unknown>): AgreementRequest {
     last_reminder_message_id: (row.last_reminder_message_id as string | null) ?? null,
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
+    cover_image_url: (row.cover_image_url as string | null) ?? null,
+    cover_image_alt: (row.cover_image_alt as string | null) ?? null,
+    cover_focal_x: row.cover_focal_x === null || row.cover_focal_x === undefined ? null : Number(row.cover_focal_x),
+    cover_focal_y: row.cover_focal_y === null || row.cover_focal_y === undefined ? null : Number(row.cover_focal_y),
     gallery_title: gallery?.title ?? null,
     latest_delivery: null,
   };
@@ -351,8 +359,20 @@ export async function getAgreementRequestByToken(token: string): Promise<Agreeme
   return request;
 }
 
-/** Resolve only the linked gallery cover needed by the tokenized signing page. */
-export async function getAgreementCover(galleryId: string | null): Promise<AgreementCover | null> {
+/**
+ * Resolve the hero cover for the tokenized signing page: a per-contract override
+ * first, then the linked gallery cover.
+ */
+export async function getAgreementCover(request: AgreementRequest): Promise<AgreementCover | null> {
+  if (request.cover_image_url) {
+    return {
+      url: request.cover_image_url,
+      alt: request.cover_image_alt || "A couple photographed by Nhihad Hassan Photography",
+      focalX: request.cover_focal_x ?? 50,
+      focalY: request.cover_focal_y ?? 50,
+    };
+  }
+  const galleryId = request.gallery_id;
   if (!galleryId) return null;
   const admin = getServiceRoleSupabaseClient();
   const { data: gallery } = await admin

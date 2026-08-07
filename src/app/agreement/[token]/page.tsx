@@ -147,8 +147,8 @@ export default async function AgreementSigningPage({
           <Image
             src="/signature.png"
             alt={`${brandConfig.ownerName} signature`}
-            width={420}
-            height={140}
+            width={1536}
+            height={1024}
             className="h-auto w-full max-w-[180px] object-contain"
           />
           <div className="mt-1 max-w-[180px] border-t border-ink/40" />

@@ -7,7 +7,6 @@ import { BellRing, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, 
 import type { GalleryRecord } from "@/lib/admin-data";
 import type { AgreementRequest } from "@/lib/agreements";
 import { isAgreementPastExpiry } from "@/lib/agreement-status";
-import { formatBackupContact, formatClientAddress } from "@/lib/agreement-client-details";
 import { SignaturePad } from "@/components/signature-pad";
 import type { ClientSummary } from "@/lib/clients";
 import type { PricingCategory } from "@/data/pricing";
@@ -1148,23 +1147,9 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
         <div className="mt-4 border-t border-admin-ink/10 pt-4">
           <h4 className="text-sm font-semibold text-admin-ink">Review and countersign</h4>
           <p className="mt-1 text-xs leading-5 text-admin-ink/70">
-            {request.client_name ?? "The client"} completed their details and signed. Check the
-            information below, then countersign to finalize the agreement and send their copy.
+            {request.client_name ?? "The client"} signed and returned it. Countersign to finalize
+            the agreement and send their copy.
           </p>
-          <dl className="mt-4 grid gap-2 text-xs text-admin-ink/80 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <dt className="inline font-medium text-admin-ink/70">Address: </dt>
-              <dd className="inline">{formatClientAddress(request.client_details) || "Not provided"}</dd>
-            </div>
-            <div>
-              <dt className="inline font-medium text-admin-ink/70">Phone: </dt>
-              <dd className="inline">{request.client_details.phone || "Not provided"}</dd>
-            </div>
-            <div>
-              <dt className="inline font-medium text-admin-ink/70">Backup: </dt>
-              <dd className="inline">{formatBackupContact(request.client_details) || "None"}</dd>
-            </div>
-          </dl>
           <div className="mt-4 grid gap-3 sm:max-w-md">
             <label className="grid gap-1.5 text-sm font-medium text-admin-ink">
               Your full legal name

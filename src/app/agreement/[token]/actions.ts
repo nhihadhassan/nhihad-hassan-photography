@@ -16,25 +16,8 @@ export async function submitSignatureAction(
   const signatureDataUrl = String(formData.get("signature") ?? "") || null;
   const consent = formData.get("consent") === "on";
 
-  const field = (name: string) => String(formData.get(name) ?? "").trim();
-  const clientDetails = {
-    phone: field("phone"),
-    addressLine1: field("address_line_1"),
-    addressLine2: field("address_line_2"),
-    city: field("city"),
-    province: field("province"),
-    postalCode: field("postal_code"),
-    backupName: field("backup_name"),
-    backupEmail: field("backup_email"),
-    backupPhone: field("backup_phone"),
-  };
-
   if (!token) return { status: "error", message: "Missing signing token." };
   if (signerName.length < 2) return { status: "error", message: "Please type your full legal name." };
-  if (!clientDetails.phone) return { status: "error", message: "Please add a contact number." };
-  if (!clientDetails.addressLine1 || !clientDetails.city || !clientDetails.province || !clientDetails.postalCode) {
-    return { status: "error", message: "Please complete your full mailing address." };
-  }
   if (!consent) return { status: "error", message: "Please check the box to agree to the terms." };
   if (!signatureDataUrl || !signatureDataUrl.startsWith("data:image/")) {
     return { status: "error", message: "Please draw your signature in the box." };
@@ -52,7 +35,6 @@ export async function submitSignatureAction(
     signerName,
     signerEmail,
     signatureDataUrl,
-    clientDetails,
     ip,
     userAgent,
   });

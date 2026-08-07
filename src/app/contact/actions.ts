@@ -13,7 +13,7 @@ const inquirySchema = z.object({
   location: z.string().optional(),
   budget: z.string().optional(),
   referralSource: z.string().optional(),
-  message: z.string().min(10, "Please share a little more about what you are planning."),
+  message: z.string().optional(),
 });
 
 export type InquiryState = {
@@ -35,7 +35,7 @@ export async function submitInquiry(
     location: formData.get("location") || undefined,
     budget: formData.get("budget") || undefined,
     referralSource: formData.get("referralSource") || undefined,
-    message: formData.get("message"),
+    message: formData.get("message") || undefined,
   });
 
   if (!parsed.success) {
@@ -57,7 +57,7 @@ export async function submitInquiry(
       location: parsed.data.location || null,
       budget: parsed.data.budget || null,
       referral_source: parsed.data.referralSource || null,
-      message: parsed.data.message,
+      message: parsed.data.message || "",
     });
 
     if (error) {
@@ -79,7 +79,7 @@ export async function submitInquiry(
         eventDate: parsed.data.eventDate,
         location: parsed.data.location,
         budget: parsed.data.budget,
-        message: parsed.data.message,
+        message: parsed.data.message || "No message provided.",
       }),
     ]);
 

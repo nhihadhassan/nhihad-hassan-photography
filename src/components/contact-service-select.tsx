@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import type { PricingCategory } from "@/data/pricing";
 import { bookingHref } from "@/lib/booking-options";
+import { useSelectedDate } from "@/components/selected-date-context";
 
 const VALUE_SEPARATOR = "\u001f";
 const CUSTOM_PACKAGE = "custom-package";
@@ -12,6 +13,24 @@ const CUSTOM_PACKAGE = "custom-package";
 export function ContactServiceSelect({ categories }: { categories: PricingCategory[] }) {
   const router = useRouter();
   const [selection, setSelection] = useState("");
+  const { setSelectedService } = useSelectedDate();
+
+  function handleServiceChange(event: ChangeEvent<HTMLSelectElement>) {
+    const value = event.target.value;
+    setSelection(value);
+
+    if (!value) {
+      setSelectedService(null);
+      return;
+    }
+    if (value === CUSTOM_PACKAGE) {
+      setSelectedService("Custom package");
+      return;
+    }
+    const [serviceId] = value.split(VALUE_SEPARATOR);
+    const category = categories.find((item) => item.id === serviceId);
+    setSelectedService(category?.label ?? null);
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -43,7 +62,7 @@ export function ContactServiceSelect({ categories }: { categories: PricingCatego
           <select
             name="service"
             value={selection}
-            onChange={(event) => setSelection(event.target.value)}
+            onChange={handleServiceChange}
             aria-describedby="service-select-help"
             className="min-h-14 w-full appearance-none rounded-[2px] border border-soft-white/18 bg-charcoal px-4 pr-12 text-base text-soft-white outline-none transition hover:border-soft-white/32 focus:border-copper"
           >

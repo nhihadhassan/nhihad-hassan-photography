@@ -35,7 +35,7 @@ export default async function ContactPage() {
       <SiteHeader />
       <SelectedDateProvider>
         <main className="px-4 pb-24 pt-32 sm:px-6 sm:pt-40 lg:px-8">
-          <section className="mx-auto grid max-w-7xl gap-10 border-b border-soft-white/12 pb-14 lg:grid-cols-[0.72fr_1fr] lg:items-end">
+          <section className="mx-auto grid max-w-7xl gap-14 border-b border-soft-white/12 pb-14 lg:grid-cols-[0.72fr_1fr] lg:items-start">
             <Reveal>
               <div className="relative">
                 <EditPencil href="/admin/settings" label="Edit text" className="absolute right-0 top-0" />
@@ -70,29 +70,27 @@ export default async function ContactPage() {
               </div>
             </Reveal>
             <Reveal delay={0.1}>
-              <ContactServiceSelect categories={pricing} />
+              <div id="inquiry" className="w-full scroll-mt-24 lg:justify-self-end">
+                <ContactServiceSelect categories={pricing} />
+                <div className="mt-12 max-w-xl border-t border-soft-white/12 pt-10">
+                  <p className="text-xs uppercase tracking-[0.2em] text-copper">General inquiry</p>
+                  <h2 className="mt-3 font-serif text-3xl leading-tight text-soft-white sm:text-4xl">
+                    Not sure yet? Just say hello.
+                  </h2>
+                  <p className="mt-4 text-sm leading-6 text-soft-white/58">
+                    Share a few details and I&apos;ll follow up personally. No need to pick an exact
+                    package or time first.
+                  </p>
+                  <div className="mt-8">
+                    <ContactForm />
+                  </div>
+                </div>
+              </div>
             </Reveal>
           </section>
           <div className="-mx-4 mt-14 sm:-mx-6 lg:-mx-8">
             <AvailabilityCalendar />
           </div>
-          <section id="inquiry" className="mx-auto mt-20 max-w-4xl scroll-mt-24">
-            <Reveal>
-              <div className="mb-10 max-w-2xl">
-                <p className="text-xs uppercase tracking-[0.2em] text-copper">General inquiry</p>
-                <h2 className="mt-3 font-serif text-4xl leading-none text-soft-white sm:text-5xl">
-                  Not sure yet? Just say hello.
-                </h2>
-                <p className="mt-4 text-sm leading-6 text-soft-white/58">
-                  Share a few details and I&apos;ll follow up personally. No need to pick an exact
-                  package or time first.
-                </p>
-              </div>
-              <div className="rounded-[2px] border border-soft-white/12 bg-[#fbf8f1] p-6 sm:p-10">
-                <ContactForm />
-              </div>
-            </Reveal>
-          </section>
           <section id="sessions" className="mx-auto mt-20 max-w-7xl scroll-mt-28">
             <div className="mb-12 grid gap-4 border-b border-soft-white/12 pb-7 sm:grid-cols-[0.7fr_1.3fr] sm:items-end">
               <div>

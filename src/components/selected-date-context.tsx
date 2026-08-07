@@ -14,15 +14,20 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 type SelectedDateContextValue = {
   selectedDate: string | null;
   setSelectedDate: (date: string | null) => void;
+  selectedService: string | null;
+  setSelectedService: (service: string | null) => void;
 };
 
 const SelectedDateContext = createContext<SelectedDateContextValue | null>(null);
 
 export function SelectedDateProvider({ children }: { children: ReactNode }) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
 
   return (
-    <SelectedDateContext.Provider value={{ selectedDate, setSelectedDate }}>
+    <SelectedDateContext.Provider
+      value={{ selectedDate, setSelectedDate, selectedService, setSelectedService }}
+    >
       {children}
     </SelectedDateContext.Provider>
   );
@@ -31,7 +36,12 @@ export function SelectedDateProvider({ children }: { children: ReactNode }) {
 export function useSelectedDate(): SelectedDateContextValue {
   const ctx = useContext(SelectedDateContext);
   if (!ctx) {
-    return { selectedDate: null, setSelectedDate: () => {} };
+    return {
+      selectedDate: null,
+      setSelectedDate: () => {},
+      selectedService: null,
+      setSelectedService: () => {},
+    };
   }
   return ctx;
 }

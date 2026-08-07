@@ -38,7 +38,10 @@ export function AvailabilityCalendarClient({ availability, headline, interactive
   };
 
   return (
-    <section className="bg-charcoal px-4 pb-20 pt-8 sm:px-6 sm:pt-12 lg:px-8 lg:pb-24">
+    <section
+      id="availability"
+      className="scroll-mt-24 bg-charcoal px-4 pb-20 pt-8 sm:px-6 sm:pt-12 lg:px-8 lg:pb-24"
+    >
       <div className="mx-auto max-w-7xl">
         <Reveal>
           <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">

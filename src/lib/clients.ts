@@ -3,6 +3,7 @@ import { getAdminGalleries, getAdminInquiries, type GalleryRecord, type InquiryR
 import { getAdminBookings, type BookingWithLinks } from "@/lib/bookings";
 import { getAdminAgreementRequests, type AgreementRequest } from "@/lib/agreements";
 import { getAdminClientReviews, type ClientReview } from "@/lib/reviews";
+import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import { parseAmount } from "@/lib/utils";
 
 export type ClientProfile = {
@@ -10,6 +11,8 @@ export type ClientProfile = {
   name: string;
   email: string | null;
   phone: string | null;
+  address: string | null;
+  notes: string | null;
   inquiries: InquiryRecord[];
   bookings: BookingWithLinks[];
   galleries: GalleryRecord[];
@@ -59,14 +62,64 @@ type Draft = {
   reviews: ClientReview[];
 };
 
+type ProfileOverride = { name: string | null; email: string | null; phone: string | null; address: string | null; notes: string | null };
+
+async function getProfileOverrides(): Promise<Map<string, ProfileOverride>> {
+  const admin = getServiceRoleSupabaseClient();
+  const { data, error } = await admin
+    .from("client_profile_overrides")
+    .select("key,name,email,phone,address,notes");
+  if (error) throw new Error(error.message);
+  const map = new Map<string, ProfileOverride>();
+  for (const row of (data ?? []) as Record<string, unknown>[]) {
+    map.set(String(row.key), {
+      name: (row.name as string | null) ?? null,
+      email: (row.email as string | null) ?? null,
+      phone: (row.phone as string | null) ?? null,
+      address: (row.address as string | null) ?? null,
+      notes: (row.notes as string | null) ?? null,
+    });
+  }
+  return map;
+}
+
+/**
+ * Save the admin's corrections for a client profile. Only touches this
+ * override table -- never rewrites the underlying gallery/booking/agreement
+ * rows those fields were originally derived from, so historical records stay
+ * exactly as they were when each was created or signed.
+ */
+export async function updateClientProfileOverride(
+  key: string,
+  input: { name?: string | null; email?: string | null; phone?: string | null; address?: string | null; notes?: string | null },
+) {
+  const admin = getServiceRoleSupabaseClient();
+  const { error } = await admin
+    .from("client_profile_overrides")
+    .upsert(
+      {
+        key,
+        name: input.name?.trim() || null,
+        email: input.email?.trim() || null,
+        phone: input.phone?.trim() || null,
+        address: input.address?.trim() || null,
+        notes: input.notes?.trim() || null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "key" },
+    );
+  if (error) throw new Error(error.message);
+}
+
 /** Aggregate every client-linked record into one profile per person. */
 async function buildProfiles(): Promise<Map<string, ClientProfile>> {
-  const [galleries, inquiries, bookings, agreements, reviews] = await Promise.all([
+  const [galleries, inquiries, bookings, agreements, reviews, overrides] = await Promise.all([
     getAdminGalleries(),
     getAdminInquiries(),
     getAdminBookings(),
     getAdminAgreementRequests(),
     getAdminClientReviews(),
+    getProfileOverrides(),
   ]);
 
   // Pass 1: map a known name to its email key, so name-only records (e.g. a
@@ -164,12 +217,15 @@ async function buildProfiles(): Promise<Map<string, ClientProfile>> {
 
     const outstandingBalance = d.bookings.reduce((sum, b) => sum + (parseAmount(b.balance) ?? 0), 0);
     const hasUnsignedContract = d.agreements.some((a) => !a.signed_at && !a.revoked_at);
+    const override = overrides.get(d.key);
 
     profiles.set(d.key, {
       key: d.key,
-      name: d.name ?? d.email ?? "Unknown",
-      email: d.email,
-      phone: d.phone,
+      name: override?.name || d.name || override?.email || d.email || "Unknown",
+      email: override?.email || d.email,
+      phone: override?.phone || d.phone,
+      address: override?.address || null,
+      notes: override?.notes || null,
       inquiries: d.inquiries,
       bookings: d.bookings,
       galleries: d.galleries,

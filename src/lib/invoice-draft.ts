@@ -13,9 +13,11 @@ export type InvoiceDraftItem = {
 export type InvoiceDraft = {
   items: InvoiceDraftItem[];
   discount: number;
+  taxRate: number;
   dueDate: string | null;
   poNumber: string | null;
   notes: string | null;
+  paymentInstructions: string | null;
 };
 
 function toNumber(value: unknown): number {
@@ -52,8 +54,10 @@ export function parseInvoiceDraft(input: unknown): InvoiceDraft {
   return {
     items,
     discount: Math.max(0, toNumber(raw.discount)),
+    taxRate: Math.max(0, Math.min(100, toNumber(raw.taxRate))),
     dueDate: toNullableString(raw.dueDate),
     poNumber: toNullableString(raw.poNumber),
     notes: toNullableString(raw.notes),
+    paymentInstructions: toNullableString(raw.paymentInstructions),
   };
 }

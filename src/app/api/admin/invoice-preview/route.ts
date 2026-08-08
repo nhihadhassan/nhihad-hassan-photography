@@ -47,6 +47,7 @@ export async function POST(request: Request) {
     fallbackTotal: booking.total,
     deposit: booking.deposit,
     discount: draft.discount,
+    taxRate: draft.taxRate,
     paid: saved.paid,
   });
 
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
     dueDate: draft.dueDate,
     poNumber: draft.poNumber,
     notes: draft.notes,
+    paymentInstructions: draft.paymentInstructions || saved.paymentInstructions,
   });
 
   return new Response(Buffer.from(bytes), {

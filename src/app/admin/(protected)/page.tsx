@@ -39,7 +39,7 @@ export default async function TodayPage() {
       label: "Outstanding",
       value: formatMoney(money.outstandingTotal),
       sub: `${money.outstandingCount} ${money.outstandingCount === 1 ? "invoice" : "invoices"}`,
-      href: "/admin/finances",
+      href: "/admin/invoices",
     },
     {
       label: "Booked ahead",
@@ -51,7 +51,7 @@ export default async function TodayPage() {
 
   const quickCreate = [
     { label: "New booking", href: "/admin/bookings/new", icon: CalendarPlus },
-    { label: "New invoice", href: "/admin/finances", icon: ReceiptText },
+    { label: "New invoice", href: "/admin/invoices/new", icon: ReceiptText },
     { label: "New contract", href: "/admin/agreements", icon: FilePlus2 },
     { label: "New client", href: "/admin/clients", icon: UserPlus },
   ];

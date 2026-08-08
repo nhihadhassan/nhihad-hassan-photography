@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { computeInvoiceStatus } from "@/lib/invoice-status";
 
 /**
  * The single admin status vocabulary. Every status chip across the admin
@@ -20,6 +21,7 @@ export type StatusKey =
   | "partially_paid"
   | "overdue"
   | "expired"
+  | "cancelled"
   | "void";
 
 type Tone = "positive" | "waiting" | "danger" | "info" | "neutral";
@@ -34,6 +36,7 @@ const STATUS: Record<StatusKey, { label: string; tone: Tone }> = {
   partially_paid: { label: "Partially paid", tone: "waiting" },
   overdue: { label: "Overdue", tone: "danger" },
   expired: { label: "Expired", tone: "danger" },
+  cancelled: { label: "Cancelled", tone: "neutral" },
   void: { label: "Void", tone: "neutral" },
 };
 
@@ -88,21 +91,14 @@ export function statusForContract(a: {
   return "draft";
 }
 
-/**
- * Map an invoice to a status key. Invoices have no status enum today, so state
- * is derived from the payment total against the booking total and the due date.
- */
+/** Map an invoice to a status key via the shared computeInvoiceStatus() derivation. */
 export function statusForInvoice(i: {
   total: number;
   paid: number;
   dueAt: string | null;
-  sent: boolean;
-  voided?: boolean;
+  sentAt: string | null;
+  viewedAt: string | null;
+  cancelledAt: string | null;
 }): StatusKey {
-  if (i.voided) return "void";
-  if (i.total > 0 && i.paid >= i.total - 0.5) return "paid";
-  const overdue = i.dueAt ? new Date(i.dueAt).getTime() < Date.now() : false;
-  if (i.paid > 0.5) return overdue ? "overdue" : "partially_paid";
-  if (overdue) return "overdue";
-  return i.sent ? "sent" : "draft";
+  return computeInvoiceStatus(i);
 }

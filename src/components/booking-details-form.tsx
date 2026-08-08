@@ -48,7 +48,7 @@ export function BookingDetailsForm(props: {
         {pending ? "Sending request" : "Request this date"}
       </Button>
       <p className="text-xs leading-5 text-ink/48">
-        This sends an inquiry, not an automatic confirmation. Your date is held after availability is confirmed and the 25% deposit is received.
+        This sends an inquiry, not an automatic confirmation. Your date is held after availability is confirmed and the deposit is received.
       </p>
     </form>
   );

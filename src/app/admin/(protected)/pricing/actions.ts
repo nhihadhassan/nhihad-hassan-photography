@@ -30,7 +30,16 @@ function parseCategories(raw: string): PricingCategory[] {
         ? t.includes.filter((i): i is string => typeof i === "string").map((i) => i.trim()).filter(Boolean)
         : [];
       const details = typeof t.details === "string" ? t.details.trim() : "";
-      tiers.push({ name, price, duration: typeof t.duration === "string" ? t.duration.trim() : "", includes, ...(details ? { details } : {}) });
+      const deposit = typeof t.deposit === "string" ? t.deposit.trim() : "";
+      tiers.push({
+        name,
+        price,
+        duration: typeof t.duration === "string" ? t.duration.trim() : "",
+        deposit,
+        includes,
+        ...(details ? { details } : {}),
+        ...(t.highlight === true ? { highlight: true } : {}),
+      });
     }
     if (!label && tiers.length === 0) continue;
     const note = typeof c.note === "string" ? c.note.trim() : "";

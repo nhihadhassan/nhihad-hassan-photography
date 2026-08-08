@@ -44,9 +44,7 @@ export default async function BookingConfirmationPage({ searchParams }: Props) {
   const date = query.date!;
   const time = query.time!;
   const image = await getBookingVisual(selection.category.id);
-  const basePrice = startingPrice(selection.tier.price);
-  const deposit = basePrice ? basePrice * 0.25 : 0;
-  const isStartingPrice = selection.tier.price.includes("–") || selection.tier.price.includes("-");
+  const deposit = startingPrice(selection.tier.deposit) ?? 0;
 
   return (
     <div className="min-h-[100dvh] bg-[#f3eee5] text-ink">
@@ -62,7 +60,7 @@ export default async function BookingConfirmationPage({ searchParams }: Props) {
         </div>
 
         <div className="mt-10 grid items-start gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <BookingPaymentConfirmation deposit={deposit} transferEmail={settings.contactEmail} isStartingPrice={isStartingPrice} />
+          <BookingPaymentConfirmation deposit={deposit} transferEmail={settings.contactEmail} />
           <aside className="overflow-hidden bg-ink text-soft-white lg:sticky lg:top-28">
             {image ? (
               <div className="relative aspect-[4/3]">

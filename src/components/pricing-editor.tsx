@@ -10,8 +10,26 @@ import { savePricing } from "@/app/admin/(protected)/pricing/actions";
 const inputClass =
   "w-full rounded-md border border-admin-ink/12 bg-white/70 px-3 py-2 text-sm text-admin-ink outline-none transition focus:border-admin-copper";
 
-type Tier = { name: string; price: string; duration: string; includesText: string; details: string };
+type Tier = {
+  name: string;
+  price: string;
+  duration: string;
+  deposit: string;
+  includesText: string;
+  details: string;
+  highlight: boolean;
+};
 type Category = { label: string; blurb: string; note: string; tiers: Tier[] };
+
+const emptyTier = (): Tier => ({
+  name: "",
+  price: "",
+  duration: "",
+  deposit: "",
+  includesText: "",
+  details: "",
+  highlight: false,
+});
 
 function toEditor(cats: PricingCategory[]): Category[] {
   return cats.map((c) => ({
@@ -22,8 +40,10 @@ function toEditor(cats: PricingCategory[]): Category[] {
       name: t.name,
       price: t.price,
       duration: t.duration,
+      deposit: t.deposit ?? "",
       includesText: t.includes.join("\n"),
       details: t.details ?? "",
+      highlight: t.highlight ?? false,
     })),
   }));
 }
@@ -37,8 +57,10 @@ function toPayload(cats: Category[]) {
       name: t.name.trim(),
       price: t.price.trim(),
       duration: t.duration.trim(),
+      deposit: t.deposit.trim(),
       includes: t.includesText.split("\n").map((l) => l.trim()).filter(Boolean),
       details: t.details.trim(),
+      highlight: t.highlight,
     })),
   }));
 }
@@ -68,12 +90,12 @@ export function PricingEditor({ content }: { content: PricingCategory[] }) {
     );
 
   const addCategory = () =>
-    setCats((prev) => [...prev, { label: "", blurb: "", note: "", tiers: [{ name: "", price: "", duration: "", includesText: "", details: "" }] }]);
+    setCats((prev) => [...prev, { label: "", blurb: "", note: "", tiers: [emptyTier()] }]);
   const removeCategory = (ci: number) => setCats((prev) => prev.filter((_, i) => i !== ci));
   const moveCategory = (ci: number, dir: "up" | "down") => setCats((prev) => move(prev, ci, dir));
 
   const addTier = (ci: number) =>
-    setCats((prev) => prev.map((c, i) => (i === ci ? { ...c, tiers: [...c.tiers, { name: "", price: "", duration: "", includesText: "", details: "" }] } : c)));
+    setCats((prev) => prev.map((c, i) => (i === ci ? { ...c, tiers: [...c.tiers, emptyTier()] } : c)));
   const removeTier = (ci: number, ti: number) =>
     setCats((prev) => prev.map((c, i) => (i === ci ? { ...c, tiers: c.tiers.filter((_, j) => j !== ti) } : c)));
   const moveTier = (ci: number, ti: number, dir: "up" | "down") =>
@@ -147,13 +169,23 @@ export function PricingEditor({ content }: { content: PricingCategory[] }) {
                       <button type="button" onClick={() => removeTier(ci, ti)} className={iconBtn("text-admin-danger/80 hover:bg-admin-danger/5")} aria-label="Delete tier"><Trash2 className="size-3.5" /></button>
                     </div>
                   </div>
-                  <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                  <div className="mt-2 grid gap-2 sm:grid-cols-4">
                     <input value={tier.name} onChange={(e) => patchTier(ci, ti, { name: e.target.value })} placeholder="Tier name" className={inputClass} />
-                    <input value={tier.price} onChange={(e) => patchTier(ci, ti, { price: e.target.value })} placeholder="Price (e.g. $500–$700)" className={inputClass} />
-                    <input value={tier.duration} onChange={(e) => patchTier(ci, ti, { duration: e.target.value })} placeholder="Duration (e.g. 4–5 hours)" className={inputClass} />
+                    <input value={tier.price} onChange={(e) => patchTier(ci, ti, { price: e.target.value })} placeholder="Price (e.g. $250)" className={inputClass} />
+                    <input value={tier.duration} onChange={(e) => patchTier(ci, ti, { duration: e.target.value })} placeholder="Duration (e.g. 2 hours)" className={inputClass} />
+                    <input value={tier.deposit} onChange={(e) => patchTier(ci, ti, { deposit: e.target.value })} placeholder="Deposit (e.g. $75)" className={inputClass} />
                   </div>
                   <textarea value={tier.includesText} onChange={(e) => patchTier(ci, ti, { includesText: e.target.value })} rows={Math.max(3, tier.includesText.split("\n").length)} placeholder="What's included, one item per line" className={`${inputClass} mt-2 resize-y`} />
                   <textarea value={tier.details} onChange={(e) => patchTier(ci, ti, { details: e.target.value })} rows={2} placeholder="Extra detail shown on hover/tap (optional)" className={`${inputClass} mt-2 resize-y`} />
+                  <label className="mt-2 inline-flex items-center gap-2 text-xs font-medium text-admin-ink/70">
+                    <input
+                      type="checkbox"
+                      checked={tier.highlight}
+                      onChange={(e) => patchTier(ci, ti, { highlight: e.target.checked })}
+                      className="size-3.5 rounded border-admin-ink/25 accent-admin-copper"
+                    />
+                    Recommended (shown as the best-value tier)
+                  </label>
                 </div>
               ))}
               <button type="button" onClick={() => addTier(ci)} className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-ink/15 px-3 text-xs font-medium text-admin-ink/70 transition hover:border-admin-copper hover:text-admin-ink">

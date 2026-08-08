@@ -11,7 +11,9 @@ const BOOKING_VISUALS: Record<string, { imageId: string; focalPosition: string }
   weddings: { imageId: "engagement-the-lift", focalPosition: "50% 42%" },
   engagements: { imageId: "engagement-the-lift", focalPosition: "50% 42%" },
   couples: { imageId: "engagement-the-lift", focalPosition: "50% 42%" },
+  "surprise-proposal": { imageId: "engagement-the-lift", focalPosition: "50% 42%" },
   portraits: { imageId: "rachel-autumn-leaves", focalPosition: "52% 58%" },
+  graduation: { imageId: "choyons-grad-couple", focalPosition: "50% 42%" },
   events: { imageId: "choyons-grad-couple", focalPosition: "50% 42%" },
   nightlife: { imageId: "moove-dj-floor", focalPosition: "50% 48%" },
 };

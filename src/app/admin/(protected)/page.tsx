@@ -45,7 +45,7 @@ export default async function TodayPage() {
       label: "Booked ahead",
       value: formatMoney(money.bookedAhead),
       sub: "Confirmed future work",
-      href: "/admin/bookings",
+      href: "/admin/schedule",
     },
   ];
 

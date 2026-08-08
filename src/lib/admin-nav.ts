@@ -34,10 +34,12 @@ export type AdminNavGroup = {
 
 /**
  * The admin information architecture. The primary group is the spec's sidebar
- * order (Today, Pipeline, Calendar, Bookings, Clients, Invoices, Contracts,
- * Settings). Everything else that used to live in the flat nav is folded into
- * Content and Automations groups so the primary rail stays about running the
- * business. This same structure feeds the command palette.
+ * order (Today, Pipeline, Schedule, Clients, Invoices, Contracts, Settings).
+ * Schedule merges the old Calendar and Bookings pages: a live view of the
+ * NHP Bookings Google Calendar alongside the bookings used for invoicing and
+ * stage tracking. Everything else that used to live in the flat nav is
+ * folded into Content and Automations groups so the primary rail stays about
+ * running the business. This same structure feeds the command palette.
  */
 export const adminNavGroups: AdminNavGroup[] = [
   {
@@ -45,8 +47,7 @@ export const adminNavGroups: AdminNavGroup[] = [
     items: [
       { href: "/admin", label: "Today", icon: LayoutDashboard },
       { href: "/admin/pipeline", label: "Pipeline", icon: Workflow },
-      { href: "/admin/calendar", label: "Calendar", icon: CalendarDays },
-      { href: "/admin/bookings", label: "Bookings", icon: FileText },
+      { href: "/admin/schedule", label: "Schedule", icon: CalendarDays },
       { href: "/admin/clients", label: "Clients", icon: Users },
       { href: "/admin/finances", label: "Invoices", icon: Receipt },
       { href: "/admin/agreements", label: "Contracts", icon: FileSignature },

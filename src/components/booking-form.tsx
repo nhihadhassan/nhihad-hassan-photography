@@ -340,8 +340,8 @@ export function BookingForm({
         >
           {mode === "create" ? "Create booking" : "Save booking"}
         </button>
-        <Link href="/admin/bookings" className="text-sm text-admin-ink/65 hover:text-admin-ink">
-          Back to bookings
+        <Link href="/admin/schedule" className="text-sm text-admin-ink/65 hover:text-admin-ink">
+          Back to schedule
         </Link>
         {state.message ? (
           <span className={state.status === "error" ? "text-sm text-admin-danger" : "text-sm text-admin-success"}>

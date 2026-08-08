@@ -2,17 +2,21 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Plus } from "lucide-react";
 import { SideSheet } from "@/components/ui/side-sheet";
 import { cn } from "@/lib/utils";
 
-export type CalendarShoot = {
+export type ScheduleEvent = {
   id: string;
   title: string;
   startIso: string;
-  packageLabel: string;
-  location: string;
-  stageLabel: string;
+  endIso: string;
+  allDay: boolean;
+  location: string | null;
+  tentative: boolean;
+  /** A booking whose shoot date lands on the same day as this calendar event, if one exists. */
+  bookingId: string | null;
+  bookingStageLabel: string | null;
 };
 
 const TZ = "America/Toronto";
@@ -25,20 +29,20 @@ function timeLabel(iso: string) {
   return new Date(iso).toLocaleString("en-CA", { timeZone: TZ, hour: "numeric", minute: "2-digit" });
 }
 
-export function AdminCalendar({ shoots }: { shoots: CalendarShoot[] }) {
+export function ScheduleCalendar({ events }: { events: ScheduleEvent[] }) {
   const [cursor, setCursor] = useState(() => new Date());
   const [view, setView] = useState<"month" | "week">("month");
-  const [selected, setSelected] = useState<CalendarShoot | null>(null);
+  const [selected, setSelected] = useState<ScheduleEvent | null>(null);
 
   const byDay = useMemo(() => {
-    const map = new Map<string, CalendarShoot[]>();
-    for (const s of shoots) {
-      const key = ymd(new Date(s.startIso));
-      (map.get(key) ?? map.set(key, []).get(key)!).push(s);
+    const map = new Map<string, ScheduleEvent[]>();
+    for (const e of events) {
+      const key = ymd(new Date(e.startIso));
+      (map.get(key) ?? map.set(key, []).get(key)!).push(e);
     }
     for (const list of map.values()) list.sort((a, b) => a.startIso.localeCompare(b.startIso));
     return map;
-  }, [shoots]);
+  }, [events]);
 
   const days = useMemo(() => (view === "month" ? monthDays(cursor) : weekDays(cursor)), [cursor, view]);
   const monthLabel = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, month: "long", year: "numeric" }).format(cursor);
@@ -89,20 +93,25 @@ export function AdminCalendar({ shoots }: { shoots: CalendarShoot[] }) {
         {days.map((day) => {
           const key = ymd(day);
           const inMonth = day.getMonth() === cursor.getMonth() || view === "week";
-          const dayShoots = byDay.get(key) ?? [];
+          const dayEvents = byDay.get(key) ?? [];
           return (
             <div key={key} className={cn("min-h-24 bg-admin-surface p-1.5", !inMonth && "opacity-40")}>
               <div className={cn("text-right text-xs tabular-nums", key === todayKey ? "font-bold text-admin-accent" : "text-admin-muted")}>
                 {day.getDate()}
               </div>
               <div className="mt-1 space-y-1">
-                {dayShoots.map((s) => (
+                {dayEvents.map((e) => (
                   <button
-                    key={s.id}
-                    onClick={() => setSelected(s)}
-                    className="block w-full truncate rounded bg-admin-status-info-tint px-1.5 py-0.5 text-left text-[11px] text-admin-status-info hover:opacity-80"
+                    key={e.id}
+                    onClick={() => setSelected(e)}
+                    className={cn(
+                      "block w-full truncate rounded px-1.5 py-0.5 text-left text-[11px] hover:opacity-80",
+                      e.tentative
+                        ? "bg-admin-status-waiting-tint text-admin-status-waiting"
+                        : "bg-admin-status-info-tint text-admin-status-info",
+                    )}
                   >
-                    {timeLabel(s.startIso)} {s.title}
+                    {e.allDay ? "All day" : timeLabel(e.startIso)} {e.title}
                   </button>
                 ))}
               </div>
@@ -111,21 +120,38 @@ export function AdminCalendar({ shoots }: { shoots: CalendarShoot[] }) {
         })}
       </div>
 
-      <SideSheet open={Boolean(selected)} onClose={() => setSelected(null)} title={selected?.title ?? "Shoot"}>
+      <SideSheet open={Boolean(selected)} onClose={() => setSelected(null)} title={selected?.title ?? "Event"}>
         {selected ? (
           <div className="space-y-4">
             <dl className="space-y-2 text-sm">
-              <Row label="When" value={new Date(selected.startIso).toLocaleString("en-CA", { timeZone: TZ, weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" })} />
-              {selected.packageLabel ? <Row label="Package" value={selected.packageLabel} /> : null}
+              <Row
+                label="When"
+                value={
+                  selected.allDay
+                    ? new Date(selected.startIso).toLocaleDateString("en-CA", { timeZone: TZ, weekday: "long", month: "long", day: "numeric" })
+                    : new Date(selected.startIso).toLocaleString("en-CA", { timeZone: TZ, weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" })
+                }
+              />
               {selected.location ? <Row label="Location" value={selected.location} /> : null}
-              <Row label="Stage" value={selected.stageLabel} />
+              <Row label="Status" value={selected.tentative ? "Tentative" : "Confirmed"} />
+              {selected.bookingStageLabel ? <Row label="Booking stage" value={selected.bookingStageLabel} /> : null}
             </dl>
-            <Link
-              href={`/admin/bookings/${selected.id}`}
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-admin-ink px-4 text-sm font-medium text-admin-surface"
-            >
-              Open workspace <ExternalLink className="size-4" aria-hidden="true" />
-            </Link>
+            {selected.bookingId ? (
+              <Link
+                href={`/admin/bookings/${selected.bookingId}`}
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-admin-ink px-4 text-sm font-medium text-admin-surface"
+              >
+                Open booking <ExternalLink className="size-4" aria-hidden="true" />
+              </Link>
+            ) : (
+              <Link
+                href="/admin/bookings/new"
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-admin-line px-4 text-sm font-medium text-admin-ink hover:bg-admin-raise"
+              >
+                <Plus className="size-4" aria-hidden="true" />
+                Create a booking for this
+              </Link>
+            )}
           </div>
         ) : null}
       </SideSheet>

@@ -73,8 +73,8 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
 
   return (
     <div className="mx-auto max-w-5xl">
-      <Link href="/admin/bookings" className="text-sm text-admin-muted hover:text-admin-ink">
-        Bookings
+      <Link href="/admin/schedule" className="text-sm text-admin-muted hover:text-admin-ink">
+        Schedule
       </Link>
 
       {/* Header */}

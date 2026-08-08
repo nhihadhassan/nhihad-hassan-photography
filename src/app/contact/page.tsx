@@ -12,6 +12,7 @@ import { getSiteSettings } from "@/lib/site-settings";
 import { getContent } from "@/lib/site-content";
 import { getPricing } from "@/lib/pricing";
 import { withDefaultSocialImages } from "@/lib/seo";
+import { brandConfig } from "@/lib/config";
 
 export const metadata: Metadata = withDefaultSocialImages({
   title: "Contact",
@@ -51,11 +52,11 @@ export default async function ContactPage() {
                 </p>
                 <div className="mt-9 grid gap-3 text-sm text-soft-white/70">
                   <a
-                    href={`mailto:${settings.contactEmail}`}
+                    href={`mailto:${brandConfig.publicContactEmail}`}
                     className="group inline-flex min-h-11 items-center gap-3 rounded-full border border-soft-white/14 px-4 transition hover:border-copper/50 hover:text-soft-white"
                   >
                     <Mail className="size-4 text-copper" aria-hidden="true" />
-                    {settings.contactEmail}
+                    {brandConfig.publicContactEmail}
                   </a>
                   {settings.instagram.map((item) => (
                     <a

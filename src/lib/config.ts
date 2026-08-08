@@ -5,6 +5,12 @@ export const brandConfig = {
   shortName: "NHP",
   tagline: "Wedding, couples, portrait, and event photography based in Toronto.",
   contactEmail: "nhihadhassanphotography@gmail.com",
+  /**
+   * Shown on the public Contact page only. Distinct from `contactEmail`,
+   * which is the payment/transfer address (Interac e-Transfer instructions,
+   * invoices, agreements) and must stay the verified inbox.
+   */
+  publicContactEmail: "hello@nhihadhassan.ca",
   instagram: [
     {
       label: "@nhihad.h",

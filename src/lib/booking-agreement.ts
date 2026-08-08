@@ -13,6 +13,29 @@ import {
   type AgreementTemplateId,
 } from "@/data/wedding-agreement";
 
+type TemplateRow = { intro: string; sections: unknown; supports_second_signer: boolean };
+
+/**
+ * Reads a named row from contract_templates (the admin's template editor).
+ * Public/anon-safe: RLS on that table only exposes non-archived rows. Not
+ * cached across requests — the editor's autosave should be visible on the
+ * next page load without a redeploy.
+ */
+async function getNamedTemplate(slug: string): Promise<TemplateRow | null> {
+  try {
+    const supabase = getPublicSupabaseClient();
+    if (!supabase) return null;
+    const { data } = await supabase
+      .from("contract_templates")
+      .select("intro,sections,supports_second_signer")
+      .eq("slug", slug)
+      .maybeSingle();
+    return (data as TemplateRow | null) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export type BookingAgreementContent = {
   intro: string;
   disclaimer: string;
@@ -79,10 +102,22 @@ export const getBookingAgreement = cache(
     secondSignerName = "",
     omitRehostingFee = false,
   ): Promise<BookingAgreementContent> => {
-    const content = await getBaseBookingAgreement();
-    const templated = resolveAgreementTemplateId(templateId) === "wedding"
-      ? applyWeddingAgreement(content, { clientName, partnerName, secondSignerName })
-      : content;
+    // A template created/edited in the admin templates editor, matched by
+    // slug, wins outright — no wedding word-substitution layered on top,
+    // since that content is directly editable now. Falls back to the legacy
+    // single-row override + code-level wedding transform for any slug that
+    // doesn't have its own row (keeps every agreement created before the
+    // templates editor existed rendering exactly as before).
+    const named = await getNamedTemplate(String(templateId));
+    const templated = named
+      ? { intro: named.intro, disclaimer: staticDisclaimer, sections: sanitizeSections(named.sections) }
+      : await (async () => {
+          const content = await getBaseBookingAgreement();
+          return resolveAgreementTemplateId(templateId) === "wedding"
+            ? applyWeddingAgreement(content, { clientName, partnerName, secondSignerName })
+            : content;
+        })();
+
     if (!omitRehostingFee) return templated;
     return {
       ...templated,

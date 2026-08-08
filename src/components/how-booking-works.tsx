@@ -1,10 +1,13 @@
+"use client";
+
+import { Banknote, CalendarCheck, Images, MessageCircle, type LucideIcon } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 
-export const bookingSteps = [
-  "Send your date, location, and the kind of shoot.",
-  "I reply with availability and the deposit amount.",
-  "An Interac e-Transfer holds the date. No checkout here.",
-  "We shoot, and your gallery arrives online to share.",
+export const bookingSteps: { icon: LucideIcon; text: string }[] = [
+  { icon: MessageCircle, text: "Send your date and shoot type." },
+  { icon: CalendarCheck, text: "Get availability and your deposit amount." },
+  { icon: Banknote, text: "An e-Transfer deposit holds the date." },
+  { icon: Images, text: "We shoot, and your gallery arrives online." },
 ];
 
 type HowBookingWorksProps = {
@@ -27,24 +30,21 @@ export function HowBookingWorks({
             Booked by inquiry, confirmed by deposit.
           </h2>
           <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {bookingSteps.map((step, index) => (
-              <li key={step} className="flex flex-col gap-2.5">
-                <span className="font-serif text-2xl text-[#8b6444]">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <span className="text-sm leading-6 text-ink/68">{step}</span>
+            {bookingSteps.map(({ icon: Icon, text }) => (
+              <li key={text} className="flex flex-col gap-2.5">
+                <Icon className="size-5 text-[#8b6444]" aria-hidden="true" strokeWidth={1.75} />
+                <span className="text-sm leading-6 text-ink/68">{text}</span>
               </li>
             ))}
           </ol>
           <p className="mt-8 text-sm leading-6 text-ink/68">
-            <span className="font-medium text-ink">A fixed deposit holds your date</span>, shown
-            with each package and sent by Interac e-Transfer. It is non-refundable since it
-            reserves your time, with the balance due on or before the shoot day. A date can be
-            rescheduled once with 7 or more days notice.
+            <span className="font-medium text-ink">The deposit is non-refundable</span> and holds
+            your date, with the balance due by the shoot day. One reschedule is allowed with 7+
+            days notice.
           </p>
           <p className="mt-4 text-sm leading-6 text-ink/62">
-            Prices are in Canadian dollars and cover the shoot, editing, and gallery delivery.
-            Travel beyond the Greater Toronto Area may add a small fee, confirmed before you book.
+            Prices are in CAD and include editing and gallery delivery. Travel outside the GTA may
+            add a small fee.
           </p>
         </div>
       </Reveal>

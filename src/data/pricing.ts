@@ -30,8 +30,7 @@ export type PricingCategory = {
   tiers: PricingTier[];
 };
 
-const ADDITIONAL_COVERAGE_NOTE =
-  "Additional coverage: $75/hour, including more edited images to match.";
+const ADDITIONAL_COVERAGE_NOTE = "Additional coverage: $75/hour.";
 
 export const pricingCategories: PricingCategory[] = [
   {
@@ -108,7 +107,7 @@ export const pricingCategories: PricingCategory[] = [
       },
       {
         name: "2 Hours",
-        price: "$250",
+        price: "$225",
         duration: "2 hours",
         deposit: "$75",
         highlight: true,
@@ -130,6 +129,7 @@ export const pricingCategories: PricingCategory[] = [
           "1 hour of coverage",
           "30+ edited photos",
           "Proposal planning and coordination",
+          "Candid photos of the proposal and reactions",
           "Portraits together afterward",
         ],
         details:
@@ -140,8 +140,7 @@ export const pricingCategories: PricingCategory[] = [
   {
     id: "events",
     label: "Events",
-    blurb:
-      "Birthdays, milestones, and big celebrations, captured without getting in the way.",
+    blurb: "Birthdays, milestones, and big celebrations.",
     note: ADDITIONAL_COVERAGE_NOTE,
     tiers: [
       {
@@ -235,8 +234,7 @@ export const pricingCategories: PricingCategory[] = [
   {
     id: "graduation",
     label: "Graduation",
-    blurb:
-      "Cap, gown, and the people who got you there, photographed with the same care as any milestone.",
+    blurb: "Cap, gown, and the people who got you there.",
     note: ADDITIONAL_COVERAGE_NOTE,
     tiers: [
       {
@@ -295,7 +293,7 @@ export const pricingCategories: PricingCategory[] = [
         includes: [
           "3 hours of coverage",
           "75+ edited photos",
-          "24–48 hour turnaround",
+          "72 hour turnaround",
         ],
         details: "Fast-turnaround coverage tuned to flash, movement, and crowd energy.",
       },
@@ -308,7 +306,7 @@ export const pricingCategories: PricingCategory[] = [
         includes: [
           "5 hours of coverage",
           "125+ edited photos",
-          "24–48 hour turnaround",
+          "72 hour turnaround",
         ],
         details: "More of the night covered, from the early energy through to last call.",
       },

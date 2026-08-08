@@ -4,18 +4,25 @@ import { getAdminGalleries } from "@/lib/admin-data";
 import { getAdminClientReviews, getAdminReviewRequests } from "@/lib/reviews";
 import { getSiteSettings } from "@/lib/site-settings";
 import { siteUrl } from "@/lib/seo";
+import { getGoogleBusinessConnection, isGoogleBusinessConfigured } from "@/lib/google-business";
 import { ReviewAdmin } from "@/components/review-admin";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminReviewsPage() {
-  await requireAdmin();
+type Props = {
+  searchParams: Promise<{ google_connected?: string; google_error?: string }>;
+};
 
-  const [galleries, requests, reviews, settings] = await Promise.all([
+export default async function AdminReviewsPage({ searchParams }: Props) {
+  await requireAdmin();
+  const query = await searchParams;
+
+  const [galleries, requests, reviews, settings, connection] = await Promise.all([
     getAdminGalleries(),
     getAdminReviewRequests(),
     getAdminClientReviews(),
     getSiteSettings(),
+    getGoogleBusinessConnection(),
   ]);
 
   const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
@@ -30,8 +37,8 @@ export default async function AdminReviewsPage() {
           <p className="text-sm font-medium text-admin-accent">Client reviews</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Reviews</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
-            Create neutral Google-first review request links, then manually import and approve real
-            Google reviews for the public site.
+            Google Business Profile is the source of truth for real reviews. Send request links,
+            sync what&apos;s on Google, then choose what shows on the public site.
           </p>
         </div>
       </div>
@@ -43,6 +50,10 @@ export default async function AdminReviewsPage() {
           reviews={reviews}
           siteOrigin={siteOrigin}
           googleReviewUrl={settings.googleReviewUrl}
+          connection={connection}
+          isGoogleConfigured={isGoogleBusinessConfigured()}
+          connectedNotice={query.google_connected}
+          errorNotice={query.google_error}
         />
       </div>
     </div>

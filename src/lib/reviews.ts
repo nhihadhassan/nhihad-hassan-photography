@@ -34,6 +34,8 @@ export type ClientReview = {
   google_review_id: string | null;
   google_create_time: string | null;
   google_update_time: string | null;
+  owner_reply_text: string | null;
+  owner_reply_time: string | null;
   created_at: string;
   updated_at: string;
   gallery_title?: string | null;
@@ -83,6 +85,8 @@ function mapReview(row: Record<string, unknown>): ClientReview {
     google_review_id: (row.google_review_id as string | null) ?? null,
     google_create_time: (row.google_create_time as string | null) ?? null,
     google_update_time: (row.google_update_time as string | null) ?? null,
+    owner_reply_text: (row.owner_reply_text as string | null) ?? null,
+    owner_reply_time: (row.owner_reply_time as string | null) ?? null,
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
     gallery_title: gallery?.title ?? null,
@@ -239,5 +243,75 @@ export async function setClientReviewApproved(id: string, approved: boolean) {
 export async function deleteClientReview(id: string) {
   const admin = getServiceRoleSupabaseClient();
   const { error } = await admin.from("client_reviews").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export type SyncedReviewInput = {
+  googleReviewId: string;
+  reviewerName: string;
+  rating: number;
+  reviewText: string;
+  reviewDate: string;
+  sourceUrl: string | null;
+  googleCreateTime: string | null;
+  googleUpdateTime: string | null;
+  ownerReplyText: string | null;
+  ownerReplyTime: string | null;
+};
+
+/**
+ * Upserts reviews pulled from the Google Business Profile API, keyed on
+ * google_review_id (unique index added in 20260808040003_google_reviews_sync).
+ * New reviews land unapproved so the photographer curates before anything
+ * reaches the public site; re-syncing an existing review only refreshes its
+ * Google-owned fields (text/rating/reply), never the local `approved` flag.
+ */
+export async function upsertSyncedReviews(
+  reviews: SyncedReviewInput[],
+): Promise<{ inserted: number; updated: number }> {
+  if (!reviews.length) return { inserted: 0, updated: 0 };
+  const admin = getServiceRoleSupabaseClient();
+
+  const { data: existingRows } = await admin
+    .from("client_reviews")
+    .select("google_review_id")
+    .in("google_review_id", reviews.map((r) => r.googleReviewId));
+  const existingIds = new Set((existingRows ?? []).map((r) => r.google_review_id as string));
+
+  const { error } = await admin.from("client_reviews").upsert(
+    reviews.map((r) => ({
+      source: "google" as const,
+      google_review_id: r.googleReviewId,
+      reviewer_name: r.reviewerName,
+      rating: r.rating,
+      review_text: r.reviewText,
+      review_date: r.reviewDate,
+      source_url: r.sourceUrl,
+      google_create_time: r.googleCreateTime,
+      google_update_time: r.googleUpdateTime,
+      owner_reply_text: r.ownerReplyText,
+      owner_reply_time: r.ownerReplyTime,
+      updated_at: new Date().toISOString(),
+    })),
+    { onConflict: "google_review_id" },
+  );
+  if (error) throw new Error(error.message);
+
+  return {
+    inserted: reviews.filter((r) => !existingIds.has(r.googleReviewId)).length,
+    updated: reviews.filter((r) => existingIds.has(r.googleReviewId)).length,
+  };
+}
+
+export async function setReviewOwnerReply(id: string, replyText: string) {
+  const admin = getServiceRoleSupabaseClient();
+  const { error } = await admin
+    .from("client_reviews")
+    .update({
+      owner_reply_text: replyText,
+      owner_reply_time: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
   if (error) throw new Error(error.message);
 }

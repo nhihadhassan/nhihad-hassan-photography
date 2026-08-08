@@ -17,6 +17,8 @@ const envSchema = z.object({
   SELECTS_NOTIFICATION_TO: z.string().email().optional(),
   SELECTS_NOTIFICATION_FROM: z.string().min(1).optional(),
   CRON_SECRET: z.string().min(1).optional(),
+  GOOGLE_BUSINESS_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_BUSINESS_CLIENT_SECRET: z.string().min(1).optional(),
 });
 
 export const env = envSchema.parse({
@@ -36,6 +38,8 @@ export const env = envSchema.parse({
   SELECTS_NOTIFICATION_TO: process.env.SELECTS_NOTIFICATION_TO,
   SELECTS_NOTIFICATION_FROM: process.env.SELECTS_NOTIFICATION_FROM,
   CRON_SECRET: process.env.CRON_SECRET,
+  GOOGLE_BUSINESS_CLIENT_ID: process.env.GOOGLE_BUSINESS_CLIENT_ID,
+  GOOGLE_BUSINESS_CLIENT_SECRET: process.env.GOOGLE_BUSINESS_CLIENT_SECRET,
 });
 
 export function hasSupabaseBrowserConfig() {
@@ -126,6 +130,22 @@ export function getGalleryInviteConfig() {
   return {
     apiKey: env.RESEND_API_KEY ?? null,
     from: env.SELECTS_NOTIFICATION_FROM ?? null,
+  };
+}
+
+export function hasGoogleBusinessConfig() {
+  return Boolean(env.GOOGLE_BUSINESS_CLIENT_ID && env.GOOGLE_BUSINESS_CLIENT_SECRET);
+}
+
+export function requireGoogleBusinessConfig() {
+  if (!env.GOOGLE_BUSINESS_CLIENT_ID || !env.GOOGLE_BUSINESS_CLIENT_SECRET) {
+    throw new Error(
+      "Missing GOOGLE_BUSINESS_CLIENT_ID / GOOGLE_BUSINESS_CLIENT_SECRET. Set both in .env.local.",
+    );
+  }
+  return {
+    clientId: env.GOOGLE_BUSINESS_CLIENT_ID,
+    clientSecret: env.GOOGLE_BUSINESS_CLIENT_SECRET,
   };
 }
 

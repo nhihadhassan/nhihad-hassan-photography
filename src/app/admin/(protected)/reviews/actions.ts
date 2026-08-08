@@ -9,9 +9,19 @@ import {
   deleteClientReview,
   revokeReviewRequest,
   setClientReviewApproved,
+  setReviewOwnerReply,
+  upsertSyncedReviews,
 } from "@/lib/reviews";
 import { getAdminGallery } from "@/lib/admin-data";
 import { siteUrl } from "@/lib/seo";
+import {
+  disconnectGoogleBusiness,
+  getGoogleBusinessConnection,
+  googleReviewRating,
+  replyToGoogleReview,
+  syncReviewsFromGoogle,
+} from "@/lib/google-business";
+import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 
 export type ReviewActionState = {
   status: "idle" | "success" | "error";
@@ -211,6 +221,108 @@ export async function revokeReviewRequestAction(
     return {
       ok: false,
       message: error instanceof Error ? error.message : "Could not revoke request.",
+    };
+  }
+}
+
+export async function syncGoogleReviewsAction(): Promise<{
+  ok: boolean;
+  message: string;
+}> {
+  await requireAdmin();
+  const admin = getServiceRoleSupabaseClient();
+
+  const connection = await getGoogleBusinessConnection();
+  if (!connection) {
+    return { ok: false, message: "Connect Google Business Profile first." };
+  }
+
+  try {
+    const reviews = await syncReviewsFromGoogle(connection);
+    const { inserted, updated } = await upsertSyncedReviews(
+      reviews.map((review) => ({
+        googleReviewId: review.name,
+        reviewerName: review.reviewer?.displayName?.trim() || "Google reviewer",
+        rating: googleReviewRating(review),
+        reviewText: review.comment ?? "",
+        reviewDate: (review.createTime ?? new Date().toISOString()).slice(0, 10),
+        sourceUrl: null,
+        googleCreateTime: review.createTime ?? null,
+        googleUpdateTime: review.updateTime ?? null,
+        ownerReplyText: review.reviewReply?.comment ?? null,
+        ownerReplyTime: review.reviewReply?.updateTime ?? null,
+      })),
+    );
+
+    await admin
+      .from("google_business_connection")
+      .update({
+        last_synced_at: new Date().toISOString(),
+        last_sync_error: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", connection.id);
+
+    revalidatePath("/admin/reviews");
+    revalidatePath("/");
+
+    const parts = [
+      inserted ? `${inserted} new` : null,
+      updated ? `${updated} updated` : null,
+    ].filter(Boolean);
+    return {
+      ok: true,
+      message: parts.length
+        ? `Synced: ${parts.join(", ")}.`
+        : "Synced. No changes since the last sync.",
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Sync failed.";
+    await admin
+      .from("google_business_connection")
+      .update({ last_sync_error: message, updated_at: new Date().toISOString() })
+      .eq("id", connection.id);
+    revalidatePath("/admin/reviews");
+    return { ok: false, message };
+  }
+}
+
+export async function disconnectGoogleBusinessAction(): Promise<{
+  ok: boolean;
+  message: string;
+}> {
+  await requireAdmin();
+  try {
+    await disconnectGoogleBusiness();
+    revalidatePath("/admin/reviews");
+    return { ok: true, message: "Disconnected." };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Could not disconnect.",
+    };
+  }
+}
+
+export async function replyToGoogleReviewAction(
+  reviewId: string,
+  googleReviewName: string,
+  replyText: string,
+): Promise<{ ok: boolean; message: string }> {
+  await requireAdmin();
+  const text = replyText.trim();
+  if (!text) {
+    return { ok: false, message: "Reply text is required." };
+  }
+  try {
+    await replyToGoogleReview(googleReviewName, text);
+    await setReviewOwnerReply(reviewId, text);
+    revalidatePath("/admin/reviews");
+    return { ok: true, message: "Reply posted to Google." };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Could not post the reply.",
     };
   }
 }

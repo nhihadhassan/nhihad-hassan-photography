@@ -9,11 +9,7 @@ import type { AgreementRequest } from "@/lib/agreements";
 import { isAgreementPastExpiry } from "@/lib/agreement-status";
 import type { ClientSummary } from "@/lib/clients";
 import type { PricingCategory } from "@/data/pricing";
-import {
-  agreementTemplates,
-  isWeddingAgreementType,
-  type AgreementTemplateId,
-} from "@/data/wedding-agreement";
+import { isWeddingAgreementType } from "@/data/wedding-agreement";
 import {
   createAgreementRequestAction,
   revokeAgreementRequestAction,
@@ -24,6 +20,15 @@ import {
 } from "@/app/admin/(protected)/agreements/actions";
 import { formatCompactDate } from "@/lib/utils";
 import { utcToTorontoLocalInput } from "@/lib/ics";
+
+/** The subset of a contract_templates row the create-agreement form needs. */
+export type TemplateOption = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  supportsSecondSigner: boolean;
+};
 
 const initialState: AgreementActionState = { status: "idle", message: "" };
 
@@ -546,10 +551,12 @@ function CreateForm({
   galleries,
   clients,
   pricing,
+  templates,
 }: {
   galleries: GalleryRecord[];
   clients: ClientSummary[];
   pricing: PricingCategory[];
+  templates: TemplateOption[];
 }) {
   const [state, formAction] = useActionState(createAgreementRequestAction, initialState);
   const [selectedClientKey, setSelectedClientKey] = useState("");
@@ -558,7 +565,9 @@ function CreateForm({
   const [clientPhone, setClientPhone] = useState("");
   const [clientAddress, setClientAddress] = useState("");
   const [effectiveDate, setEffectiveDate] = useState(() => todayInToronto());
-  const [templateId, setTemplateId] = useState<AgreementTemplateId>("photography");
+  const [templateId, setTemplateId] = useState<string>(templates[0]?.slug ?? "photography");
+  const selectedTemplate = templates.find((t) => t.slug === templateId);
+  const supportsSecondSigner = selectedTemplate?.supportsSecondSigner ?? templateId === "wedding";
   const [partnerName, setPartnerName] = useState("");
   const [shootType, setShootType] = useState("");
   const [description, setDescription] = useState("");
@@ -608,7 +617,10 @@ function CreateForm({
   const choosePackage = (value: string) => {
     setShootType(value);
     setDescription(value);
-    setTemplateId(isWeddingAgreementType(value) ? "wedding" : "photography");
+    if (isWeddingAgreementType(value)) {
+      const wedding = templates.find((t) => t.slug === "wedding" || isWeddingAgreementType(t.name));
+      if (wedding) setTemplateId(wedding.slug);
+    }
     const match = pricing.flatMap((category) =>
       category.tiers.map((tier) => ({ value: `${category.label} · ${tier.name}`, tier })),
     ).find((candidate) => candidate.value === value);
@@ -682,16 +694,19 @@ function CreateForm({
             className={inputClass}
             name="template"
             value={templateId}
-            onChange={(event) => setTemplateId(event.target.value as AgreementTemplateId)}
+            onChange={(event) => setTemplateId(event.target.value)}
           >
-            {agreementTemplates.map((template) => (
-              <option key={template.id} value={template.id}>
-                {template.label}
+            {templates.map((template) => (
+              <option key={template.id} value={template.slug}>
+                {template.name}
               </option>
             ))}
           </select>
           <span className="text-xs font-normal text-admin-ink/55">
-            {agreementTemplates.find((template) => template.id === templateId)?.description}
+            {selectedTemplate?.description}{" "}
+            <Link href="/admin/templates" className="text-admin-accent hover:underline">
+              Edit templates
+            </Link>
           </span>
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
@@ -710,7 +725,7 @@ function CreateForm({
             <option value="Custom photography coverage">Custom photography coverage</option>
           </select>
         </label>
-        {templateId === "wedding" ? (
+        {supportsSecondSigner ? (
           <>
             <label className="grid gap-1.5 text-sm font-medium">
               Partner name
@@ -787,7 +802,7 @@ function CreateForm({
           Included travel city
           <input className={inputClass} name="city" value={city} onChange={(event) => setCity(event.target.value)} placeholder="Toronto" />
         </label>
-        {templateId === "wedding" ? (
+        {supportsSecondSigner ? (
           <label className="grid gap-1.5 text-sm font-medium">
             Meal threshold (hours)
             <input className={inputClass} name="mealHours" value={mealHours} onChange={(event) => setMealHours(event.target.value)} placeholder="6" inputMode="decimal" />
@@ -802,7 +817,7 @@ function CreateForm({
           <input className={inputClass} name="hourly" value={hourly} onChange={(event) => setHourly(event.target.value)} placeholder="$0 per hour" inputMode="decimal" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
-          {templateId === "wedding" ? "Deposit" : "Retainer"} due upon signing
+          {supportsSecondSigner ? "Deposit" : "Retainer"} due upon signing
           <input className={inputClass} name="deposit" value={deposit} onChange={(event) => setDeposit(event.target.value)} placeholder="$500 or 25%" />
         </label>
         <label className="grid gap-1.5 text-sm font-medium">
@@ -1260,16 +1275,18 @@ export function AgreementAdmin({
   clients,
   pricing,
   siteOrigin,
+  templates,
 }: {
   galleries: GalleryRecord[];
   requests: AgreementRequest[];
   clients: ClientSummary[];
   pricing: PricingCategory[];
   siteOrigin: string;
+  templates: TemplateOption[];
 }) {
   return (
     <div className="grid gap-8">
-      <CreateForm galleries={galleries} clients={clients} pricing={pricing} />
+      <CreateForm galleries={galleries} clients={clients} pricing={pricing} templates={templates} />
       <section>
         <h2 className="text-lg font-semibold tracking-tight">Signing links</h2>
         <div className="mt-4 grid gap-3">

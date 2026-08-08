@@ -69,7 +69,7 @@ export const adminNavGroups: AdminNavGroup[] = [
     label: "Automations",
     items: [
       { href: "/admin/reminders", label: "Reminders", icon: BellRing },
-      { href: "/admin/booking-agreement", label: "Contract template", icon: FileText },
+      { href: "/admin/templates", label: "Contract templates", icon: FileText },
       { href: "/admin/questionnaires", label: "Questionnaires", icon: ClipboardList },
       { href: "/admin/access-logs", label: "Access logs", icon: Shield },
       { href: "/admin/download-logs", label: "Download logs", icon: Download },

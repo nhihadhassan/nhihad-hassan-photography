@@ -30,6 +30,8 @@ const VARIABLE_LABELS: Record<string, string> = {
   licenseType: "client licence type",
   privacyOptOutFee: "privacy opt-out surcharge",
   clientEmail: "client email",
+  photographerName: "photographer name",
+  photographerBusinessName: "photographer business name",
 };
 
 function formatVariableValue(param: string, value?: string): string | undefined {

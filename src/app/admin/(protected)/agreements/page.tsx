@@ -4,6 +4,7 @@ import { getAdminAgreementRequests } from "@/lib/agreements";
 import { getClientList } from "@/lib/clients";
 import { getPricing } from "@/lib/pricing";
 import { siteUrl } from "@/lib/seo";
+import { listContractTemplates } from "@/lib/contract-templates";
 import { AgreementAdmin } from "@/components/agreement-admin";
 import { ContractsTable, type ContractRow } from "@/components/tables/contracts-table";
 
@@ -12,12 +13,20 @@ export const dynamic = "force-dynamic";
 export default async function AdminAgreementsPage() {
   await requireAdmin();
 
-  const [galleries, requests, clients, pricing] = await Promise.all([
+  const [galleries, requests, clients, pricing, contractTemplates] = await Promise.all([
     getAdminGalleries(),
     getAdminAgreementRequests(),
     getClientList(),
     getPricing(),
+    listContractTemplates(),
   ]);
+  const templates = contractTemplates.map((t) => ({
+    id: t.id,
+    slug: t.slug,
+    name: t.name,
+    description: t.description,
+    supportsSecondSigner: t.supportsSecondSigner,
+  }));
 
   const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
   const onboardedClients = clients.filter(
@@ -45,7 +54,7 @@ export default async function AdminAgreementsPage() {
         <h1 className="admin-display mt-1 text-3xl text-admin-ink">Contracts</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-muted">
           Every sign request and its status at a glance. Send a new one below. To change the contract
-          wording itself, use Contract template.
+          wording itself, use Contract templates.
         </p>
       </div>
 
@@ -62,6 +71,7 @@ export default async function AdminAgreementsPage() {
             clients={onboardedClients}
             pricing={pricing}
             siteOrigin={siteOrigin}
+            templates={templates}
           />
         </div>
       </div>

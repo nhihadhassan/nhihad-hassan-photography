@@ -10,6 +10,7 @@ import {
 } from "@/data/booking-agreement";
 import { resolveAgreementTemplateId, type AgreementTemplateId } from "@/data/wedding-agreement";
 import { getBookingAgreement } from "@/lib/booking-agreement";
+import { brandConfig } from "@/lib/config";
 import type { AgreementDetails, AgreementRequest, SignedAgreement } from "@/lib/agreements";
 import { remainingAgreementSigners, requiredAgreementSigners, type AgreementSigner } from "@/lib/agreement-signers";
 
@@ -113,6 +114,8 @@ export async function buildAgreementView(
     secondSignerName: details.secondSignerName,
     secondSignerEmail: details.secondSignerEmail,
     secondSignerPhone: details.secondSignerPhone,
+    photographerName: brandConfig.ownerName,
+    photographerBusinessName: brandConfig.name,
   };
 
   const templateId = resolveAgreementTemplateId(details.template);

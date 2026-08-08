@@ -26,8 +26,10 @@ function sanitizeTier(value: unknown): PricingTier | null {
     name,
     price,
     duration: str(t.duration).trim(),
+    deposit: str(t.deposit).trim(),
     includes,
     ...(details ? { details } : {}),
+    ...(t.highlight === true ? { highlight: true } : {}),
   };
 }
 

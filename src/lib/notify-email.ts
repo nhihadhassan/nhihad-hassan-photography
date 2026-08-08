@@ -83,13 +83,13 @@ export async function sendInquiryAutoReply(input: {
   const bodyHtml = `
     <p style="margin:0 0 14px 0;">Hi ${escapeHtml(first)},</p>
     <p style="margin:0 0 14px 0;">Thank you for reaching out to ${escapeHtml(brandConfig.name)}. Your inquiry has come through and I will get back to you personally, usually within a day or two.</p>
-    <p style="margin:0 0 14px 0;">If we are a good fit, I will reply to confirm availability and the next steps, including a 25% deposit by Interac e-Transfer to hold your date.</p>
+    <p style="margin:0 0 14px 0;">If we are a good fit, I will reply to confirm availability and the next steps, including the deposit by Interac e-Transfer to hold your date.</p>
     <p style="margin:0;">Talk soon,<br>${escapeHtml(brandConfig.name)}</p>`;
   return sendMail({
     to: input.to,
     replyTo: brandConfig.contactEmail,
     subject: `Thanks for your inquiry · ${brandConfig.name}`,
-    text: `Hi ${first},\n\nThank you for reaching out to ${brandConfig.name}. Your inquiry has come through and I will get back to you personally, usually within a day or two.\n\nIf we are a good fit, I will reply to confirm availability and next steps, including a 25% deposit by Interac e-Transfer to hold your date.\n\nTalk soon,\n${brandConfig.name}`,
+    text: `Hi ${first},\n\nThank you for reaching out to ${brandConfig.name}. Your inquiry has come through and I will get back to you personally, usually within a day or two.\n\nIf we are a good fit, I will reply to confirm availability and next steps, including the deposit by Interac e-Transfer to hold your date.\n\nTalk soon,\n${brandConfig.name}`,
     html: emailShell({ eyebrow: "Inquiry received", heading: "Thanks for reaching out.", bodyHtml }),
   });
 }

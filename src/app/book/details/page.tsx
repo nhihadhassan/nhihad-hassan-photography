@@ -5,7 +5,7 @@ import { ArrowLeft, CalendarDays, Clock3, MapPin } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { BookingDetailsForm } from "@/components/booking-details-form";
-import { findBookingSelection, startingPrice } from "@/lib/booking-options";
+import { findBookingSelection } from "@/lib/booking-options";
 import { getBookingVisual } from "@/lib/booking-visuals";
 import { getPricing } from "@/lib/pricing";
 import { withDefaultSocialImages } from "@/lib/seo";
@@ -42,8 +42,7 @@ export default async function BookingDetailsPage({ searchParams }: Props) {
   const date = query.date!;
   const time = query.time!;
   const image = await getBookingVisual(selection.category.id);
-  const basePrice = startingPrice(selection.tier.price);
-  const deposit = basePrice ? new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(basePrice * 0.25) : null;
+  const deposit = selection.tier.deposit || null;
 
   return (
     <div className="min-h-[100dvh] bg-[#f3eee5] text-ink">
@@ -94,7 +93,7 @@ export default async function BookingDetailsPage({ searchParams }: Props) {
               </dl>
               <div className="mt-8 border-t border-soft-white/12 pt-6">
                 <div className="flex items-center justify-between gap-4"><span className="text-sm text-soft-white/58">Package price</span><span className="font-serif text-2xl">{selection.tier.price}</span></div>
-                <div className="mt-3 flex items-center justify-between gap-4"><span className="text-sm text-soft-white/58">Deposit after confirmation</span><span className="text-sm">{deposit ? `From ${deposit}` : "25%"}</span></div>
+                <div className="mt-3 flex items-center justify-between gap-4"><span className="text-sm text-soft-white/58">Deposit to book</span><span className="text-sm">{deposit ?? "Confirmed on inquiry"}</span></div>
               </div>
             </div>
           </aside>

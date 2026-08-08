@@ -39,8 +39,8 @@ export default async function PricingPage() {
               Pricing
             </h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-ink/64">
-              Introductory rates while I build the portfolio. Every shoot is
-              booked by inquiry.
+              Limited introductory pricing for 2026 bookings, before rates rise. Every
+              shoot is booked by inquiry.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <ButtonLink href="/contact">

@@ -15,11 +15,9 @@ const money = new Intl.NumberFormat("en-CA", {
 export function BookingPaymentConfirmation({
   deposit,
   transferEmail,
-  isStartingPrice,
 }: {
   deposit: number;
   transferEmail: string;
-  isStartingPrice: boolean;
 }) {
   const [tipChoice, setTipChoice] = useState<TipChoice>("none");
   const [customTip, setCustomTip] = useState("");
@@ -92,9 +90,9 @@ export function BookingPaymentConfirmation({
         </ol>
 
         <dl className="mt-8 border-t border-ink/10 pt-6 text-sm">
-          <div className="flex items-center justify-between gap-4 py-2"><dt className="text-ink/58">25% deposit</dt><dd className="font-medium text-ink">{isStartingPrice ? "From " : ""}{money.format(deposit)}</dd></div>
+          <div className="flex items-center justify-between gap-4 py-2"><dt className="text-ink/58">Deposit</dt><dd className="font-medium text-ink">{money.format(deposit)}</dd></div>
           <div className="flex items-center justify-between gap-4 py-2"><dt className="text-ink/58">Optional tip</dt><dd className="font-medium text-ink">{money.format(tip)}</dd></div>
-          <div className="mt-2 flex items-end justify-between gap-4 border-t border-ink/10 pt-5"><dt><span className="block font-medium text-ink">E-transfer total</span><span className="mt-1 block text-xs text-ink/45">Only after your date is confirmed</span></dt><dd className="font-serif text-3xl text-ink">{isStartingPrice ? "From " : ""}{money.format(total)}</dd></div>
+          <div className="mt-2 flex items-end justify-between gap-4 border-t border-ink/10 pt-5"><dt><span className="block font-medium text-ink">E-transfer total</span><span className="mt-1 block text-xs text-ink/45">Only after your date is confirmed</span></dt><dd className="font-serif text-3xl text-ink">{money.format(total)}</dd></div>
         </dl>
       </section>
     </div>

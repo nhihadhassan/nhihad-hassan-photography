@@ -18,14 +18,26 @@ export function PricingTierCard({ tier, serviceId }: { tier: PricingTier; servic
 
   return (
     <div
-      className="group flex flex-col rounded-[2px] border border-ink/12 bg-soft-white/70 p-6 transition duration-300 hover:-translate-y-0.5 hover:border-copper/45 sm:p-7"
+      className={`group flex flex-col rounded-[2px] border p-6 transition duration-300 hover:-translate-y-0.5 hover:border-copper/45 sm:p-7 ${
+        tier.highlight
+          ? "border-copper/40 bg-soft-white"
+          : "border-ink/12 bg-soft-white/70"
+      }`}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
       onClick={() => setOpen((v) => !v)}
     >
-      <p className="text-xs uppercase tracking-[0.18em] text-ink/62">{tier.name}</p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs uppercase tracking-[0.18em] text-ink/62">{tier.name}</p>
+        {tier.highlight ? (
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#8b6444]">
+            Recommended
+          </p>
+        ) : null}
+      </div>
       <p className="mt-3 font-serif text-4xl">{tier.price}</p>
       <p className="mt-1 text-sm text-[#8b6444]">{tier.duration}</p>
+      <p className="mt-1 text-xs text-ink/48">{tier.deposit} deposit to book</p>
 
       <ul className="mt-5 space-y-2.5 border-t border-ink/12 pt-5">
         {tier.includes.map((item) => (

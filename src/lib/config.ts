@@ -11,6 +11,8 @@ export const brandConfig = {
    * invoices, agreements) and must stay the verified inbox.
    */
   publicContactEmail: "hello@nhihadhassan.ca",
+  /** Shown on the public Contact page only. */
+  publicContactPhone: "647-745-8899",
   instagram: [
     {
       label: "@nhihad.h",

@@ -36,7 +36,6 @@ export function PricingTierCard({ tier, serviceId }: { tier: PricingTier; servic
         ) : null}
       </div>
       <p className="mt-3 font-serif text-4xl">{tier.price}</p>
-      <p className="mt-1 text-sm text-[#8b6444]">{tier.duration}</p>
 
       <ul className="mt-5 space-y-2.5 border-t border-ink/12 pt-5">
         {tier.includes.map((item) => (

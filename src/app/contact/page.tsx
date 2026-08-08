@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AtSign, Mail } from "lucide-react";
+import { AtSign, Mail, Phone } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { BookingServicePicker } from "@/components/booking-service-picker";
@@ -57,6 +57,13 @@ export default async function ContactPage() {
                   >
                     <Mail className="size-4 text-copper" aria-hidden="true" />
                     {brandConfig.publicContactEmail}
+                  </a>
+                  <a
+                    href={`tel:+1${brandConfig.publicContactPhone.replace(/\D/g, "")}`}
+                    className="group inline-flex min-h-11 items-center gap-3 rounded-full border border-soft-white/14 px-4 transition hover:border-copper/50 hover:text-soft-white"
+                  >
+                    <Phone className="size-4 text-copper" aria-hidden="true" />
+                    {brandConfig.publicContactPhone}
                   </a>
                   {settings.instagram.map((item) => (
                     <a

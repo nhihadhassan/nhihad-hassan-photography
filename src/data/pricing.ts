@@ -1,6 +1,6 @@
 /**
  * Public pricing. Figures are limited introductory rates for 2026 bookings
- * and are expected to rise — keep this file the single source of truth and
+ * and are expected to rise: keep this file the single source of truth and
  * bump the numbers here as rates change. Every tier is a fixed price, fixed
  * duration, and fixed deposit; avoid ranges so the booking flow's duration
  * and deposit parsing stay reliable.
@@ -31,7 +31,7 @@ export type PricingCategory = {
 };
 
 const ADDITIONAL_COVERAGE_NOTE =
-  "Additional coverage — $75/hour, including more edited images to match.";
+  "Additional coverage: $75/hour, including more edited images to match.";
 
 export const pricingCategories: PricingCategory[] = [
   {
@@ -121,21 +121,13 @@ export const pricingCategories: PricingCategory[] = [
         details:
           "More time and a second location for variety in light, backdrop, and wardrobe.",
       },
-    ],
-  },
-  {
-    id: "surprise-proposal",
-    label: "Surprise Proposal",
-    blurb: "Planned together in secret, captured candidly the moment it happens.",
-    note: ADDITIONAL_COVERAGE_NOTE,
-    tiers: [
       {
-        name: "Proposal Coverage",
+        name: "Surprise Proposal",
         price: "$200",
-        duration: "Up to 1 hour",
+        duration: "1 hour",
         deposit: "$75",
         includes: [
-          "Up to 1 hour of coverage",
+          "1 hour of coverage",
           "30+ edited photos",
           "Proposal planning and coordination",
           "Portraits together afterward",

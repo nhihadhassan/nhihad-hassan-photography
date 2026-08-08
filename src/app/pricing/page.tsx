@@ -52,7 +52,7 @@ export default async function PricingPage() {
               </ButtonLink>
             </div>
 
-            {/* All services — jump links to each pricing section */}
+            {/* All services: jump links to each pricing section */}
             <div className="mt-10 border-t border-ink/12 pt-6">
               <p className="text-xs uppercase tracking-[0.18em] text-ink/62">
                 What I shoot

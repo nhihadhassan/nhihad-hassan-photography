@@ -10,7 +10,7 @@ import {
 } from "@/data/booking-agreement";
 import { resolveAgreementTemplateId, type AgreementTemplateId } from "@/data/wedding-agreement";
 import { getBookingAgreement } from "@/lib/booking-agreement";
-import { brandConfig } from "@/lib/config";
+import { buildAgreementValues } from "@/lib/agreement-values";
 import type { AgreementDetails, AgreementRequest, SignedAgreement } from "@/lib/agreements";
 import { remainingAgreementSigners, requiredAgreementSigners, type AgreementSigner } from "@/lib/agreement-signers";
 
@@ -84,39 +84,7 @@ export async function buildAgreementView(
         details.rehostingFee === "0",
       );
 
-  const values: Record<string, string | undefined> = {
-    ...details,
-    client: clientName ?? undefined,
-    partner: details.partner,
-    effectiveDate: details.effectiveDate,
-    clientAddress: details.clientAddress,
-    email: clientEmail ?? undefined,
-    phone: details.phone,
-    type: details.type,
-    description: details.description ?? details.type,
-    date: details.date,
-    location: details.location,
-    city: details.city,
-    cancellationNoticeDays: details.cancellationNoticeDays,
-    mealHours: details.mealHours,
-    total: details.total,
-    hourly: details.hourly,
-    deposit: details.deposit,
-    balance: details.balance,
-    balanceDueDate: details.balanceDueDate,
-    lateFeePercent: details.lateFeePercent,
-    window: details.window,
-    clientName: clientName ?? undefined,
-    partnerName: details.partner,
-    galleryWindow: details.window,
-    clientEmail: clientEmail ?? undefined,
-    clientPhone: details.phone,
-    secondSignerName: details.secondSignerName,
-    secondSignerEmail: details.secondSignerEmail,
-    secondSignerPhone: details.secondSignerPhone,
-    photographerName: brandConfig.ownerName,
-    photographerBusinessName: brandConfig.name,
-  };
+  const values = buildAgreementValues(clientName, clientEmail, details);
 
   const templateId = resolveAgreementTemplateId(details.template);
   const referenceFormatting =

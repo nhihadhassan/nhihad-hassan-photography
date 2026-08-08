@@ -506,6 +506,38 @@ export async function updateAgreementDetails(id: string, details: AgreementDetai
   if (!data) throw new Error("Only an active, unsigned contract can be edited.");
 }
 
+/**
+ * Autosave target for the document-first agreement builder: updates the
+ * client identity columns alongside the details blob in one write, guarded
+ * the same way updateAgreementDetails is so a draft can't be edited after
+ * it's been signed, revoked, or expired.
+ */
+export async function updateAgreementIdentity(
+  id: string,
+  input: { clientName: string | null; clientEmail: string | null; message?: string | null; details: AgreementDetails },
+) {
+  const admin = getServiceRoleSupabaseClient();
+  const now = new Date().toISOString();
+  const { data, error } = await admin
+    .from("agreement_requests")
+    .update({
+      client_name: input.clientName,
+      client_email: input.clientEmail,
+      ...(input.message !== undefined ? { message: input.message } : {}),
+      details: input.details,
+      updated_at: now,
+    })
+    .eq("id", id)
+    .is("signed_at", null)
+    .is("revoked_at", null)
+    .is("expired_at", null)
+    .is("client_submitted_at", null)
+    .select("id")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Only an active, unsigned contract can be edited.");
+}
+
 export async function signAgreement(input: {
   token: string;
   signerName: string;

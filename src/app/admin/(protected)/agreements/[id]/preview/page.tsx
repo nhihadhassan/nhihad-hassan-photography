@@ -186,7 +186,7 @@ export default async function AgreementPreviewPage({
         </div>
       </section>
 
-      <section className="mt-8 border-t border-admin-line pt-6">
+      <section id="send" className="mt-8 scroll-mt-24 border-t border-admin-line pt-6">
         <h2 className="admin-display text-xl text-admin-ink">Send it</h2>
         <div className="mt-3">
           <AgreementSendPanel

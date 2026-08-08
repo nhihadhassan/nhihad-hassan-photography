@@ -1,0 +1,48 @@
+import type { AgreementDetails } from "@/lib/agreements";
+import { brandConfig } from "@/lib/config";
+
+/**
+ * Maps a client identity + AgreementDetails into the flat `{{token}}` lookup
+ * record every contract renderer (signing page, admin preview, PDF, and the
+ * document-first agreement builder) reads from. No "server-only" here since
+ * the builder recomputes this client-side on every keystroke.
+ */
+export function buildAgreementValues(
+  clientName: string | null | undefined,
+  clientEmail: string | null | undefined,
+  details: AgreementDetails,
+): Record<string, string | undefined> {
+  return {
+    ...details,
+    client: clientName ?? undefined,
+    partner: details.partner,
+    effectiveDate: details.effectiveDate,
+    clientAddress: details.clientAddress,
+    email: clientEmail ?? undefined,
+    phone: details.phone,
+    type: details.type,
+    description: details.description ?? details.type,
+    date: details.date,
+    location: details.location,
+    city: details.city,
+    cancellationNoticeDays: details.cancellationNoticeDays,
+    mealHours: details.mealHours,
+    total: details.total,
+    hourly: details.hourly,
+    deposit: details.deposit,
+    balance: details.balance,
+    balanceDueDate: details.balanceDueDate,
+    lateFeePercent: details.lateFeePercent,
+    window: details.window,
+    clientName: clientName ?? undefined,
+    partnerName: details.partner,
+    galleryWindow: details.window,
+    clientEmail: clientEmail ?? undefined,
+    clientPhone: details.phone,
+    secondSignerName: details.secondSignerName,
+    secondSignerEmail: details.secondSignerEmail,
+    secondSignerPhone: details.secondSignerPhone,
+    photographerName: brandConfig.ownerName,
+    photographerBusinessName: brandConfig.name,
+  };
+}

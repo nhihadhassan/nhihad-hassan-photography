@@ -1,5 +1,4 @@
 import { requireAdmin } from "@/lib/auth";
-import { getAdminGalleries } from "@/lib/admin-data";
 import { getAdminAgreementRequests } from "@/lib/agreements";
 import { getClientList } from "@/lib/clients";
 import { getPricing } from "@/lib/pricing";
@@ -13,8 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminAgreementsPage() {
   await requireAdmin();
 
-  const [galleries, requests, clients, pricing, contractTemplates] = await Promise.all([
-    getAdminGalleries(),
+  const [requests, clients, pricing, contractTemplates] = await Promise.all([
     getAdminAgreementRequests(),
     getClientList(),
     getPricing(),
@@ -63,10 +61,9 @@ export default async function AdminAgreementsPage() {
       </div>
 
       <div className="mt-10 border-t border-admin-line pt-8">
-        <h2 className="admin-display text-xl text-admin-ink">Send to sign</h2>
+        <h2 className="admin-display text-xl text-admin-ink">New agreement</h2>
         <div className="mt-4">
           <AgreementAdmin
-            galleries={galleries}
             requests={requests}
             clients={onboardedClients}
             pricing={pricing}

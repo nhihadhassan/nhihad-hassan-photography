@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Mail, Phone } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getClientByKey, type ClientProfile } from "@/lib/clients";
 import { DEPOSIT_STATUS_LABELS } from "@/lib/payment-constants";
 import { formatCompactDate, formatMoney } from "@/lib/utils";
+import { ClientProfileEditor } from "@/components/client-profile-editor";
 
 export const dynamic = "force-dynamic";
 
@@ -79,20 +80,14 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
 
       <div className="mt-5">
         <h1 className="text-3xl font-semibold tracking-tight">{profile.name}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-admin-ink/65">
-          {profile.email ? (
-            <a href={`mailto:${profile.email}`} className="inline-flex items-center gap-1.5 hover:text-admin-accent">
-              <Mail className="size-3.5" aria-hidden="true" />
-              {profile.email}
-            </a>
-          ) : null}
-          {profile.phone ? (
-            <a href={`tel:${profile.phone}`} className="inline-flex items-center gap-1.5 hover:text-admin-accent">
-              <Phone className="size-3.5" aria-hidden="true" />
-              {profile.phone}
-            </a>
-          ) : null}
-        </div>
+        <ClientProfileEditor
+          clientKey={profile.key}
+          name={profile.name}
+          email={profile.email}
+          phone={profile.phone}
+          address={profile.address}
+          notes={profile.notes}
+        />
       </div>
 
       {/* At a glance */}

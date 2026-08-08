@@ -15,13 +15,22 @@ export type InvoiceRow = {
   dueIso: string | null;
   invoiceUrl: string;
   hasEmail: boolean;
-  sent: boolean;
+  sentAt: string | null;
+  viewedAt: string | null;
+  cancelledAt: string | null;
   deliveryStatus: string | null;
   deliveryAt: string | null;
 };
 
 function statusOf(r: InvoiceRow): StatusKey {
-  return statusForInvoice({ total: r.total, paid: r.paid, dueAt: r.dueIso, sent: r.sent });
+  return statusForInvoice({
+    total: r.total,
+    paid: r.paid,
+    dueAt: r.dueIso,
+    sentAt: r.sentAt,
+    viewedAt: r.viewedAt,
+    cancelledAt: r.cancelledAt,
+  });
 }
 
 function deliveryLabel(r: InvoiceRow) {
@@ -54,9 +63,11 @@ export function InvoicesTable({ rows }: { rows: InvoiceRow[] }) {
   ];
 
   const tabs: FilterTab<InvoiceRow>[] = [
-    { key: "open", label: "Open", predicate: (r) => r.balance > 0.5 },
+    { key: "open", label: "Open", predicate: (r) => r.balance > 0.5 && statusOf(r) !== "cancelled" },
+    { key: "draft", label: "Draft", predicate: (r) => statusOf(r) === "draft" },
     { key: "overdue", label: "Overdue", predicate: (r) => statusOf(r) === "overdue" },
     { key: "paid", label: "Paid", predicate: (r) => statusOf(r) === "paid" },
+    { key: "cancelled", label: "Cancelled", predicate: (r) => statusOf(r) === "cancelled" },
     { key: "all", label: "All", predicate: () => true },
   ];
 
@@ -65,7 +76,7 @@ export function InvoicesTable({ rows }: { rows: InvoiceRow[] }) {
       rows={rows}
       columns={columns}
       getRowId={(r) => r.id}
-      getRowHref={(r) => `/admin/bookings/${r.id}`}
+      getRowHref={(r) => `/admin/invoices/${r.id}/preview`}
       searchText={(r) => r.client}
       searchPlaceholder="Search invoices"
       filterTabs={tabs}
@@ -81,7 +92,7 @@ export function InvoicesTable({ rows }: { rows: InvoiceRow[] }) {
           </a>
           <InvoiceSendButton
             bookingId={r.id}
-            sentBefore={r.sent}
+            sentBefore={Boolean(r.sentAt)}
             disabled={!r.hasEmail}
             compact
           />

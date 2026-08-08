@@ -39,7 +39,7 @@ export function AdminCommandProvider({
       label: "New invoice",
       group: "Create",
       keywords: "add invoice money",
-      href: "/admin/finances",
+      href: "/admin/invoices/new",
     },
     {
       id: "create-client",

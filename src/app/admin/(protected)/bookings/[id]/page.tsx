@@ -154,7 +154,14 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
             {total > 0 ? (
               <div className="space-y-2">
                 <StatusChip
-                  status={statusForInvoice({ total, paid, dueAt: booking.start_at, sent: invoiceSent })}
+                  status={statusForInvoice({
+                    total,
+                    paid,
+                    dueAt: booking.invoice_due_date ?? booking.start_at,
+                    sentAt: booking.invoice_sent_at,
+                    viewedAt: booking.invoice_viewed_at,
+                    cancelledAt: booking.invoice_cancelled_at,
+                  })}
                 />
                 <dl className="space-y-1 text-sm">
                   <Row label="Total" value={formatMoney(total)} />
@@ -173,10 +180,10 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
                 )}
                 <div className="flex flex-wrap items-center gap-2">
                   <Link
-                    href={`/admin/bookings/${booking.id}/invoice`}
+                    href={`/admin/invoices/${booking.id}/edit`}
                     className="text-sm text-admin-accent hover:text-admin-ink"
                   >
-                    Edit items
+                    Edit invoice
                   </Link>
                   <a
                     href={`/invoice/${booking.token}`}
@@ -198,7 +205,7 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
               <div className="space-y-2">
                 <p className="text-sm text-admin-muted">No amount set.</p>
                 <Link
-                  href={`/admin/bookings/${booking.id}/invoice`}
+                  href={`/admin/invoices/${booking.id}/edit`}
                   className="text-sm text-admin-accent hover:text-admin-ink"
                 >
                   Build the invoice
@@ -269,10 +276,10 @@ function suggestNextAction({
   const now = Date.now();
   if (!agreement || !agreement.sent_at) return { label: "Send contract", href: "/admin/agreements" };
   if (!signed && !agreement.revoked_at) return { label: "Nudge the contract", href: "/admin/agreements" };
-  if (signed && balance > 0.5 && !invoiceSent) return { label: "Send invoice", href: "/admin/finances" };
-  if (signed && paid <= 0) return { label: "Record deposit", href: "/admin/finances" };
+  if (signed && balance > 0.5 && !invoiceSent) return { label: "Send invoice", href: `/admin/invoices/${booking.id}/edit` };
+  if (signed && paid <= 0) return { label: "Record deposit", href: `/admin/invoices/${booking.id}/preview` };
   if (balance > 0.5 && startMs && startMs <= now + 7 * 24 * 60 * 60 * 1000)
-    return { label: "Send balance reminder", href: "/admin/finances" };
+    return { label: "Send balance reminder", href: `/admin/invoices/${booking.id}/preview` };
   if (!gallery?.is_published && booking.stage !== "inquiry")
     return {
       label: "Deliver gallery",

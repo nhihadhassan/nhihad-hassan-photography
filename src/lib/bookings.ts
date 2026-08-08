@@ -31,8 +31,35 @@ export type Booking = {
   invoice_po_number: string | null;
   /** Notes / terms printed at the foot of the invoice. */
   invoice_notes: string | null;
+  invoice_tax_rate: string | null;
+  invoice_payment_instructions: string | null;
+  /** First time this invoice was emailed. Null while still a draft. */
+  invoice_sent_at: string | null;
+  /** First time the client opened the invoice link. */
+  invoice_viewed_at: string | null;
+  invoice_cancelled_at: string | null;
+  /** Frozen invoice content as of the first send -- see getInvoiceView(). */
+  invoice_snapshot: InvoiceSnapshot | null;
   created_at: string;
   updated_at: string;
+};
+
+/** Content frozen into bookings.invoice_snapshot the first time an invoice is sent. */
+export type InvoiceSnapshot = {
+  items: { id: string; description: string; quantity: number; unitPrice: number }[];
+  subtotal: number;
+  discount: number;
+  taxRate: number;
+  dueDate: string | null;
+  poNumber: string | null;
+  notes: string | null;
+  paymentInstructions: string;
+  clientName: string;
+  clientEmail: string | null;
+  shootType: string;
+  shootDate: string | null;
+  location: string | null;
+  invoiceNumber: string;
 };
 
 export type BookingLinks = {
@@ -86,6 +113,12 @@ function mapBooking(row: Record<string, unknown>): BookingWithLinks {
     invoice_due_date: (row.invoice_due_date as string | null) ?? null,
     invoice_po_number: (row.invoice_po_number as string | null) ?? null,
     invoice_notes: (row.invoice_notes as string | null) ?? null,
+    invoice_tax_rate: (row.invoice_tax_rate as string | null) ?? null,
+    invoice_payment_instructions: (row.invoice_payment_instructions as string | null) ?? null,
+    invoice_sent_at: (row.invoice_sent_at as string | null) ?? null,
+    invoice_viewed_at: (row.invoice_viewed_at as string | null) ?? null,
+    invoice_cancelled_at: (row.invoice_cancelled_at as string | null) ?? null,
+    invoice_snapshot: (row.invoice_snapshot as InvoiceSnapshot | null) ?? null,
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
     gallery: gallery

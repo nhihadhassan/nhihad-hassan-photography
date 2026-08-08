@@ -12,6 +12,7 @@ import {
   LayoutTemplate,
   MessageSquareText,
   Newspaper,
+  PiggyBank,
   Receipt,
   Settings,
   Shield,
@@ -34,12 +35,15 @@ export type AdminNavGroup = {
 
 /**
  * The admin information architecture. The primary group is the spec's sidebar
- * order (Today, Pipeline, Schedule, Clients, Invoices, Contracts, Settings).
- * Schedule merges the old Calendar and Bookings pages: a live view of the
- * NHP Bookings Google Calendar alongside the bookings used for invoicing and
- * stage tracking. Everything else that used to live in the flat nav is
- * folded into Content and Automations groups so the primary rail stays about
- * running the business. This same structure feeds the command palette.
+ * order (Today, Pipeline, Schedule, Clients, Invoices, Finances, Contracts,
+ * Settings). Schedule merges the old Calendar and Bookings pages: a live view
+ * of the NHP Bookings Google Calendar alongside the bookings used for
+ * invoicing and stage tracking. Invoices is the create/send/track surface for
+ * a single invoice; Finances is the payments/expenses ledger and CSV export,
+ * business-wide rather than per-invoice. Everything else that used to live in
+ * the flat nav is folded into Content and Automations groups so the primary
+ * rail stays about running the business. This same structure feeds the
+ * command palette.
  */
 export const adminNavGroups: AdminNavGroup[] = [
   {
@@ -49,7 +53,8 @@ export const adminNavGroups: AdminNavGroup[] = [
       { href: "/admin/pipeline", label: "Pipeline", icon: Workflow },
       { href: "/admin/schedule", label: "Schedule", icon: CalendarDays },
       { href: "/admin/clients", label: "Clients", icon: Users },
-      { href: "/admin/finances", label: "Invoices", icon: Receipt },
+      { href: "/admin/invoices", label: "Invoices", icon: Receipt },
+      { href: "/admin/finances", label: "Finances", icon: PiggyBank },
       { href: "/admin/agreements", label: "Contracts", icon: FileSignature },
       { href: "/admin/settings", label: "Settings", icon: Settings },
     ],

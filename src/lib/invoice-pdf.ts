@@ -15,6 +15,7 @@ export type InvoicePdfData = {
   dueDate?: string | null;
   poNumber?: string | null;
   notes?: string | null;
+  paymentInstructions?: string | null;
   clientName: string;
   clientEmail: string | null;
   shootType: string;
@@ -24,6 +25,8 @@ export type InvoicePdfData = {
   lines?: InvoicePdfLine[];
   subtotal?: number;
   discount?: number;
+  taxRate?: number;
+  tax?: number;
   total: number;
   deposit: number;
   paid: number;
@@ -221,11 +224,17 @@ export async function buildInvoicePdf(data: InvoicePdfData): Promise<Uint8Array>
   // ── Summary ───────────────────────────────────────────────────────────────
   const subtotal = data.subtotal ?? data.total;
   const discount = data.discount ?? 0;
+  const tax = data.tax ?? 0;
   const summaryRows: { label: string; value: string; strong?: boolean }[] = [
     { label: "Subtotal", value: formatMoney(subtotal) },
   ];
   if (discount > 0.005) {
     summaryRows.push({ label: "Discount", value: `-${formatMoney(discount)}` });
+  }
+  if (tax > 0.005) {
+    summaryRows.push({ label: `Tax${data.taxRate ? ` (${data.taxRate}%)` : ""}`, value: formatMoney(tax) });
+  }
+  if (discount > 0.005 || tax > 0.005) {
     summaryRows.push({ label: "Total", value: formatMoney(data.total) });
   }
   if (data.paid > 0.005) {
@@ -273,19 +282,15 @@ export async function buildInvoicePdf(data: InvoicePdfData): Promise<Uint8Array>
     font: bold,
     color: COPPER,
   });
+  const instructions = data.paymentInstructions?.trim() || `Please send ${formatMoney(data.balance)} by Interac e-Transfer to ${brandConfig.contactEmail}.`;
   page.drawText(
-    settled
-      ? "Thank you. This invoice has been paid in full."
-      : `Please send ${formatMoney(data.balance)} by Interac e-Transfer to:`,
+    settled ? "Thank you. This invoice has been paid in full." : "Balance due:",
     { x: MARGIN + 18, y: y - 49, size: 10, font: regular, color: INK },
   );
   if (!settled) {
-    page.drawText(brandConfig.contactEmail, {
-      x: MARGIN + 18,
-      y: y - 69,
-      size: 10,
-      font: bold,
-      color: INK,
+    const wrapped = wrapText(instructions, regular, 9.5, PAGE_WIDTH - MARGIN * 2 - 36);
+    wrapped.slice(0, 2).forEach((line, index) => {
+      page.drawText(line, { x: MARGIN + 18, y: y - 69 - index * 13, size: 9.5, font: regular, color: MUTED });
     });
   }
   y -= boxHeight + 26;

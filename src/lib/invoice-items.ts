@@ -98,6 +98,9 @@ export type InvoiceTotals = {
   /** Sum of line item amounts, or the legacy booking total when un-itemised. */
   subtotal: number;
   discount: number;
+  /** Percent, e.g. 13 for 13%. Applied to (subtotal - discount). */
+  taxRate: number;
+  tax: number;
   total: number;
   deposit: number;
   paid: number;
@@ -122,6 +125,8 @@ export function computeInvoiceTotals(input: {
   fallbackTotal: string | null;
   deposit: string | null;
   discount: string | number | null;
+  /** Percent, e.g. 13 for 13%. Only applies to itemised invoices. */
+  taxRate?: string | number | null;
   paid: number;
 }): InvoiceTotals {
   const itemised = input.items.length > 0;
@@ -135,7 +140,10 @@ export function computeInvoiceTotals(input: {
   const rawDiscount = itemised ? Math.max(0, Number(input.discount) || 0) : 0;
   const discount = money(Math.min(rawDiscount, subtotal));
 
-  const total = money(Math.max(0, subtotal - discount));
+  const taxRate = itemised ? Math.max(0, Math.min(100, Number(input.taxRate) || 0)) : 0;
+  const tax = money(Math.max(0, subtotal - discount) * (taxRate / 100));
+
+  const total = money(Math.max(0, subtotal - discount + tax));
   const deposit = Math.max(0, parseAmount(input.deposit) ?? 0);
   const paid = Math.max(0, input.paid);
   const balance = money(Math.max(0, total - paid));
@@ -144,6 +152,8 @@ export function computeInvoiceTotals(input: {
     items: input.items,
     subtotal,
     discount,
+    taxRate,
+    tax,
     total,
     deposit,
     paid,

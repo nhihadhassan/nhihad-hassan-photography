@@ -8,6 +8,7 @@ import {
   revokeAgreementRequest,
   updateAgreementAutomationSettings,
   updateAgreementDetails,
+  updateAgreementIdentity,
   type AgreementDetails,
 } from "@/lib/agreements";
 import { isAgreementPastExpiry } from "@/lib/agreement-status";
@@ -17,18 +18,6 @@ import { agreementSignUrl } from "@/lib/agreement-url";
 import { torontoLocalToUtc } from "@/lib/ics";
 import { isWeddingAgreementType } from "@/data/wedding-agreement";
 
-export type AgreementActionState = {
-  status: "idle" | "success" | "error";
-  message: string;
-  signUrl?: string;
-  requestId?: string;
-};
-
-const clean = (value: FormDataEntryValue | null) => {
-  const text = typeof value === "string" ? value.trim() : "";
-  return text || null;
-};
-
 const todayInToronto = () =>
   new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Toronto",
@@ -36,60 +25,6 @@ const todayInToronto = () =>
     month: "2-digit",
     day: "2-digit",
   }).format(new Date());
-
-function detailsFromForm(formData: FormData): AgreementDetails {
-  const pick = (k: string) => clean(formData.get(k)) ?? undefined;
-  return {
-    feeStructureVersion: "section-2",
-    presentationVersion: "reference-v2",
-    template: pick("template"),
-    partner: pick("partner"),
-    signerName: pick("signerName"),
-    signerTitle: pick("signerTitle"),
-    secondSignerName: pick("secondSignerName"),
-    secondSignerEmail: pick("secondSignerEmail"),
-    secondSignerPhone: pick("secondSignerPhone"),
-    effectiveDate: pick("effectiveDate"),
-    clientAddress: pick("clientAddress"),
-    phone: pick("phone"),
-    type: pick("type"),
-    description: pick("description"),
-    date: pick("date"),
-    startTime: pick("startTime"),
-    coverageTime: pick("coverageTime"),
-    location: pick("location"),
-    secondLocation: pick("secondLocation"),
-    onsiteContactName: pick("onsiteContactName"),
-    onsiteContactPhone: pick("onsiteContactPhone"),
-    secondShooter: pick("secondShooter"),
-    minimumEditedImages: pick("minimumEditedImages"),
-    turnaroundBusinessDays: pick("turnaroundBusinessDays"),
-    specialRequests: pick("specialRequests"),
-    city: pick("city"),
-    cancellationNoticeDays: pick("cancellationNoticeDays"),
-    mealHours: pick("mealHours"),
-    total: pick("total"),
-    hourly: pick("hourly"),
-    deposit: pick("deposit"),
-    balance: pick("balance"),
-    balanceDueDate: pick("balanceDueDate"),
-    lateFeePercent: pick("lateFeePercent"),
-    window: pick("window"),
-    rehostingFee: pick("rehostingFee"),
-    revisionPolicy: pick("revisionPolicy"),
-    archiveWindow: pick("archiveWindow"),
-    cancellationPolicy: pick("cancellationPolicy"),
-    reschedulePolicy: pick("reschedulePolicy"),
-    additionalCharges: pick("additionalCharges"),
-    licenseType: pick("licenseType"),
-    privacyOptOutFee: pick("privacyOptOutFee"),
-  };
-}
-
-function integerSetting(formData: FormData, key: string, fallback: number, min: number, max: number) {
-  const value = Number(clean(formData.get(key)));
-  return Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : fallback;
-}
 
 async function emailAgreementSigners(input: {
   agreementRequestId: string;
@@ -128,77 +63,81 @@ async function emailAgreementSigners(input: {
   };
 }
 
-export async function createAgreementRequestAction(
-  _prev: AgreementActionState,
-  formData: FormData,
-): Promise<AgreementActionState> {
+/**
+ * Step one of the document-first agreement flow: create a minimal draft
+ * request (client + template + optional starting package) and hand back its
+ * id so the caller can route straight into the document editor. No pricing,
+ * dates, or policy text is required here — everything else is filled in
+ * directly on the rendered contract.
+ */
+export async function createDraftAgreementAction(input: {
+  galleryId?: string | null;
+  clientName: string;
+  clientEmail?: string | null;
+  template: string;
+  type?: string | null;
+  total?: string | null;
+}): Promise<{ ok: boolean; message: string; id?: string }> {
   await requireAdmin();
   try {
-    const clientName = clean(formData.get("client_name"));
-    const clientEmail = clean(formData.get("client_email"));
-    const emailNow = formData.get("mark_sent") === "on";
-    const remindersEnabled = formData.get("reminders_enabled") === "on";
-    const expiryInput = clean(formData.get("expires_at"));
-    const details = detailsFromForm(formData);
-    const expiryDate = expiryInput ? torontoLocalToUtc(expiryInput) : null;
-    if (expiryInput && (!expiryDate || expiryDate.getTime() <= Date.now())) {
-      return {
-        status: "error",
-        message: "Choose an expiry date and time in the future.",
-      };
+    if (!input.clientName.trim()) {
+      return { ok: false, message: "Enter a client name." };
     }
-    const { id, token } = await createAgreementRequest({
-      galleryId: clean(formData.get("gallery_id")),
-      clientName,
-      clientEmail,
-      message: clean(formData.get("message")),
-      details,
-      expiresAt: expiryDate?.toISOString() ?? null,
-      remindersEnabled,
-      reminderIntervalDays: integerSetting(formData, "reminder_interval_days", 3, 1, 30),
-      reminderMaxSends: integerSetting(formData, "reminder_max_sends", 3, 1, 10),
+    const { id } = await createAgreementRequest({
+      galleryId: input.galleryId ?? null,
+      clientName: input.clientName.trim(),
+      clientEmail: input.clientEmail?.trim() || null,
+      details: {
+        feeStructureVersion: "section-2",
+        presentationVersion: "reference-v2",
+        template: input.template,
+        effectiveDate: todayInToronto(),
+        type: input.type?.trim() || undefined,
+        description: input.type?.trim() || undefined,
+        total: input.total?.trim() || undefined,
+        city: "Toronto",
+        window: "1 year from delivery",
+        licenseType: "Personal use only",
+        secondShooter: "No",
+        lateFeePercent: "2",
+      },
     });
-    const signUrl = agreementSignUrl(token);
-
-    if (emailNow) {
-      if (!clientEmail) {
-        revalidatePath("/admin/agreements");
-        return {
-          status: "error",
-          message: "Signing link created, but no email was sent because the client email is missing.",
-          signUrl,
-          requestId: id,
-        };
-      }
-      const delivery = await emailAgreementSigners({
-        agreementRequestId: id,
-        agreementUrl: signUrl,
-        expiresAt: expiryDate?.toISOString() ?? null,
-        primaryName: clientName,
-        primaryEmail: clientEmail,
-        secondName: details.secondSignerName,
-        secondEmail: details.secondSignerEmail,
-      });
-      revalidatePath("/admin/agreements");
-      return {
-        status: delivery.ok ? "success" : "error",
-        message: delivery.message,
-        signUrl,
-        requestId: id,
-      };
-    }
-
     revalidatePath("/admin/agreements");
-    return {
-      status: "success",
-      message: "Signing link created as a draft. Preview it below, then send when it looks right.",
-      signUrl,
-      requestId: id,
-    };
+    return { ok: true, message: "Draft created.", id };
   } catch (error) {
     return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Could not create signing link.",
+      ok: false,
+      message: error instanceof Error ? error.message : "Could not create the agreement.",
+    };
+  }
+}
+
+export type SaveAgreementDraftInput = {
+  clientName: string;
+  clientEmail: string | null;
+  message?: string | null;
+  details: AgreementDetails;
+};
+
+/** Debounced autosave target for the document-first agreement builder. */
+export async function saveAgreementDraftAction(
+  id: string,
+  input: SaveAgreementDraftInput,
+): Promise<{ ok: boolean; message: string }> {
+  await requireAdmin();
+  try {
+    await updateAgreementIdentity(id, {
+      clientName: input.clientName.trim() || null,
+      clientEmail: input.clientEmail?.trim() || null,
+      message: input.message !== undefined ? input.message?.trim() || null : undefined,
+      details: input.details,
+    });
+    revalidatePath("/admin/agreements");
+    return { ok: true, message: "Saved." };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Couldn't save.",
     };
   }
 }

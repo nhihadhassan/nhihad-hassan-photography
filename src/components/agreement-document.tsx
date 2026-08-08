@@ -2,6 +2,7 @@ import { Fragment, type ReactNode } from "react";
 import { Reveal } from "@/components/reveal";
 import { brandConfig } from "@/lib/config";
 import type { AgreementSection } from "@/data/booking-agreement";
+import { AGREEMENT_INTRO_LEAD, parseRichText, splitClauseLead } from "@/lib/rich-text-tokens";
 
 export type DetailRow = { param: string; label: string; value: string | null };
 
@@ -70,25 +71,23 @@ function RichText({ text, values, underlineVariables = false }: {
   values: Record<string, string | undefined>;
   underlineVariables?: boolean;
 }) {
-  const tokenPattern = /(\{\{[A-Za-z]+\}\}|“[^”]+”)/g;
   return (
     <>
-      {text.split(tokenPattern).filter(Boolean).map((part, index) => {
-        const variable = part.match(/^\{\{([A-Za-z]+)\}\}$/)?.[1];
-        if (variable) {
+      {parseRichText(text).map((token, index) => {
+        if (token.type === "variable") {
           return (
             <VariableValue
-              key={`${variable}-${index}`}
-              value={formatVariableValue(variable, values[variable])}
-              label={VARIABLE_LABELS[variable] ?? variable}
+              key={`${token.key}-${index}`}
+              value={formatVariableValue(token.key, values[token.key])}
+              label={VARIABLE_LABELS[token.key] ?? token.key}
               underlined={underlineVariables}
             />
           );
         }
-        if (/^“[^”]+”$/.test(part)) {
-          return <strong key={`${part}-${index}`} className="font-bold text-ink">{part}</strong>;
+        if (token.type === "quoted") {
+          return <strong key={`${token.value}-${index}`} className="font-bold text-ink">{token.value}</strong>;
         }
-        return <Fragment key={index}>{part}</Fragment>;
+        return <Fragment key={index}>{token.value}</Fragment>;
       })}
     </>
   );
@@ -99,14 +98,14 @@ function Clause({ children, values, referenceFormatting }: {
   values: Record<string, string | undefined>;
   referenceFormatting: boolean;
 }) {
-  const match = children.match(/^(\d+\.\d+\s+[^.]+\.)(?:\s+|$)([\s\S]*)$/);
+  const { lead, rest } = splitClauseLead(children);
 
-  if (!match) return referenceFormatting ? <RichText text={children} values={values} /> : <>{children}</>;
+  if (!lead) return referenceFormatting ? <RichText text={children} values={values} /> : <>{children}</>;
 
   return (
     <>
-      <span className="font-semibold text-ink/90">{match[1]}</span>
-      {match[2] ? <> {referenceFormatting ? <RichText text={match[2]} values={values} /> : match[2]}</> : null}
+      <span className="font-semibold text-ink/90">{lead}</span>
+      {rest ? <> {referenceFormatting ? <RichText text={rest} values={values} /> : rest}</> : null}
     </>
   );
 }
@@ -116,13 +115,12 @@ function AgreementIntro({ children, values, referenceFormatting }: {
   values: Record<string, string | undefined>;
   referenceFormatting: boolean;
 }) {
-  const lead = "THIS AGREEMENT";
-  if (!referenceFormatting || !children.startsWith(lead)) return <>{children}</>;
+  if (!referenceFormatting || !children.startsWith(AGREEMENT_INTRO_LEAD)) return <>{children}</>;
 
   return (
     <>
-      <strong className="font-bold text-ink">{lead}</strong>
-      <RichText text={children.slice(lead.length)} values={values} underlineVariables />
+      <strong className="font-bold text-ink">{AGREEMENT_INTRO_LEAD}</strong>
+      <RichText text={children.slice(AGREEMENT_INTRO_LEAD.length)} values={values} underlineVariables />
     </>
   );
 }

@@ -46,3 +46,15 @@ export function buildAgreementValues(
     photographerBusinessName: brandConfig.name,
   };
 }
+
+/**
+ * Contact fields the contract text references ({{clientPhone}}, {{clientAddress}})
+ * that the photographer left blank when drafting this agreement, so the
+ * agreement email can ask the client to supply them before signing.
+ */
+export function missingContactFields(details: AgreementDetails): string[] {
+  const missing: string[] = [];
+  if (!details.phone?.trim()) missing.push("phone number");
+  if (!details.clientAddress?.trim()) missing.push("mailing address");
+  return missing;
+}

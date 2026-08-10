@@ -203,6 +203,8 @@ export function buildAgreementEmail(input: {
   clientName: string | null;
   agreementUrl: string;
   expiresAt?: string | null;
+  /** Contact fields left blank on the contract (e.g. "phone number", "mailing address"). */
+  missingFields?: string[];
 }): AgreementEmailContent {
   const first = input.clientName?.trim().split(/\s+/)[0];
   const greeting = first ? `Hi ${escapeHtml(first)},` : "Hello,";
@@ -213,15 +215,28 @@ export function buildAgreementEmail(input: {
   const expiryText = expiry
     ? `\n\nPlease sign by ${expiry}. After that time, the agreement will close automatically.`
     : "";
+  const missingFields = (input.missingFields ?? []).filter(Boolean);
+  const missingList = missingFields.length
+    ? missingFields.length > 1
+      ? `${missingFields.slice(0, -1).join(", ")} and ${missingFields[missingFields.length - 1]}`
+      : missingFields[0]
+    : "";
+  const missingHtml = missingFields.length
+    ? `<p style="margin:0 0 14px 0;">Before you sign, could you also reply to this email with your <strong>${escapeHtml(missingList)}</strong>? A few spots on the contract are still blank without ${missingFields.length > 1 ? "them" : "it"}.</p>`
+    : "";
+  const missingText = missingFields.length
+    ? `\n\nBefore you sign, could you also reply to this email with your ${missingList}? A few spots on the contract are still blank without ${missingFields.length > 1 ? "them" : "it"}.`
+    : "";
   const bodyHtml = `
     <p style="margin:0 0 14px 0;">${greeting}</p>
     <p style="margin:0 0 14px 0;">Your photography agreement with ${escapeHtml(brandConfig.name)} is ready to review and sign.</p>
     ${expiryHtml}
+    ${missingHtml}
     <p style="margin:0;">Please read the agreement carefully, confirm the booking details, and use the signature form at the bottom when you are ready.</p>
     ${fallbackLinkHtml(input.agreementUrl)}`;
   return {
     subject: `Your photography agreement · ${brandConfig.name}`,
-    text: `${first ? `Hi ${first},` : "Hello,"}\n\nYour photography agreement with ${brandConfig.name} is ready to review and sign.${expiryText}\n\n${input.agreementUrl}\n\nPlease read the agreement carefully and confirm the booking details before signing.`,
+    text: `${first ? `Hi ${first},` : "Hello,"}\n\nYour photography agreement with ${brandConfig.name} is ready to review and sign.${expiryText}${missingText}\n\n${input.agreementUrl}\n\nPlease read the agreement carefully and confirm the booking details before signing.`,
     html: emailShell({
       eyebrow: "Photography agreement",
       heading: "Your agreement is ready.",
@@ -238,6 +253,7 @@ export async function sendAgreementEmail(input: {
   agreementUrl: string;
   idempotencyKey: string;
   expiresAt?: string | null;
+  missingFields?: string[];
 }): Promise<SendResult> {
   const content = buildAgreementEmail(input);
   return sendMail({

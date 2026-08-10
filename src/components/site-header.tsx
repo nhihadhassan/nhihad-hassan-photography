@@ -25,7 +25,7 @@ export function SiteHeader({ tone = "dark" }: SiteHeaderProps) {
   const navGroupClass = `hidden items-center gap-7 text-xs uppercase tracking-[0.18em] md:flex ${
     isLight ? "text-ink" : "text-soft-white"
   }`;
-  const brandClass = `col-start-2 min-w-0 justify-self-center whitespace-nowrap text-center font-serif uppercase tracking-normal transition text-[clamp(1.05rem,5.5vw,2.8rem)] ${
+  const brandClass = `col-start-2 min-w-0 max-w-[62vw] justify-self-center text-center font-serif uppercase leading-tight tracking-normal transition text-[clamp(0.72rem,4vw,2.8rem)] sm:max-w-none sm:whitespace-nowrap sm:text-[clamp(1.05rem,5.5vw,2.8rem)] ${
     isLight ? "text-ink hover:text-ink/70" : "text-soft-white hover:text-soft-white/80"
   }`;
 

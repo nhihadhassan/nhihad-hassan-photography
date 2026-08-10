@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 
@@ -18,6 +18,7 @@ type MobileNavProps = {
 export function MobileNav({ items, tone = "dark" }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const reduceMotion = useReducedMotion();
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -49,7 +50,7 @@ export function MobileNav({ items, tone = "dark" }: MobileNavProps) {
         aria-label="Open menu"
         aria-expanded={open}
         aria-controls="mobile-nav-overlay"
-        className={`inline-flex size-10 items-center justify-center rounded-full border backdrop-blur transition md:hidden ${
+        className={`inline-flex size-11 items-center justify-center rounded-full border backdrop-blur transition md:hidden ${
           tone === "light"
             ? "border-ink/25 bg-soft-white/60 text-ink hover:border-ink/45"
             : "border-soft-white/20 bg-ink/35 text-soft-white hover:border-soft-white/40"
@@ -66,9 +67,9 @@ export function MobileNav({ items, tone = "dark" }: MobileNavProps) {
             role="dialog"
             aria-modal="true"
             aria-label="Site navigation"
-            initial={{ opacity: 0 }}
+            initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={reduceMotion ? undefined : { opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="fixed inset-0 z-50 bg-ink/96 backdrop-blur-md md:hidden"
           >
@@ -78,16 +79,16 @@ export function MobileNav({ items, tone = "dark" }: MobileNavProps) {
                   type="button"
                   onClick={close}
                   aria-label="Close menu"
-                  className="inline-flex size-10 items-center justify-center rounded-full border border-soft-white/20 bg-ink/35 text-soft-white backdrop-blur transition hover:border-soft-white/40"
+                  className="inline-flex size-11 items-center justify-center rounded-full border border-soft-white/20 bg-ink/35 text-soft-white backdrop-blur transition hover:border-soft-white/40"
                 >
                   <X className="size-4" aria-hidden="true" strokeWidth={1.7} />
                 </button>
               </div>
 
               <motion.nav
-                initial={{ opacity: 0, y: 16 }}
+                initial={reduceMotion ? false : { opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 16 }}
+                exit={reduceMotion ? undefined : { opacity: 0, y: 16 }}
                 transition={{ duration: 0.28, ease: "easeOut", delay: 0.04 }}
                 className="mt-12 flex flex-1 flex-col justify-center"
               >

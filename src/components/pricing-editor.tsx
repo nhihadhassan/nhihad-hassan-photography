@@ -66,7 +66,7 @@ function toPayload(cats: Category[]) {
 }
 
 function iconBtn(extra = "") {
-  return `rounded p-1.5 text-admin-ink/65 transition hover:bg-admin-ink/6 disabled:opacity-30 ${extra}`;
+  return `rounded-md p-2.5 text-admin-ink/65 transition hover:bg-admin-ink/6 disabled:opacity-30 ${extra}`;
 }
 
 function move<T>(arr: T[], i: number, dir: "up" | "down"): T[] {

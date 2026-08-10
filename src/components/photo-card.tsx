@@ -31,6 +31,7 @@ export function PhotoCard({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const meta = [item.date ? formatDisplayDate(item.date) : null, item.location]
     .filter(Boolean)
     .join(" · ");
@@ -45,6 +46,7 @@ export function PhotoCard({
       <div
         className={cn(
           "relative overflow-hidden rounded-[2px] bg-soft-white/8",
+          !loaded && "animate-pulse",
           aspectClasses[item.orientation],
         )}
       >
@@ -54,7 +56,11 @@ export function PhotoCard({
           fill
           priority={priority}
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="object-cover transition duration-700 ease-out group-hover:scale-[1.035]"
+          className={cn(
+            "object-cover transition duration-700 ease-out group-hover:scale-[1.035]",
+            loaded ? "opacity-100" : "opacity-0",
+          )}
+          onLoad={() => setLoaded(true)}
           unoptimized
         />
 

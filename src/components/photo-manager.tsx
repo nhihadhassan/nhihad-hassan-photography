@@ -581,7 +581,7 @@ export function PhotoManager({
             </h2>
             <div className="flex flex-wrap items-center gap-2">
               {/* Sort dropdown */}
-              <div className="flex items-center gap-1.5 rounded-md border border-admin-ink/12 bg-white/60 px-2 py-1">
+              <div className="flex items-center gap-1.5 rounded-md border border-admin-ink/12 bg-white/60 px-2 py-1 transition focus-within:border-admin-copper">
                 <ArrowUpDown className="size-3.5 shrink-0 text-admin-ink/65" aria-hidden="true" />
                 <select
                   value={sortMode}
@@ -757,7 +757,7 @@ export function PhotoManager({
                 : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4")
             }
           >
-            {photoListItems.map(({ photo, isFirst, isLast, isCover }) => {
+            {photoListItems.map(({ photo, isFirst, isLast, isCover }, index) => {
               const aspect = photo.width && photo.height ? photo.width / photo.height : 1;
               return (
                 <li
@@ -794,7 +794,7 @@ export function PhotoManager({
                     {photo.display_url ? (
                       <Image
                         src={photo.thumbnail_url || photo.display_url}
-                        alt={photo.filename}
+                        alt={`Photo ${index + 1} of ${photoListItems.length}`}
                         fill
                         sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
                         className={

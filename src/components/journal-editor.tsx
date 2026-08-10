@@ -443,7 +443,7 @@ export function JournalEditor({ record, coverUrl: initialCoverUrl, portfolioPhot
                     <div className="relative h-20 w-32 shrink-0 overflow-hidden rounded-md bg-admin-ink/8">
                       {coverUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={coverUrl} alt="" className="size-full object-cover" />
+                        <img src={coverUrl} alt="Cover photo preview" className="size-full object-cover" />
                       ) : (
                         <span className="flex size-full items-center justify-center text-admin-ink/30">
                           <ImageIcon className="size-5" aria-hidden="true" />
@@ -667,7 +667,7 @@ function BlockCard({
             type="button"
             onClick={() => onMove(block.id, "up")}
             disabled={first}
-            className="rounded p-1 text-admin-ink/65 hover:bg-admin-ink/6 disabled:opacity-30"
+            className="rounded-md p-2.5 text-admin-ink/65 hover:bg-admin-ink/6 disabled:opacity-30"
             aria-label="Move up"
           >
             <ArrowUp className="size-4" aria-hidden="true" />
@@ -676,7 +676,7 @@ function BlockCard({
             type="button"
             onClick={() => onMove(block.id, "down")}
             disabled={last}
-            className="rounded p-1 text-admin-ink/65 hover:bg-admin-ink/6 disabled:opacity-30"
+            className="rounded-md p-2.5 text-admin-ink/65 hover:bg-admin-ink/6 disabled:opacity-30"
             aria-label="Move down"
           >
             <ArrowDown className="size-4" aria-hidden="true" />
@@ -684,7 +684,7 @@ function BlockCard({
           <button
             type="button"
             onClick={() => onRemove(block.id)}
-            className="rounded p-1 text-admin-danger/80 hover:bg-admin-danger/5"
+            className="rounded-md p-2.5 text-admin-danger/80 hover:bg-admin-danger/5"
             aria-label="Delete block"
           >
             <Trash2 className="size-4" aria-hidden="true" />
@@ -783,6 +783,7 @@ function BlockFields({
             onFile={(f) => onImage(block.id, f)}
             aspect="aspect-[3/2]"
             onPickPortfolio={onPickPortfolio ? () => onPickPortfolio(block.id) : undefined}
+            label={block.alt || "Photo block preview"}
           />
           <input
             value={block.caption ?? ""}
@@ -818,6 +819,7 @@ function BlockFields({
                 aspect="aspect-square"
                 optional={slot === 2}
                 onPickPortfolio={onPickPortfolio ? () => onPickPortfolio(block.id, slot) : undefined}
+                label={block.images[slot]?.alt || `Photo ${slot + 1} of row preview`}
               />
             ))}
           </div>
@@ -850,12 +852,14 @@ function ImageSlot({
   aspect,
   optional,
   onPickPortfolio,
+  label = "Uploaded photo preview",
 }: {
   url: string | null;
   onFile: (file: File | undefined) => void;
   aspect: string;
   optional?: boolean;
   onPickPortfolio?: () => void;
+  label?: string;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -877,7 +881,7 @@ function ImageSlot({
       <button type="button" onClick={() => ref.current?.click()} className="absolute inset-0 transition hover:bg-admin-ink/[0.03]">
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt="" className="size-full object-cover" />
+          <img src={url} alt={label} className="size-full object-cover" />
         ) : (
           <span className="flex size-full flex-col items-center justify-center gap-1 text-admin-ink/65">
             {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Upload className="size-4" aria-hidden="true" />}
@@ -1003,7 +1007,7 @@ function PreviewBlock({ block, accent }: { block: JournalBlock; accent: string }
       const align = block.align === "center" ? "text-center" : "";
       return (
         <p className={`mt-4 leading-[1.8] text-soft-white/75 first:mt-0 ${align}`}>
-          {block.text ? previewInline(block.text) : <span className="text-soft-white/30">Empty paragraph</span>}
+          {block.text ? previewInline(block.text) : <span className="text-soft-white/55">Empty paragraph</span>}
         </p>
       );
     }
@@ -1025,7 +1029,7 @@ function PreviewBlock({ block, accent }: { block: JournalBlock; accent: string }
               // eslint-disable-next-line @next/next/no-img-element
               <img src={block.imageUrl} alt={block.alt ?? ""} className="size-full object-cover" />
             ) : (
-              <span className="flex size-full items-center justify-center text-soft-white/25">No photo yet</span>
+              <span className="flex size-full items-center justify-center text-soft-white/55">No photo yet</span>
             )}
           </div>
           {block.caption ? (
@@ -1045,7 +1049,7 @@ function PreviewBlock({ block, accent }: { block: JournalBlock; accent: string }
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={im.imageUrl} alt={im.alt ?? ""} className="size-full object-cover" />
                 ) : (
-                  <span className="flex size-full items-center justify-center text-[10px] text-soft-white/25">Photo</span>
+                  <span className="flex size-full items-center justify-center text-[10px] text-soft-white/55">Photo</span>
                 )}
               </div>
             ))}
@@ -1058,7 +1062,7 @@ function PreviewBlock({ block, accent }: { block: JournalBlock; accent: string }
     }
     case "list": {
       const items = block.items.filter((i) => i.trim());
-      if (items.length === 0) return <p className="mt-4 text-soft-white/30">Empty list</p>;
+      if (items.length === 0) return <p className="mt-4 text-soft-white/55">Empty list</p>;
       return (
         <ul className="my-5 ml-5 list-disc space-y-1.5 first:mt-0" style={{ color: accent }}>
           {items.map((item, i) => (

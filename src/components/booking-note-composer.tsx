@@ -28,7 +28,7 @@ export function BookingNoteComposer({ bookingId }: { bookingId: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-admin-line bg-admin-surface p-3">
+    <div className="rounded-xl border border-admin-line bg-admin-surface p-3 transition focus-within:border-admin-copper">
       <textarea
         value={note}
         onChange={(e) => setNote(e.target.value)}

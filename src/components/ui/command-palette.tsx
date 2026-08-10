@@ -107,7 +107,7 @@ export function CommandPalette({ items }: { items: CommandItem[] }) {
             setActive(0);
           }}
           placeholder="Search or jump to..."
-          className="w-full border-b border-admin-line bg-transparent px-4 py-3.5 text-sm text-admin-ink outline-none placeholder:text-admin-muted"
+          className="w-full border-b border-admin-line bg-transparent px-4 py-3.5 text-sm text-admin-ink outline-none placeholder:text-admin-muted focus-visible:border-admin-copper"
         />
         <div className="max-h-80 overflow-y-auto py-2">
           {filtered.length === 0 ? (

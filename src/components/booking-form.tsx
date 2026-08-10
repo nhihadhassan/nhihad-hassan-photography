@@ -362,7 +362,7 @@ export function BookingForm({
 
       {state.hubUrl ? (
         <div className="rounded-md border border-admin-ink/10 bg-white/60 p-3">
-          <p className="font-mono text-xs text-admin-ink/65">{state.hubUrl}</p>
+          <p className="break-all font-mono text-xs text-admin-ink/65">{state.hubUrl}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"

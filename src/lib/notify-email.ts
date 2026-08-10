@@ -216,24 +216,20 @@ export function buildAgreementEmail(input: {
     ? `\n\nPlease sign by ${expiry}. After that time, the agreement will close automatically.`
     : "";
   const missingFields = (input.missingFields ?? []).filter(Boolean);
-  const missingList = missingFields.length
-    ? missingFields.length > 1
-      ? `${missingFields.slice(0, -1).join(", ")} and ${missingFields[missingFields.length - 1]}`
-      : missingFields[0]
-    : "";
   const missingHtml = missingFields.length
-    ? `<p style="margin:0 0 14px 0;">Before you sign, could you also reply to this email with your <strong>${escapeHtml(missingList)}</strong>? A few spots on the contract are still blank without ${missingFields.length > 1 ? "them" : "it"}.</p>`
+    ? `<p style="margin:0 0 8px 0;">Please fill out:</p><ul style="margin:0 0 14px 0;padding-left:20px;">${missingFields
+        .map((field) => `<li>Your ${escapeHtml(field)}</li>`)
+        .join("")}</ul>`
     : "";
   const missingText = missingFields.length
-    ? `\n\nBefore you sign, could you also reply to this email with your ${missingList}? A few spots on the contract are still blank without ${missingFields.length > 1 ? "them" : "it"}.`
+    ? `\n\nPlease fill out:\n${missingFields.map((field) => `- Your ${field}`).join("\n")}`
     : "";
   const bodyHtml = `
     <p style="margin:0 0 14px 0;">${greeting}</p>
     <p style="margin:0 0 14px 0;">Your photography agreement with ${escapeHtml(brandConfig.name)} is ready to review and sign.</p>
     ${expiryHtml}
     ${missingHtml}
-    <p style="margin:0;">Please read the agreement carefully, confirm the booking details, and use the signature form at the bottom when you are ready.</p>
-    ${fallbackLinkHtml(input.agreementUrl)}`;
+    <p style="margin:0;">Please read the agreement carefully, confirm the booking details, and use the signature form at the bottom when you are ready.</p>`;
   return {
     subject: `Your photography agreement · ${brandConfig.name}`,
     text: `${first ? `Hi ${first},` : "Hello,"}\n\nYour photography agreement with ${brandConfig.name} is ready to review and sign.${expiryText}${missingText}\n\n${input.agreementUrl}\n\nPlease read the agreement carefully and confirm the booking details before signing.`,

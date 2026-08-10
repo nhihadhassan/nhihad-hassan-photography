@@ -293,7 +293,7 @@ function RequestRow({ request, siteOrigin }: { request: AgreementRequest; siteOr
           <p className="mt-1 text-sm text-admin-ink/65">
             {request.gallery_title ?? "No gallery"} · Created {formatCompactDate(request.created_at)}
           </p>
-          <p className="mt-1 font-mono text-xs text-admin-ink/35">{url}</p>
+          <p className="mt-1 break-all font-mono text-xs text-admin-ink/35">{url}</p>
           <div className="mt-2 flex flex-wrap gap-3 text-xs text-admin-ink/65">
             <span>{deliveryLabel(request)}</span>
             <span>Viewed: {request.viewed_at ? formatCompactDate(request.viewed_at) : "No"}</span>

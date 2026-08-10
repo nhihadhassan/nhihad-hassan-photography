@@ -2,9 +2,30 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { signAgreement } from "@/lib/agreements";
+import { signAgreement, updateAgreementContactDetailsByToken } from "@/lib/agreements";
 
 export type SignState = { status: "idle" | "success" | "error"; message: string };
+
+export type MissingDetailsState = { status: "idle" | "success" | "error"; message: string };
+
+/** Lets a client fill in a missing phone number and/or mailing address before signing. */
+export async function submitMissingDetailsAction(
+  _prev: MissingDetailsState,
+  formData: FormData,
+): Promise<MissingDetailsState> {
+  const token = String(formData.get("token") ?? "");
+  if (!token) return { status: "error", message: "Missing signing token." };
+
+  const patch: { phone?: string; clientAddress?: string } = {};
+  if (formData.has("phone")) patch.phone = String(formData.get("phone") ?? "").trim();
+  if (formData.has("clientAddress")) patch.clientAddress = String(formData.get("clientAddress") ?? "").trim();
+
+  const result = await updateAgreementContactDetailsByToken(token, patch);
+  if (!result.ok) return { status: "error", message: result.message ?? "Couldn't save those details." };
+
+  revalidatePath(`/agreement/${token}`);
+  return { status: "success", message: "Saved." };
+}
 
 export async function submitSignatureAction(
   _prev: SignState,

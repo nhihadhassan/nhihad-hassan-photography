@@ -507,6 +507,43 @@ export async function updateAgreementDetails(id: string, details: AgreementDetai
 }
 
 /**
+ * Lets a client fill in their own missing contact fields directly on the
+ * public signing page (phone, mailing address) instead of replying to the
+ * agreement email. Token-scoped and limited to those two fields so a client
+ * can never edit pricing or policy text; guarded the same way
+ * updateAgreementDetails is so it only applies to an active, unsigned draft.
+ */
+export async function updateAgreementContactDetailsByToken(
+  token: string,
+  patch: { phone?: string; clientAddress?: string },
+): Promise<{ ok: boolean; message?: string }> {
+  const admin = getServiceRoleSupabaseClient();
+  const { data: existing, error: fetchError } = await admin
+    .from("agreement_requests")
+    .select("id,details")
+    .eq("token", token)
+    .is("signed_at", null)
+    .is("revoked_at", null)
+    .is("expired_at", null)
+    .is("client_submitted_at", null)
+    .maybeSingle();
+  if (fetchError) return { ok: false, message: fetchError.message };
+  if (!existing) return { ok: false, message: "This agreement can no longer be edited." };
+
+  const details = (existing.details as AgreementDetails) ?? {};
+  const next: AgreementDetails = { ...details };
+  if (patch.phone !== undefined) next.phone = patch.phone;
+  if (patch.clientAddress !== undefined) next.clientAddress = patch.clientAddress;
+
+  const { error } = await admin
+    .from("agreement_requests")
+    .update({ details: next, updated_at: new Date().toISOString() })
+    .eq("id", existing.id);
+  if (error) return { ok: false, message: error.message };
+  return { ok: true };
+}
+
+/**
  * Autosave target for the document-first agreement builder: updates the
  * client identity columns alongside the details blob in one write, guarded
  * the same way updateAgreementDetails is so a draft can't be edited after

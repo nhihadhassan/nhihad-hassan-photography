@@ -223,7 +223,16 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
-        <EditModeProvider>{children}</EditModeProvider>
+        {/* min-w-0, and deliberately NOT display:flex: without min-w-0, a flex
+            item's cross-axis floor is its content's min-content width, so one
+            unbreakable value anywhere on the page (a long address, an
+            unwrapped URL) silently widens the whole document past the
+            viewport instead of wrapping or scrolling. Making this wrapper a
+            flex container itself would just hand that same problem to
+            {children}'s own root element one level down. */}
+        <div className="min-w-0">
+          <EditModeProvider>{children}</EditModeProvider>
+        </div>
         <Analytics />
       </body>
     </html>

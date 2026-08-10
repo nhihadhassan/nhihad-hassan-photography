@@ -80,7 +80,7 @@ function CreateForm({ bookings }: { bookings: BookingOption[] }) {
       </div>
       {state.url ? (
         <div className="mt-4 rounded-md border border-admin-ink/10 bg-white/60 p-3">
-          <p className="font-mono text-xs text-admin-ink/65">{state.url}</p>
+          <p className="break-all font-mono text-xs text-admin-ink/65">{state.url}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <CopyLink value={state.url} />
             <a href={state.url} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-admin-ink/12 px-3 text-xs font-medium text-admin-ink/70 hover:bg-admin-ink/6">

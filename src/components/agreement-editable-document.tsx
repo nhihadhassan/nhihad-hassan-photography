@@ -68,7 +68,7 @@ function exactPrice(price: string): string {
 }
 
 const fieldBase =
-  "inline-block rounded-sm border-b border-dashed border-ink/35 bg-ink/[0.03] px-1 align-baseline text-inherit outline-none transition placeholder:text-ink/35 hover:border-ink/55 hover:bg-ink/[0.05] focus:border-admin-copper focus:bg-admin-copper/8";
+  "inline-block max-w-full rounded-sm border-b border-dashed border-ink/35 bg-ink/[0.03] px-1 align-baseline text-inherit outline-none transition placeholder:text-ink/35 hover:border-ink/55 hover:bg-ink/[0.05] focus:border-admin-copper focus:bg-admin-copper/8";
 
 function EditableField({
   param,

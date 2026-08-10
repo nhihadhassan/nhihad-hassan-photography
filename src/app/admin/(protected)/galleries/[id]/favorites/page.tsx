@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Heart, MailOpen } from "lucide-react";
+import { Heart, MailOpen } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminGallery } from "@/lib/admin-data";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/lib/favorites";
 import { EmptyState } from "@/components/empty-state";
 import { FavoriteSetDetailCard } from "@/components/favorite-set-detail";
+import { GalleryDetailHeader } from "@/components/gallery-detail-header";
 import { formatCompactDate } from "@/lib/utils";
 
 type PageProps = {
@@ -45,27 +46,22 @@ export default async function GalleryFavoritesPage({ params, searchParams }: Pag
 
   return (
     <div className="mx-auto max-w-6xl">
-      <Link
-        href={`/admin/galleries/${id}`}
-        className="inline-flex items-center gap-2 text-sm text-admin-ink/65 hover:text-admin-ink"
-      >
-        <ArrowLeft className="size-3.5" aria-hidden="true" />
-        Back to gallery
-      </Link>
-
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-medium text-admin-accent">Client selects</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">{gallery.title}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
-            Submissions from visitors who hearted photos in this gallery and sent them in.
-          </p>
-        </div>
-        <span className="inline-flex items-center gap-2 rounded-full border border-admin-ink/10 px-3 py-1.5 text-xs text-admin-ink/65">
-          <Heart className="size-3.5" aria-hidden="true" />
-          {sets.length} submission{sets.length === 1 ? "" : "s"}
-        </span>
-      </div>
+      <GalleryDetailHeader
+        galleryId={gallery.id}
+        title={gallery.title}
+        clientName={gallery.client_name}
+        isPublished={gallery.is_published}
+        isArchived={gallery.is_archived}
+        activeTab="selects"
+        kicker="Client selects"
+        description="Submissions from visitors who hearted photos in this gallery and sent them in."
+        actions={
+          <span className="inline-flex items-center gap-2 rounded-full border border-admin-ink/10 px-3 py-1.5 text-xs text-admin-ink/65">
+            <Heart className="size-3.5" aria-hidden="true" />
+            {sets.length} submission{sets.length === 1 ? "" : "s"}
+          </span>
+        }
+      />
 
       {sets.length === 0 ? (
         <div className="mt-8">

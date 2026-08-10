@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   ChevronDown,
   Download,
@@ -13,7 +13,11 @@ import {
 } from "lucide-react";
 import type { GalleryRecord } from "@/lib/admin-data";
 import type { GalleryPresetDefaults } from "@/data/gallery-presets";
+import type { ClientSummary } from "@/lib/clients";
 import { CoverDesignFields } from "@/components/cover-design-fields";
+import { ClientPicker } from "@/components/client-picker";
+import { LocationCombobox } from "@/components/location-combobox";
+import { PremiumDatePicker } from "@/components/ui/premium-date-picker";
 import { DEPOSIT_STATUS_LABELS } from "@/lib/payment-constants";
 import {
   createGallery,
@@ -115,6 +119,10 @@ type GalleryFormProps = {
   defaultValues?: GalleryFormDefaults;
   /** Resolved cover image URL for the focal-point preview (server-side). */
   coverImageUrl?: string | null;
+  /** Past gallery locations, most-recent first, for the location autocomplete. */
+  locations?: string[];
+  /** Onboarded clients, for the client autocomplete. */
+  clients?: ClientSummary[];
 };
 
 /** Small "Protected"/"Active" style pill used in section headers. */
@@ -126,9 +134,32 @@ function StatusBadge({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFormProps) {
+export function GalleryForm({
+  gallery,
+  defaultValues,
+  coverImageUrl,
+  locations = [],
+  clients = [],
+}: GalleryFormProps) {
   const action = gallery ? updateGallery : createGallery;
   const [state, formAction, pending] = useActionState(action, initialState);
+  const [selectedClientKey, setSelectedClientKey] = useState("");
+  const [clientName, setClientName] = useState(gallery?.client_name ?? "");
+  const [clientEmail, setClientEmail] = useState(gallery?.client_email ?? "");
+
+  const chooseClient = (key: string) => {
+    const client = clients.find((candidate) => candidate.key === key);
+    if (!client) return;
+    setSelectedClientKey(key);
+    setClientName(client.name);
+    setClientEmail(client.email ?? "");
+  };
+
+  const createClient = (name: string, email: string) => {
+    setSelectedClientKey("");
+    setClientName(name);
+    setClientEmail(email);
+  };
 
   return (
     <form action={formAction} className="grid gap-4">
@@ -174,13 +205,26 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
               The web address is created automatically from the title.
             </p>
           )}
+          <ClientPicker
+            clients={clients}
+            selectedKey={selectedClientKey}
+            currentName={selectedClientKey ? "" : clientName}
+            currentEmail={selectedClientKey ? "" : clientEmail}
+            onSelect={chooseClient}
+            onCreate={createClient}
+          />
           <label className="grid gap-2">
             <span className="text-sm font-medium">Client name</span>
             <input
               className={inputClass}
               name="client_name"
-              defaultValue={gallery?.client_name ?? ""}
+              value={clientName}
+              onChange={(e) => {
+                setSelectedClientKey("");
+                setClientName(e.target.value);
+              }}
               placeholder="Jane & Mark"
+              autoComplete="name"
             />
           </label>
           <label className="grid gap-2">
@@ -189,28 +233,25 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
               className={inputClass}
               name="client_email"
               type="email"
-              defaultValue={gallery?.client_email ?? ""}
+              value={clientEmail}
+              onChange={(e) => {
+                setSelectedClientKey("");
+                setClientEmail(e.target.value);
+              }}
               placeholder="jane@example.com"
+              autoComplete="email"
             />
             <FieldError errors={state.fieldErrors?.client_email} />
           </label>
-          <label className="grid gap-2">
-            <span className="text-sm font-medium">Event date</span>
-            <input
-              className={inputClass}
-              name="event_date"
-              type="date"
-              defaultValue={gallery?.event_date ?? ""}
-            />
-          </label>
+          <PremiumDatePicker
+            label="Event date"
+            name="event_date"
+            defaultValue={gallery?.event_date ?? ""}
+            placeholder="Choose a date"
+          />
           <label className="grid gap-2">
             <span className="text-sm font-medium">Location</span>
-            <input
-              className={inputClass}
-              name="location"
-              defaultValue={gallery?.location ?? ""}
-              placeholder="Toronto"
-            />
+            <LocationCombobox name="location" defaultValue={gallery?.location ?? ""} suggestions={locations} />
           </label>
         </div>
         <label className="mt-5 grid gap-2">
@@ -301,20 +342,16 @@ export function GalleryForm({ gallery, defaultValues, coverImageUrl }: GalleryFo
           </label>
         </div>
         <div className="mt-5 grid gap-5 md:grid-cols-2">
-          <label className="grid gap-2">
-            <span className="text-sm font-medium">Expiry</span>
-            <input
-              className={inputClass}
-              name="expires_at"
-              type="datetime-local"
-              defaultValue={
-                gallery?.expires_at
-                  ? toDateTimeLocal(gallery.expires_at)
-                  : (defaultValues?.expires_at ?? "")
-              }
-            />
-            <span className="text-xs text-admin-ink/65">Leave blank for no expiry.</span>
-          </label>
+          <PremiumDatePicker
+            label="Expiry"
+            name="expires_at"
+            includeTime
+            defaultValue={
+              gallery?.expires_at ? toDateTimeLocal(gallery.expires_at) : (defaultValues?.expires_at ?? "")
+            }
+            placeholder="No expiry"
+            helperText="Leave blank for no expiry."
+          />
         </div>
 
         {/* Password sub-section */}

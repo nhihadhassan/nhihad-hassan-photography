@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import {
   getAdminGallery,
@@ -14,6 +12,7 @@ import { brandConfig } from "@/lib/config";
 import { ShareLinkManager } from "@/components/share-link-manager";
 import { GalleryShareEmail } from "@/components/gallery-share-email";
 import { CopyLinkField } from "@/components/copy-link-field";
+import { GalleryDetailHeader } from "@/components/gallery-detail-header";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -41,21 +40,16 @@ export default async function GallerySharePage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <Link
-        href={`/admin/galleries/${id}`}
-        className="inline-flex items-center gap-2 text-sm text-admin-ink/65 hover:text-admin-ink"
-      >
-        <ArrowLeft className="size-3.5" aria-hidden="true" />
-        Back to gallery
-      </Link>
-
-      <div className="mt-5">
-        <h1 className="text-2xl font-semibold tracking-tight">Share {gallery.title}</h1>
-        <p className="mt-1 text-sm leading-6 text-admin-ink/60">
-          Email the gallery to your client or other recipients, copy the link to send yourself, or
-          build a curated link for vendors and partners.
-        </p>
-      </div>
+      <GalleryDetailHeader
+        galleryId={gallery.id}
+        title={gallery.title}
+        clientName={gallery.client_name}
+        isPublished={gallery.is_published}
+        isArchived={gallery.is_archived}
+        activeTab="share"
+        kicker="Share"
+        description="Email the gallery to your client or other recipients, copy the link to send yourself, or build a curated link for vendors and partners."
+      />
 
       {/* Send to client */}
       <section

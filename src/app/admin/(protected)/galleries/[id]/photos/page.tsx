@@ -1,11 +1,11 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, Heart, Images, Settings2, Share2 } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminGallery } from "@/lib/admin-data";
 import { getAdminGalleryPhotos } from "@/lib/photos";
 import { hasR2Config } from "@/lib/env";
 import { PhotoManager } from "@/components/photo-manager";
+import { GalleryDetailHeader } from "@/components/gallery-detail-header";
 
 type PhotosPageProps = {
   params: Promise<{ id: string }>;
@@ -23,62 +23,16 @@ export default async function GalleryPhotosPage({ params }: PhotosPageProps) {
   const r2Configured = hasR2Config();
   const photos = r2Configured ? await getAdminGalleryPhotos(id) : [];
 
-  const tabs = [
-    { label: "Photos", href: `/admin/galleries/${gallery.id}/photos`, icon: Images, active: true },
-    { label: "Settings", href: `/admin/galleries/${gallery.id}`, icon: Settings2 },
-    { label: "Selects", href: `/admin/galleries/${gallery.id}/favorites`, icon: Heart },
-    { label: "Share", href: `/admin/galleries/${gallery.id}/share`, icon: Share2 },
-  ];
-
   return (
     <div className="mx-auto max-w-6xl">
-      {/* Back link */}
-      <Link href="/admin/galleries" className="text-sm text-admin-ink/65 hover:text-admin-ink">
-        ← All galleries
-      </Link>
-
-      {/* Header */}
-      <div className="mt-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={
-              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium " +
-              (gallery.is_archived
-                ? "bg-admin-ink/10 text-admin-ink/60"
-                : gallery.is_published
-                  ? "bg-admin-success/15 text-admin-success"
-                  : "bg-admin-copper/20 text-admin-accent")
-            }
-          >
-            {gallery.is_archived ? "Archived" : gallery.is_published ? "Published" : "Draft"}
-          </span>
-        </div>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{gallery.title}</h1>
-        {gallery.client_name && (
-          <p className="mt-0.5 text-sm text-admin-ink/65">{gallery.client_name}</p>
-        )}
-      </div>
-
-      {/* Tab navigation */}
-      <div className="mt-6 border-b border-admin-ink/10">
-        <nav className="flex gap-1" aria-label="Gallery sections">
-          {tabs.map(({ label, href, icon: Icon, active }) => (
-            <Link
-              key={href}
-              href={href}
-              className={
-                "inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm transition " +
-                (active
-                  ? "border-admin-ink font-medium text-admin-ink"
-                  : "border-transparent text-admin-ink/65 hover:border-admin-ink/25 hover:text-admin-ink")
-              }
-            >
-              <Icon className="size-3.5" aria-hidden="true" />
-              {label}
-            </Link>
-          ))}
-        </nav>
-      </div>
+      <GalleryDetailHeader
+        galleryId={gallery.id}
+        title={gallery.title}
+        clientName={gallery.client_name}
+        isPublished={gallery.is_published}
+        isArchived={gallery.is_archived}
+        activeTab="photos"
+      />
 
       {!r2Configured ? (
         <div className="mt-8 rounded-md border border-admin-copper/40 bg-admin-copper/10 p-5 text-sm text-admin-ink">

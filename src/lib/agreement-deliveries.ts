@@ -98,6 +98,8 @@ export async function sendAgreementRequestEmail(input: {
   clientName: string | null;
   agreementUrl: string;
   expiresAt?: string | null;
+  /** Contact fields left blank on the contract (e.g. "phone number", "mailing address"). */
+  missingFields?: string[];
 }): Promise<{ ok: boolean; message: string; deliveryId?: string }> {
   const subject = `Your photography agreement · ${brandConfig.name}`;
 
@@ -125,6 +127,7 @@ export async function sendAgreementRequestEmail(input: {
     clientName: input.clientName,
     agreementUrl: input.agreementUrl,
     expiresAt: input.expiresAt,
+    missingFields: input.missingFields,
     idempotencyKey: `agreement-${deliveryId}`,
   });
 

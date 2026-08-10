@@ -10,6 +10,7 @@ import { isAgreementPastExpiry } from "@/lib/agreement-status";
 import { getAgreementRequestById, getSignedAgreementsByToken } from "@/lib/agreements";
 import { buildAgreementEmail } from "@/lib/notify-email";
 import { agreementSignUrl } from "@/lib/agreement-url";
+import { missingContactFields } from "@/lib/agreement-values";
 
 export const dynamic = "force-dynamic";
 
@@ -54,12 +55,14 @@ export default async function AgreementPreviewPage({
     { name: request.details.secondSignerName ?? null, email: request.details.secondSignerEmail ?? null },
   ].filter((recipient): recipient is { name: string | null; email: string } => Boolean(recipient.email));
 
+  const missingFields = missingContactFields(request.details);
   const emails = recipients.map((recipient) => ({
     recipient,
     content: buildAgreementEmail({
       clientName: recipient.name,
       agreementUrl,
       expiresAt: request.expires_at,
+      missingFields,
     }),
   }));
 

@@ -17,6 +17,7 @@ import { getAdminGallery } from "@/lib/admin-data";
 import { agreementSignUrl } from "@/lib/agreement-url";
 import { torontoLocalToUtc } from "@/lib/ics";
 import { isWeddingAgreementType } from "@/data/wedding-agreement";
+import { missingContactFields } from "@/lib/agreement-values";
 
 const todayInToronto = () =>
   new Intl.DateTimeFormat("en-CA", {
@@ -34,6 +35,7 @@ async function emailAgreementSigners(input: {
   primaryEmail: string | null;
   secondName?: string;
   secondEmail?: string;
+  missingFields?: string[];
 }) {
   const recipients = [
     { name: input.primaryName, email: input.primaryEmail },
@@ -47,6 +49,7 @@ async function emailAgreementSigners(input: {
     clientName: recipient.name,
     agreementUrl: input.agreementUrl,
     expiresAt: input.expiresAt,
+    missingFields: input.missingFields,
   })));
   const failed = results.filter((result) => !result.ok);
   if (failed.length) {
@@ -149,34 +152,36 @@ export async function createGalleryAgreementRequestAction(
   const gallery = await getAdminGallery(galleryId);
   if (!gallery) return { ok: false, message: "Gallery not found." };
 
+  const details: AgreementDetails = {
+    feeStructureVersion: "section-2",
+    presentationVersion: "reference-v2",
+    template: isWeddingAgreementType(gallery.title) ? "wedding" : "photography",
+    effectiveDate: todayInToronto(),
+    type: gallery.title,
+    description: gallery.description ?? gallery.title,
+    date: gallery.event_date ?? undefined,
+    city: "Toronto",
+    mealHours: "6",
+    secondShooter: "No",
+    window: "1 year from delivery",
+    rehostingFee: "50",
+    revisionPolicy: "Two rounds of minor revisions on up to 10 images, requested within 14 days of delivery.",
+    archiveWindow: "1 year after delivery",
+    cancellationPolicy: "30 or more days before the shoot: retainer only; 15 to 29 days: 50% of total; 14 days or fewer: 100% of total.",
+    reschedulePolicy: "One free reschedule with at least 15 days' notice; the new date must be within 6 months.",
+    lateFeePercent: "1.5",
+    licenseType: "Personal use only",
+    privacyOptOutFee: "Quoted on request",
+    additionalCharges: "Travel outside the GTA, parking, permits, and rentals, if applicable",
+  };
+
   try {
     const { id, token } = await createAgreementRequest({
       galleryId,
       clientName: gallery.client_name,
       clientEmail: gallery.client_email,
       message: gallery.title,
-      details: {
-        feeStructureVersion: "section-2",
-        presentationVersion: "reference-v2",
-        template: isWeddingAgreementType(gallery.title) ? "wedding" : "photography",
-        effectiveDate: todayInToronto(),
-        type: gallery.title,
-        description: gallery.description ?? gallery.title,
-        date: gallery.event_date ?? undefined,
-        city: "Toronto",
-        mealHours: "6",
-        secondShooter: "No",
-        window: "1 year from delivery",
-        rehostingFee: "50",
-        revisionPolicy: "Two rounds of minor revisions on up to 10 images, requested within 14 days of delivery.",
-        archiveWindow: "1 year after delivery",
-        cancellationPolicy: "30 or more days before the shoot: retainer only; 15 to 29 days: 50% of total; 14 days or fewer: 100% of total.",
-        reschedulePolicy: "One free reschedule with at least 15 days' notice; the new date must be within 6 months.",
-        lateFeePercent: "1.5",
-        licenseType: "Personal use only",
-        privacyOptOutFee: "Quoted on request",
-        additionalCharges: "Travel outside the GTA, parking, permits, and rentals, if applicable",
-      },
+      details,
       remindersEnabled: Boolean(gallery.client_email),
     });
     const signUrl = agreementSignUrl(token);
@@ -195,6 +200,7 @@ export async function createGalleryAgreementRequestAction(
       clientName: gallery.client_name,
       agreementUrl: signUrl,
       expiresAt: null,
+      missingFields: missingContactFields(details),
     });
     revalidatePath("/admin/agreements");
     revalidatePath("/admin/galleries");
@@ -231,6 +237,7 @@ export async function sendAgreementRequestEmailAction(
       primaryEmail: request.client_email,
       secondName: request.details.secondSignerName,
       secondEmail: request.details.secondSignerEmail,
+      missingFields: missingContactFields(request.details),
     });
     revalidatePath("/admin/agreements");
     return { ok: result.ok, message: result.message };

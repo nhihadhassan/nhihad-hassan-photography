@@ -22,7 +22,9 @@ export type StatusKey =
   | "overdue"
   | "expired"
   | "cancelled"
-  | "void";
+  | "void"
+  | "published"
+  | "archived";
 
 type Tone = "positive" | "waiting" | "danger" | "info" | "neutral";
 
@@ -38,6 +40,8 @@ const STATUS: Record<StatusKey, { label: string; tone: Tone }> = {
   expired: { label: "Expired", tone: "danger" },
   cancelled: { label: "Cancelled", tone: "neutral" },
   void: { label: "Void", tone: "neutral" },
+  published: { label: "Published", tone: "positive" },
+  archived: { label: "Archived", tone: "neutral" },
 };
 
 const TONE_CLASSES: Record<Tone, string> = {
@@ -88,6 +92,13 @@ export function statusForContract(a: {
   if (a.expired_at || pastExpiry) return "expired";
   if (a.viewed_at) return "viewed";
   if (a.sent_at) return "sent";
+  return "draft";
+}
+
+/** Map a gallery's publish/archive flags to a status key. */
+export function statusForGallery(g: { is_published: boolean; is_archived: boolean }): StatusKey {
+  if (g.is_archived) return "archived";
+  if (g.is_published) return "published";
   return "draft";
 }
 

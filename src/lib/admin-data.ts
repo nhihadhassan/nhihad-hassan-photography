@@ -137,6 +137,41 @@ export async function getAdminGalleriesWithCounts(): Promise<GalleryListItem[]> 
   });
 }
 
+/**
+ * Distinct past gallery locations, most-recently-used first, for the
+ * location autocomplete on the create/edit forms. "Toronto" is always
+ * included (and pinned first when not already the most recent) since it's
+ * the studio's default market.
+ */
+export async function getRecentGalleryLocations(limit = 12): Promise<string[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("galleries")
+    .select("location,created_at")
+    .not("location", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+  for (const row of (data ?? []) as { location: string | null }[]) {
+    const value = row.location?.trim();
+    if (!value) continue;
+    const key = value.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    ordered.push(value);
+  }
+
+  if (!seen.has("toronto")) ordered.unshift("Toronto");
+
+  return ordered.slice(0, limit);
+}
+
 export async function getAdminGallery(id: string) {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase

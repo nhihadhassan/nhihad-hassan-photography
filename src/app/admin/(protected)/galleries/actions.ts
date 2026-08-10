@@ -163,6 +163,7 @@ const quickCreateSchema = z.object({
   client_name: z.string().optional(),
   client_email: z.string().email("Enter a valid client email.").optional().or(z.literal("")),
   event_date: z.string().optional(),
+  location: z.string().optional(),
   preset_id: z.string().optional(),
   cover_font: z.enum(GALLERY_COVER_FONT_VALUES).default("montserrat"),
 });
@@ -183,6 +184,7 @@ export async function createGalleryQuick(
     client_name: formData.get("client_name") || undefined,
     client_email: formData.get("client_email") || undefined,
     event_date: formData.get("event_date") || undefined,
+    location: formData.get("location") || undefined,
     preset_id: formData.get("preset_id") || undefined,
     cover_font: formData.get("cover_font") || undefined,
   });
@@ -208,6 +210,7 @@ export async function createGalleryQuick(
     client_name: emptyToNull(parsed.data.client_name),
     client_email: emptyToNull(parsed.data.client_email),
     event_date: dateToNull(parsed.data.event_date),
+    location: emptyToNull(parsed.data.location),
     description: preset?.description ?? null,
     cover_font: parsed.data.cover_font,
     download_enabled: preset?.download_enabled ?? false,
@@ -428,6 +431,53 @@ export async function toggleGalleryArchived(formData: FormData) {
   revalidatePath("/admin/galleries");
   revalidatePath("/");
   revalidatePath("/galleries");
+}
+
+/**
+ * Duplicate a gallery's settings (title, client, cover design, download and
+ * privacy defaults) as a starting point for a similar shoot. Deliberately
+ * does NOT copy photos, password, download PIN, deposit status, or payment
+ * notes -- the copy always starts as an unpublished draft with a clean slate
+ * on anything workflow-specific.
+ */
+export async function duplicateGallery(formData: FormData): Promise<{ ok: boolean; message: string; id?: string }> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const supabase = await createSupabaseServerClient();
+
+  const { data: source, error: fetchError } = await supabase
+    .from("galleries")
+    .select(
+      "title,client_name,client_email,location,description,cover_image_url,cover_image_alt,cover_focal_x,cover_focal_y,cover_layout,cover_font,download_enabled,download_quality,is_public,watermark_enabled",
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (fetchError || !source) {
+    return { ok: false, message: fetchError?.message ?? "Gallery not found." };
+  }
+
+  const title = `${source.title} (Copy)`;
+  const insertPayload = {
+    ...source,
+    title,
+    slug: slugify(`${title}-${Date.now().toString(36).slice(-5)}`),
+    event_date: null,
+    is_published: false,
+    is_archived: false,
+    deposit_status: "not_requested" as const,
+    payment_notes: null,
+  };
+
+  const { data, error } = await supabase.from("galleries").insert(insertPayload).select("id").single();
+
+  if (error) {
+    return { ok: false, message: error.message };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/galleries");
+  return { ok: true, message: "Collection duplicated.", id: data.id };
 }
 
 export async function deleteGallery(formData: FormData) {

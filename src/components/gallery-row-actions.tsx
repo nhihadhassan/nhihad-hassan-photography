@@ -10,6 +10,7 @@ import {
   Check,
   ChevronDown,
   Copy,
+  CopyPlus,
   ExternalLink,
   Eye,
   EyeOff,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import {
   deleteGallery,
+  duplicateGallery,
   toggleGalleryArchived,
   toggleGalleryPublished,
 } from "@/app/admin/(protected)/galleries/actions";
@@ -110,6 +112,24 @@ export function GalleryRowActions({
         return;
       }
       window.alert(result.message ?? "Could not create a booking.");
+    });
+  };
+
+  const duplicate = () => {
+    startTransition(async () => {
+      const result = await duplicateGallery(
+        (() => {
+          const data = new FormData();
+          data.set("id", id);
+          return data;
+        })(),
+      );
+      if (result.ok && result.id) {
+        setOpen(false);
+        router.push(`/admin/galleries/${result.id}`);
+        return;
+      }
+      window.alert(result.message ?? "Could not duplicate this collection.");
     });
   };
 
@@ -266,6 +286,16 @@ export function GalleryRowActions({
               >
                 <CalendarPlus className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
                 Create booking hub
+              </button>
+
+              <button
+                type="button"
+                disabled={pending}
+                onClick={duplicate}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-admin-ink hover:bg-admin-surface disabled:opacity-50"
+              >
+                <CopyPlus className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
+                Duplicate collection
               </button>
 
               <div className="my-1 border-t border-admin-ink/8" />

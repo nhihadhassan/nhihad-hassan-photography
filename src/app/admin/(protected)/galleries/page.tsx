@@ -19,18 +19,22 @@ export default async function AdminGalleriesPage() {
     slug: g.slug,
     clientName: g.client_name,
     eventDate: g.event_date,
+    location: g.location,
     coverUrl: coverUrls[g.id] ?? null,
     isPublished: g.is_published,
     isArchived: g.is_archived,
     photoCount: g.photo_count,
+    depositStatus: g.deposit_status,
+    updatedAt: g.updated_at,
   }));
 
   return (
     <div className="mx-auto max-w-6xl">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Collections</h1>
-          <p className="mt-1 text-sm text-admin-ink/65">
+          <p className="text-sm font-medium text-admin-accent">Galleries</p>
+          <h1 className="admin-display mt-1 text-3xl">Collections</h1>
+          <p className="mt-1 text-sm text-admin-muted">
             {galleries.length} {galleries.length === 1 ? "collection" : "collections"}
           </p>
         </div>

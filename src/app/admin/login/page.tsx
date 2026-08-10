@@ -29,9 +29,11 @@ export default async function AdminLoginPage() {
         <p className="mt-3 text-sm leading-6 text-admin-ink/62">
           Sign in to manage galleries, inquiries, and settings for {brandConfig.name}.
         </p>
-        <div className="mt-6 rounded-md border border-admin-ink/10 bg-admin-bg p-4 text-sm text-admin-ink/64">
-          Supabase config: {configured ? "detected" : "waiting for environment variables"}
-        </div>
+        {process.env.NODE_ENV !== "production" ? (
+          <div className="mt-6 rounded-md border border-admin-ink/10 bg-admin-bg p-4 text-sm text-admin-ink/64">
+            Supabase config: {configured ? "detected" : "waiting for environment variables"}
+          </div>
+        ) : null}
         <AdminLoginForm disabled={!configured} />
       </div>
     </main>

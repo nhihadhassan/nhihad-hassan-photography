@@ -12,12 +12,16 @@ const initialState: InquiryState = {
   message: "",
 };
 
-function FieldError({ errors }: { errors?: string[] }) {
+function FieldError({ id, errors }: { id: string; errors?: string[] }) {
   if (!errors?.length) {
     return null;
   }
 
-  return <p className="text-sm text-[#e8998a]">{errors[0]}</p>;
+  return (
+    <p id={id} role="alert" className="text-sm text-[#e8998a]">
+      {errors[0]}
+    </p>
+  );
 }
 
 function Required() {
@@ -61,8 +65,15 @@ export function ContactForm() {
             Name
             <Required />
           </span>
-          <input className={inputClass} name="name" autoComplete="name" placeholder="Your full name" />
-          <FieldError errors={state.fieldErrors?.name} />
+          <input
+            className={inputClass}
+            name="name"
+            autoComplete="name"
+            placeholder="Your full name"
+            aria-invalid={state.fieldErrors?.name?.length ? true : undefined}
+            aria-describedby={state.fieldErrors?.name?.length ? "name-error" : undefined}
+          />
+          <FieldError id="name-error" errors={state.fieldErrors?.name} />
         </label>
         <label className="grid gap-2">
           <span className={labelClass}>
@@ -75,8 +86,10 @@ export function ContactForm() {
             type="email"
             autoComplete="email"
             placeholder="you@example.com"
+            aria-invalid={state.fieldErrors?.email?.length ? true : undefined}
+            aria-describedby={state.fieldErrors?.email?.length ? "email-error" : undefined}
           />
-          <FieldError errors={state.fieldErrors?.email} />
+          <FieldError id="email-error" errors={state.fieldErrors?.email} />
         </label>
 
         <label className="grid gap-2">
@@ -137,8 +150,10 @@ export function ContactForm() {
           className="min-h-28 w-full rounded-[2px] border border-soft-white/18 bg-charcoal px-3 py-3 text-base text-soft-white outline-none transition placeholder:text-soft-white/34 hover:border-soft-white/32 focus:border-copper"
           name="message"
           placeholder="Tell me about your shoot: the date, the vibe, and what you want the photos to feel like."
+          aria-invalid={state.fieldErrors?.message?.length ? true : undefined}
+          aria-describedby={state.fieldErrors?.message?.length ? "message-error" : undefined}
         />
-        <FieldError errors={state.fieldErrors?.message} />
+        <FieldError id="message-error" errors={state.fieldErrors?.message} />
       </label>
 
       {state.message ? (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Maximize2 } from "lucide-react";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
@@ -26,6 +27,7 @@ export function GalleryGrid({
 }: GalleryGridProps) {
   const [openAt, setOpenAt] = useState<number | null>(null);
   const [slideshow, setSlideshow] = useState(false);
+  const [loadedIds, setLoadedIds] = useState<Set<string>>(() => new Set());
   const { isSelected } = useSelects();
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export function GalleryGrid({
           const height =
             photo.height ?? (photo.orientation === "portrait" ? 1125 : 950);
           const selected = enableSelects && isSelected(photo.id);
+          const loaded = loadedIds.has(photo.id);
           return (
             <article key={photo.id} className="group relative mb-4 break-inside-avoid">
               <button
@@ -63,7 +66,8 @@ export function GalleryGrid({
                 aria-label={`Open photo ${index + 1} of ${photos.length}: ${photo.alt}`}
                 className={
                   "relative block w-full cursor-zoom-in overflow-hidden rounded-[2px] bg-ink/8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper " +
-                  (selected ? "ring-2 ring-copper ring-offset-2 ring-offset-[#f3eee5]" : "")
+                  (selected ? "ring-2 ring-copper ring-offset-2 ring-offset-[#f3eee5] " : "") +
+                  (!loaded ? "animate-pulse" : "")
                 }
               >
                 <Image
@@ -72,7 +76,18 @@ export function GalleryGrid({
                   width={width}
                   height={height}
                   sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                  className="h-auto w-full object-cover transition duration-700 group-hover:scale-[1.02]"
+                  className={cn(
+                    "h-auto w-full object-cover transition duration-700 group-hover:scale-[1.02]",
+                    loaded ? "opacity-100" : "opacity-0",
+                  )}
+                  onLoad={() =>
+                    setLoadedIds((prev) => {
+                      if (prev.has(photo.id)) return prev;
+                      const next = new Set(prev);
+                      next.add(photo.id);
+                      return next;
+                    })
+                  }
                   priority={index < 2}
                   unoptimized={unoptimizedImages}
                 />

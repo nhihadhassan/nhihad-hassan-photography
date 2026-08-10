@@ -564,13 +564,13 @@ function EditableDocument({
                 className={`${fieldClass} flex-1 text-[28px] font-bold leading-tight tracking-[-0.015em] text-ink`}
               />
               <div className="mt-2 flex shrink-0 items-center gap-1 opacity-0 transition group-hover/section:opacity-100">
-                <button type="button" onClick={() => onMoveSection(si, "up")} disabled={si === 0} className="rounded p-1 text-ink/40 hover:bg-ink/6 disabled:opacity-20" aria-label="Move section up">
+                <button type="button" onClick={() => onMoveSection(si, "up")} disabled={si === 0} className="rounded-md p-2.5 text-ink/40 hover:bg-ink/6 disabled:opacity-20" aria-label="Move section up">
                   <ArrowUp className="size-3.5" aria-hidden="true" />
                 </button>
-                <button type="button" onClick={() => onMoveSection(si, "down")} disabled={si === sections.length - 1} className="rounded p-1 text-ink/40 hover:bg-ink/6 disabled:opacity-20" aria-label="Move section down">
+                <button type="button" onClick={() => onMoveSection(si, "down")} disabled={si === sections.length - 1} className="rounded-md p-2.5 text-ink/40 hover:bg-ink/6 disabled:opacity-20" aria-label="Move section down">
                   <ArrowDown className="size-3.5" aria-hidden="true" />
                 </button>
-                <button type="button" onClick={() => onRemoveSection(si)} className="rounded p-1 text-[#8a2f24]/70 hover:bg-[#8a2f24]/8" aria-label="Delete section">
+                <button type="button" onClick={() => onRemoveSection(si)} className="rounded-md p-2.5 text-[#8a2f24]/70 hover:bg-[#8a2f24]/8" aria-label="Delete section">
                   <Trash2 className="size-3.5" aria-hidden="true" />
                 </button>
               </div>
@@ -587,13 +587,13 @@ function EditableDocument({
                     className={`${fieldClass} flex-1 text-[14px] leading-[1.72] text-ink/78`}
                   />
                   <div className="mt-1 flex shrink-0 items-center gap-1 opacity-0 transition group-hover/clause:opacity-100">
-                    <button type="button" onClick={() => onMoveClause(si, ci, "up")} disabled={ci === 0} className="rounded p-1 text-ink/40 hover:bg-ink/6 disabled:opacity-20" aria-label="Move paragraph up">
+                    <button type="button" onClick={() => onMoveClause(si, ci, "up")} disabled={ci === 0} className="rounded-md p-2.5 text-ink/40 hover:bg-ink/6 disabled:opacity-20" aria-label="Move paragraph up">
                       <ArrowUp className="size-3.5" aria-hidden="true" />
                     </button>
-                    <button type="button" onClick={() => onMoveClause(si, ci, "down")} disabled={ci === section.clauses.length - 1} className="rounded p-1 text-ink/40 hover:bg-ink/6 disabled:opacity-20" aria-label="Move paragraph down">
+                    <button type="button" onClick={() => onMoveClause(si, ci, "down")} disabled={ci === section.clauses.length - 1} className="rounded-md p-2.5 text-ink/40 hover:bg-ink/6 disabled:opacity-20" aria-label="Move paragraph down">
                       <ArrowDown className="size-3.5" aria-hidden="true" />
                     </button>
-                    <button type="button" onClick={() => onRemoveClause(si, ci)} className="rounded p-1 text-[#8a2f24]/70 hover:bg-[#8a2f24]/8" aria-label="Delete paragraph">
+                    <button type="button" onClick={() => onRemoveClause(si, ci)} className="rounded-md p-2.5 text-[#8a2f24]/70 hover:bg-[#8a2f24]/8" aria-label="Delete paragraph">
                       <Trash2 className="size-3.5" aria-hidden="true" />
                     </button>
                   </div>

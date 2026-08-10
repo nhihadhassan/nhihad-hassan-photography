@@ -149,7 +149,7 @@ export function FavoriteSetDetailCard({
           </p>
         ) : (
           <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
-            {detail.photos.map((photo) => {
+            {detail.photos.map((photo, index) => {
               const aspect = photo.width && photo.height ? photo.width / photo.height : 1;
               return (
                 <li
@@ -160,7 +160,7 @@ export function FavoriteSetDetailCard({
                     {photo.thumbnail_url ? (
                       <Image
                         src={photo.thumbnail_url}
-                        alt={photo.filename}
+                        alt={`Favourite photo ${index + 1} of ${detail.photos.length}`}
                         fill
                         sizes="(min-width: 1024px) 18vw, (min-width: 640px) 25vw, 33vw"
                         className="object-cover"

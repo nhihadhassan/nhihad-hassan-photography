@@ -194,7 +194,14 @@ export function BookingForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <label className={labelClass}>
           Client name
-          <input className={inputClass} name="client_name" defaultValue={v(booking?.client_name)} placeholder="Jane Doe" />
+          <input
+            className={inputClass}
+            name="client_name"
+            defaultValue={v(booking?.client_name)}
+            placeholder="Jane Doe"
+            required
+            aria-required="true"
+          />
         </label>
         <label className={labelClass}>
           Client email
@@ -344,7 +351,10 @@ export function BookingForm({
           Back to schedule
         </Link>
         {state.message ? (
-          <span className={state.status === "error" ? "text-sm text-admin-danger" : "text-sm text-admin-success"}>
+          <span
+            role="alert"
+            className={state.status === "error" ? "text-sm text-admin-danger" : "text-sm text-admin-success"}
+          >
             {state.message}
           </span>
         ) : null}

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
 import type { ShareLinkPhoto } from "@/lib/share-links";
 
@@ -20,6 +20,7 @@ function ShareLightbox({ photos, open, initialIndex, onClose }: LightboxProps) {
   const [loading, setLoading] = useState(true);
   const [trackedInitial, setTrackedInitial] = useState(initialIndex);
   const lastFocusRef = useRef<HTMLElement | null>(null);
+  const reduceMotion = useReducedMotion();
 
   // Sync index when parent changes which photo to open.
   if (trackedInitial !== initialIndex) {
@@ -69,9 +70,9 @@ function ShareLightbox({ photos, open, initialIndex, onClose }: LightboxProps) {
       {open ? (
         <motion.div
           key="lightbox"
-          initial={{ opacity: 0 }}
+          initial={reduceMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={reduceMotion ? undefined : { opacity: 0 }}
           transition={{ duration: 0.18 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/92"
         >
@@ -112,7 +113,7 @@ function ShareLightbox({ photos, open, initialIndex, onClose }: LightboxProps) {
             <Image
               key={photo.photo_id}
               src={photo.display_url}
-              alt={photo.filename}
+              alt={`Photo ${index + 1} of ${photos.length}`}
               width={photo.width ?? 1600}
               height={photo.height ?? 1067}
               className="max-h-[90vh] max-w-[90vw] object-contain"
@@ -172,7 +173,7 @@ export function SharePhotoViewer({ photos }: SharePhotoViewerProps) {
               >
                 <Image
                   src={photo.thumbnail_url || photo.display_url}
-                  alt={photo.filename}
+                  alt={`Photo ${index + 1} of ${photos.length}`}
                   width={w}
                   height={h}
                   className="w-full object-cover transition duration-500 hover:scale-[1.02]"

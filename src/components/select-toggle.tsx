@@ -52,7 +52,7 @@ export function SelectToggle({ photoId, variant = "grid", className }: SelectTog
       aria-pressed={selected}
       aria-label={selected ? "Remove from selects" : "Add to selects"}
       className={cn(
-        "flex size-10 items-center justify-center rounded-full backdrop-blur transition",
+        "flex size-11 items-center justify-center rounded-full backdrop-blur transition",
         selected
           ? "bg-copper text-ink shadow-md"
           : "bg-[#f3eee5]/88 text-ink hover:bg-[#f3eee5]",

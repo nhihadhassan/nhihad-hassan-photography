@@ -191,7 +191,7 @@ function PhotoPicker({ photos, selected, onToggle }: PhotoPickerProps) {
 
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-      {photos.map((photo) => {
+      {photos.map((photo, index) => {
         const isSelected = selected.has(photo.id);
         return (
           <button
@@ -208,7 +208,7 @@ function PhotoPicker({ photos, selected, onToggle }: PhotoPickerProps) {
             {photo.thumbnail_url ? (
               <Image
                 src={photo.thumbnail_url}
-                alt={photo.filename}
+                alt={`Photo ${index + 1} of ${photos.length}`}
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 33vw, 120px"

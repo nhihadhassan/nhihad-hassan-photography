@@ -141,7 +141,8 @@ export default async function AccessLogsPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="mt-6 overflow-hidden rounded-md border border-admin-ink/10 bg-admin-surface">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
             <thead className="bg-admin-bg text-xs uppercase tracking-wide text-admin-ink/65">
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Time</th>
@@ -196,6 +197,7 @@ export default async function AccessLogsPage({ searchParams }: PageProps) {
               ))}
             </tbody>
           </table>
+          </div>
           {logs.length === 200 ? (
             <div className="border-t border-admin-ink/10 px-4 py-3 text-xs text-admin-ink/65">
               Showing the most recent 200 attempts.

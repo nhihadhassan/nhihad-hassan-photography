@@ -107,7 +107,7 @@ export function emailShell({
     <tr><td align="center">
       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="560" style="max-width:560px;width:100%;background:${CARD};border-radius:10px;overflow:hidden;">
         <tr><td style="background:${INK};padding:0;font-size:0;line-height:0;text-align:center;">
-          <img src="${BRAND_LOGO_URL}" alt="Nhihad Hassan Photography" width="560" style="display:block;width:100%;max-width:560px;height:auto;border:0;outline:none;text-decoration:none;font-size:15px;color:${CARD};">
+          <img src="${BRAND_LOGO_URL}" alt="Nhihad Hassan Photography" width="560" style="display:block;margin:0 auto;width:560px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;font-size:15px;color:${CARD};">
         </td></tr>
         ${cover}
         <tr><td class="nh-pad" style="padding:30px 34px 4px 34px;">

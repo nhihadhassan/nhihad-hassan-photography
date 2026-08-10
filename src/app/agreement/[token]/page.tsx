@@ -172,8 +172,8 @@ export default async function AgreementSigningPage({
     <div className="min-h-[100dvh] bg-[#f1f0ed] text-ink print:bg-white">
       <header className="relative h-[600px] overflow-hidden bg-charcoal text-soft-white print:hidden sm:h-[560px]">
         <Image
-          src={cover?.url || "/portfolio/ma-baby-shower-couple.webp"}
-          alt={cover?.alt || "An expecting couple photographed by Nhihad Hassan Photography"}
+          src={cover?.url || "/agreements/kawish-farkhunda.webp"}
+          alt={cover?.alt || "A couple photographed by Nhihad Hassan Photography"}
           fill
           priority
           quality={90}

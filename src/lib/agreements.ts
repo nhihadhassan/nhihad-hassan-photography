@@ -506,16 +506,21 @@ export async function updateAgreementDetails(id: string, details: AgreementDetai
   if (!data) throw new Error("Only an active, unsigned contract can be edited.");
 }
 
+/** Fields a client can fill in themselves directly on the public signing page. */
+export type ClientEditableField = "phone" | "clientAddress" | "startTime" | "location";
+
 /**
- * Lets a client fill in their own missing contact fields directly on the
- * public signing page (phone, mailing address) instead of replying to the
- * agreement email. Token-scoped and limited to those two fields so a client
- * can never edit pricing or policy text; guarded the same way
- * updateAgreementDetails is so it only applies to an active, unsigned draft.
+ * Lets a client fill in their own missing fields directly on the public
+ * signing page (contact info, and -- for bookings like a surprise proposal
+ * where the client knows better than the photographer did at draft time --
+ * the start time and venue) instead of replying to the agreement email.
+ * Token-scoped and limited to ClientEditableField so a client can never edit
+ * pricing or policy text; guarded the same way updateAgreementDetails is so
+ * it only applies to an active, unsigned draft.
  */
 export async function updateAgreementContactDetailsByToken(
   token: string,
-  patch: { phone?: string; clientAddress?: string },
+  patch: Partial<Record<ClientEditableField, string>>,
 ): Promise<{ ok: boolean; message?: string }> {
   const admin = getServiceRoleSupabaseClient();
   const { data: existing, error: fetchError } = await admin
@@ -534,6 +539,8 @@ export async function updateAgreementContactDetailsByToken(
   const next: AgreementDetails = { ...details };
   if (patch.phone !== undefined) next.phone = patch.phone;
   if (patch.clientAddress !== undefined) next.clientAddress = patch.clientAddress;
+  if (patch.startTime !== undefined) next.startTime = patch.startTime;
+  if (patch.location !== undefined) next.location = patch.location;
 
   const { error } = await admin
     .from("agreement_requests")

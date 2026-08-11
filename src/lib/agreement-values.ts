@@ -1,4 +1,4 @@
-import type { AgreementDetails } from "@/lib/agreements";
+import type { AgreementDetails, ClientEditableField } from "@/lib/agreements";
 import { brandConfig } from "@/lib/config";
 
 /**
@@ -57,4 +57,22 @@ export function missingContactFields(details: AgreementDetails): string[] {
   if (!details.phone?.trim()) missing.push("phone number");
   if (!details.clientAddress?.trim()) missing.push("mailing address");
   return missing;
+}
+
+/**
+ * Every field the client can fill in inline on the signing page
+ * (AgreementInlineField) that's still blank, in the order they appear on
+ * the document. Drives the "before you sign" banner so a blank field isn't
+ * just a quiet highlighted box the client has to notice on their own.
+ */
+export function missingClientFields(
+  details: AgreementDetails,
+): { param: ClientEditableField; label: string }[] {
+  const checks: { param: ClientEditableField; label: string }[] = [
+    { param: "startTime", label: "start time" },
+    { param: "location", label: "venue and full address" },
+    { param: "phone", label: "phone number" },
+    { param: "clientAddress", label: "mailing address" },
+  ];
+  return checks.filter((check) => !details[check.param]?.trim());
 }

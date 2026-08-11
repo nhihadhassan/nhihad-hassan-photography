@@ -4,11 +4,12 @@ import { brandConfig } from "@/lib/config";
 import type { AgreementSection } from "@/data/booking-agreement";
 import { AGREEMENT_INTRO_LEAD, parseRichText, splitClauseLead } from "@/lib/rich-text-tokens";
 import { AgreementInlineField } from "@/components/agreement-inline-field";
+import type { ClientEditableField } from "@/lib/agreements";
 
 export type DetailRow = { param: string; label: string; value: string | null };
 
 /** Fields the client can fill in directly on the document (see AgreementInlineField). */
-const CLIENT_EDITABLE_PARAMS = new Set(["phone", "clientAddress"]);
+const CLIENT_EDITABLE_PARAMS = new Set<ClientEditableField>(["phone", "clientAddress", "startTime", "location"]);
 
 const VARIABLE_LABELS: Record<string, string> = {
   effectiveDate: "effective date",
@@ -61,11 +62,11 @@ function VariableValue({ value, label, underlined = false, param, signToken }: {
   param?: string;
   signToken?: string;
 }) {
-  if (signToken && param && CLIENT_EDITABLE_PARAMS.has(param)) {
+  if (signToken && param && CLIENT_EDITABLE_PARAMS.has(param as ClientEditableField)) {
     return (
       <AgreementInlineField
         token={signToken}
-        param={param as "phone" | "clientAddress"}
+        param={param as ClientEditableField}
         value={value}
         label={label}
         underlined={underlined}

@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { PrintButton } from "@/components/print-button";
 import { AgreementDocument } from "@/components/agreement-document";
 import { AgreementSignForm } from "@/components/agreement-sign-form";
+import { AgreementMissingFieldsNotice } from "@/components/agreement-missing-fields-notice";
 import { brandConfig } from "@/lib/config";
 import {
   getAgreementCover,
@@ -13,6 +14,7 @@ import {
   getSignedAgreementsByToken,
 } from "@/lib/agreements";
 import { buildAgreementView } from "@/lib/agreement-view";
+import { missingClientFields } from "@/lib/agreement-values";
 import { sanitizeFilename } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -108,6 +110,7 @@ export default async function AgreementSigningPage({
     remainingSigners,
   } = view;
   const photographerName = brandConfig.name;
+  const missingFields = fullySigned ? [] : missingClientFields(request.details);
   const printFilename = sanitizeFilename(
     `NHPhotography Services Agreement - ${
       partyNameList.length ? partyNameList.join(" & ") : clientName || "Client"
@@ -170,7 +173,11 @@ export default async function AgreementSigningPage({
           unoptimized={Boolean(cover?.url?.startsWith("http"))}
           sizes="100vw"
           className="object-cover"
-          style={{ objectPosition: `${cover?.focalX ?? 50}% ${Math.max(0, (cover?.focalY ?? 50) - 10)}%` }}
+          style={{
+            objectPosition: cover
+              ? `${cover.focalX ?? 50}% ${Math.max(0, (cover.focalY ?? 50) - 10)}%`
+              : "50% 48%",
+          }}
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,8,8,.48),rgba(8,8,8,.14)_45%,rgba(8,8,8,.6))]" />
         <div className="relative mx-auto h-full max-w-6xl px-5 sm:px-8">
@@ -234,6 +241,8 @@ export default async function AgreementSigningPage({
               </div>
             ) : null}
           </dl>
+
+          <AgreementMissingFieldsNotice fields={missingFields} />
 
           <a
             href="#sign-contract"

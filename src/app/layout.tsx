@@ -4,6 +4,7 @@ import {
   Bodoni_Moda,
   Cormorant_Garamond,
   DM_Serif_Display,
+  Dancing_Script,
   Geist,
   Geist_Mono,
   Libre_Baskerville,
@@ -114,6 +115,14 @@ const abrilFatface = Abril_Fatface({
   preload: false,
 });
 
+// Only needed on the agreement signing page's "type" signature tab.
+const dancingScript = Dancing_Script({
+  variable: "--font-signature",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  preload: false,
+});
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   const title = settings.seoTitle ?? settings.brandName;
@@ -212,7 +221,7 @@ export default async function RootLayout({
     <html
       lang="en"
       style={themeStyle as React.CSSProperties}
-      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${bodoni.variable} ${montserrat.variable} ${playfair.variable} ${dmSerif.variable} ${libreBaskerville.variable} ${lora.variable} ${newsreader.variable} ${oswald.variable} ${spaceGrotesk.variable} ${plusJakarta.variable} ${abrilFatface.variable} h-full scroll-smooth antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${bodoni.variable} ${montserrat.variable} ${playfair.variable} ${dmSerif.variable} ${libreBaskerville.variable} ${lora.variable} ${newsreader.variable} ${oswald.variable} ${spaceGrotesk.variable} ${plusJakarta.variable} ${abrilFatface.variable} ${dancingScript.variable} h-full scroll-smooth antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <script

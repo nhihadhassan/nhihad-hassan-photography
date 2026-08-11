@@ -5,6 +5,9 @@ import { env } from "@/lib/env";
 import { brandConfig } from "@/lib/config";
 import { emailShell, escapeHtml } from "@/lib/emails/shell";
 import { buildInquiryAdminAlert, type InquiryAlertInput } from "@/lib/emails/inquiry-alert";
+import { buildAgreementEmail, type AgreementEmailContent } from "@/lib/emails/agreement-invite";
+
+export { buildAgreementEmail, type AgreementEmailContent } from "@/lib/emails/agreement-invite";
 
 export type SendResult = { ok: boolean; message: string; messageId?: string };
 
@@ -192,57 +195,6 @@ export async function sendSignedAgreementEmails(input: {
   await Promise.allSettled(tasks);
 }
 
-/** Send a client their standalone agreement link for review and signature. */
-export type AgreementEmailContent = { subject: string; html: string; text: string };
-
-/**
- * The exact subject and body of the contract email. Split out from the send so
- * the admin can preview the real message before it goes to the signers.
- */
-export function buildAgreementEmail(input: {
-  clientName: string | null;
-  agreementUrl: string;
-  expiresAt?: string | null;
-  /** Contact fields left blank on the contract (e.g. "phone number", "mailing address"). */
-  missingFields?: string[];
-}): AgreementEmailContent {
-  const first = input.clientName?.trim().split(/\s+/)[0];
-  const greeting = first ? `Hi ${escapeHtml(first)},` : "Hello,";
-  const expiry = input.expiresAt ? formatTorontoDateTime(input.expiresAt) : null;
-  const expiryHtml = expiry
-    ? `<p style="margin:0 0 14px 0;">Please sign by <strong>${escapeHtml(expiry)}</strong>. After that time, the agreement will close automatically.</p>`
-    : "";
-  const expiryText = expiry
-    ? `\n\nPlease sign by ${expiry}. After that time, the agreement will close automatically.`
-    : "";
-  const missingFields = (input.missingFields ?? []).filter(Boolean);
-  const missingHtml = missingFields.length
-    ? `<p style="margin:0 0 8px 0;">Please fill out:</p><ul style="margin:0 0 14px 0;padding-left:20px;">${missingFields
-        .map((field) => `<li>Your ${escapeHtml(field)}</li>`)
-        .join("")}</ul>`
-    : "";
-  const missingText = missingFields.length
-    ? `\n\nPlease fill out:\n${missingFields.map((field) => `- Your ${field}`).join("\n")}`
-    : "";
-  const bodyHtml = `
-    <p style="margin:0 0 14px 0;">${greeting}</p>
-    <p style="margin:0 0 14px 0;">Your photography agreement with ${escapeHtml(brandConfig.name)} is ready to review and sign.</p>
-    ${expiryHtml}
-    ${missingHtml}
-    <p style="margin:0;">Please read the agreement carefully, confirm the booking details, and use the signature form at the bottom when you are ready.</p>`;
-  return {
-    subject: `Your photography agreement · ${brandConfig.name}`,
-    text: `${first ? `Hi ${first},` : "Hello,"}\n\nYour photography agreement with ${brandConfig.name} is ready to review and sign.${expiryText}${missingText}\n\n${input.agreementUrl}\n\nPlease read the agreement carefully and confirm the booking details before signing.`,
-    html: emailShell({
-      eyebrow: "Photography agreement",
-      heading: "Your agreement is ready.",
-      bodyHtml,
-      ctaLabel: "Review and sign agreement",
-      ctaUrl: input.agreementUrl,
-    }),
-  };
-}
-
 export async function sendAgreementEmail(input: {
   to: string;
   clientName: string | null;
@@ -250,8 +202,11 @@ export async function sendAgreementEmail(input: {
   idempotencyKey: string;
   expiresAt?: string | null;
   missingFields?: string[];
+  /** Admin-edited subject/message from the Preview & Send composer. Falls back to the auto-generated default when blank. */
+  subject?: string | null;
+  message?: string | null;
 }): Promise<SendResult> {
-  const content = buildAgreementEmail(input);
+  const content: AgreementEmailContent = buildAgreementEmail(input);
   return sendMail({
     to: input.to,
     replyTo: brandConfig.contactEmail,

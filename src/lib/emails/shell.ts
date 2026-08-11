@@ -22,6 +22,18 @@ export function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+/** Turns a plain-text message (with blank-line paragraphs) into email-safe HTML. Shared by every editable-message email builder (gallery invite, agreement invite). */
+export function messageToHtml(message: string): string {
+  return message
+    .trim()
+    .split(/\n{2,}/)
+    .map(
+      (para) =>
+        `<p style="margin:0 0 14px 0;">${escapeHtml(para).replace(/\n/g, "<br>")}</p>`,
+    )
+    .join("");
+}
+
 export type EmailShellOptions = {
   /** Small quiet label above the heading (e.g. the sender name). Optional. */
   eyebrow?: string;

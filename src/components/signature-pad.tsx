@@ -5,10 +5,22 @@ import { Eraser, PenLine, Type as TypeIcon } from "lucide-react";
 
 type Mode = "draw" | "type";
 
-const SIGNATURE_FONT = '"Dancing Script"';
+type SignatureStyle = {
+  id: string;
+  label: string;
+  font: string;
+  cssVar: string;
+};
 
-/** Renders `name` in the signature script font onto an offscreen canvas and returns a PNG data URL. */
-function renderTypedSignature(name: string): string | null {
+const SIGNATURE_STYLES: SignatureStyle[] = [
+  { id: "dancing", label: "Flowing", font: '"Dancing Script"', cssVar: "var(--font-signature-dancing)" },
+  { id: "vibes", label: "Elegant", font: '"Great Vibes"', cssVar: "var(--font-signature-vibes)" },
+  { id: "caveat", label: "Casual", font: '"Caveat"', cssVar: "var(--font-signature-caveat)" },
+  { id: "pacifico", label: "Bold", font: '"Pacifico"', cssVar: "var(--font-signature-pacifico)" },
+];
+
+/** Renders `name` in the given signature font onto an offscreen canvas and returns a PNG data URL. */
+function renderTypedSignature(name: string, font: string): string | null {
   const trimmed = name.trim();
   if (!trimmed) return null;
   const canvas = document.createElement("canvas");
@@ -25,10 +37,10 @@ function renderTypedSignature(name: string): string | null {
   ctx.textBaseline = "middle";
   ctx.textAlign = "center";
   let size = 64;
-  ctx.font = `${size}px ${SIGNATURE_FONT}`;
+  ctx.font = `${size}px ${font}`;
   while (ctx.measureText(trimmed).width > width - 48 && size > 24) {
     size -= 2;
-    ctx.font = `${size}px ${SIGNATURE_FONT}`;
+    ctx.font = `${size}px ${font}`;
   }
   ctx.fillText(trimmed, width / 2, height / 2 + 4);
   return canvas.toDataURL("image/png");
@@ -36,10 +48,10 @@ function renderTypedSignature(name: string): string | null {
 
 /**
  * Lets the client either draw their signature or type their name and have it
- * rendered in a script font, the same choice DocuSign-style e-sign tools
- * offer. Both modes call `onChange` with the same shape (a PNG data URL, or
- * null when empty), so the parent form and server never need to know which
- * one was used.
+ * rendered in one of several script fonts, the same choice DocuSign-style
+ * e-sign tools offer. Both modes call `onChange` with the same shape (a PNG
+ * data URL, or null when empty), so the parent form and server never need to
+ * know which one was used.
  */
 export function SignaturePad({ onChange, defaultName }: { onChange: (dataUrl: string | null) => void; defaultName?: string }) {
   const [mode, setMode] = useState<Mode>("draw");
@@ -49,6 +61,8 @@ export function SignaturePad({ onChange, defaultName }: { onChange: (dataUrl: st
   const last = useRef<{ x: number; y: number } | null>(null);
   const [empty, setEmpty] = useState(true);
   const [typedName, setTypedName] = useState(defaultName ?? "");
+  const [styleId, setStyleId] = useState(SIGNATURE_STYLES[0].id);
+  const style = SIGNATURE_STYLES.find((s) => s.id === styleId) ?? SIGNATURE_STYLES[0];
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -71,11 +85,11 @@ export function SignaturePad({ onChange, defaultName }: { onChange: (dataUrl: st
     if (mode !== "type") return;
     let cancelled = false;
     const apply = () => {
-      if (!cancelled) onChange(renderTypedSignature(typedName));
+      if (!cancelled) onChange(renderTypedSignature(typedName, style.font));
     };
     const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
     if (fonts?.load) {
-      fonts.load(`64px ${SIGNATURE_FONT}`).then(apply).catch(apply);
+      fonts.load(`64px ${style.font}`).then(apply).catch(apply);
     } else {
       apply();
     }
@@ -83,7 +97,7 @@ export function SignaturePad({ onChange, defaultName }: { onChange: (dataUrl: st
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, typedName]);
+  }, [mode, typedName, styleId]);
 
   const pos = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -133,7 +147,7 @@ export function SignaturePad({ onChange, defaultName }: { onChange: (dataUrl: st
     if (next === "draw") {
       clear();
     } else {
-      onChange(renderTypedSignature(typedName));
+      onChange(renderTypedSignature(typedName, style.font));
     }
   };
 
@@ -207,10 +221,34 @@ export function SignaturePad({ onChange, defaultName }: { onChange: (dataUrl: st
           />
           <p
             className="mt-2 h-16 overflow-hidden text-[40px] leading-[1] text-ink"
-            style={{ fontFamily: "var(--font-signature)" }}
+            style={{ fontFamily: style.cssVar }}
           >
             {typedName.trim() || <span className="text-base italic text-ink/30">Your signature preview</span>}
           </p>
+
+          <div className="mt-3 grid grid-cols-4 gap-2">
+            {SIGNATURE_STYLES.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setStyleId(s.id)}
+                aria-pressed={s.id === styleId}
+                className={`flex flex-col items-center gap-1 rounded-sm border px-1.5 py-2 transition ${
+                  s.id === styleId
+                    ? "border-[#8b6444] bg-[#8b6444]/8"
+                    : "border-ink/15 bg-white/40 hover:border-ink/30"
+                }`}
+              >
+                <span
+                  className="h-7 overflow-hidden text-[22px] leading-[1.3] text-ink"
+                  style={{ fontFamily: s.cssVar }}
+                >
+                  {(typedName.trim() || "Sign").slice(0, 10)}
+                </span>
+                <span className="text-[10px] font-medium uppercase tracking-[0.06em] text-ink/50">{s.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

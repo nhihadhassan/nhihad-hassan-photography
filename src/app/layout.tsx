@@ -2,16 +2,19 @@ import type { Metadata } from "next";
 import {
   Abril_Fatface,
   Bodoni_Moda,
+  Caveat,
   Cormorant_Garamond,
   DM_Serif_Display,
   Dancing_Script,
   Geist,
   Geist_Mono,
+  Great_Vibes,
   Libre_Baskerville,
   Lora,
   Montserrat,
   Newsreader,
   Oswald,
+  Pacifico,
   Playfair_Display,
   Plus_Jakarta_Sans,
   Space_Grotesk,
@@ -115,11 +118,33 @@ const abrilFatface = Abril_Fatface({
   preload: false,
 });
 
-// Only needed on the agreement signing page's "type" signature tab.
+// Signature-style fonts: only needed on the agreement signing page's "type"
+// signature tab, where the client picks which one to sign with.
 const dancingScript = Dancing_Script({
-  variable: "--font-signature",
+  variable: "--font-signature-dancing",
   subsets: ["latin"],
   weight: ["500", "600", "700"],
+  preload: false,
+});
+
+const greatVibes = Great_Vibes({
+  variable: "--font-signature-vibes",
+  subsets: ["latin"],
+  weight: "400",
+  preload: false,
+});
+
+const caveat = Caveat({
+  variable: "--font-signature-caveat",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  preload: false,
+});
+
+const pacifico = Pacifico({
+  variable: "--font-signature-pacifico",
+  subsets: ["latin"],
+  weight: "400",
   preload: false,
 });
 
@@ -221,7 +246,7 @@ export default async function RootLayout({
     <html
       lang="en"
       style={themeStyle as React.CSSProperties}
-      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${bodoni.variable} ${montserrat.variable} ${playfair.variable} ${dmSerif.variable} ${libreBaskerville.variable} ${lora.variable} ${newsreader.variable} ${oswald.variable} ${spaceGrotesk.variable} ${plusJakarta.variable} ${abrilFatface.variable} ${dancingScript.variable} h-full scroll-smooth antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${bodoni.variable} ${montserrat.variable} ${playfair.variable} ${dmSerif.variable} ${libreBaskerville.variable} ${lora.variable} ${newsreader.variable} ${oswald.variable} ${spaceGrotesk.variable} ${plusJakarta.variable} ${abrilFatface.variable} ${dancingScript.variable} ${greatVibes.variable} ${caveat.variable} ${pacifico.variable} h-full scroll-smooth antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <script

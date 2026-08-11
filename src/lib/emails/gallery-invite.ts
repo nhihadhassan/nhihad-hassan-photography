@@ -6,7 +6,7 @@
  * human and plain (no em dashes, no icon bullets, no bordered "cards").
  */
 
-import { emailShell, escapeHtml } from "@/lib/emails/shell";
+import { emailShell, escapeHtml, messageToHtml } from "@/lib/emails/shell";
 
 export type GalleryInviteInput = {
   /** Client first name or full name — used in the greeting. */
@@ -45,18 +45,6 @@ export function defaultInviteMessage(clientName: string | null): string {
     "",
     "If you have any questions, just reply to this email.",
   ].join("\n");
-}
-
-/** Turns a plain-text message (with blank-line paragraphs) into email-safe HTML. */
-function messageToHtml(message: string): string {
-  return message
-    .trim()
-    .split(/\n{2,}/)
-    .map(
-      (para) =>
-        `<p style="margin:0 0 14px 0;">${escapeHtml(para).replace(/\n/g, "<br>")}</p>`,
-    )
-    .join("");
 }
 
 export function buildGalleryInviteEmail(input: GalleryInviteInput): {

@@ -1,6 +1,6 @@
 import "server-only";
-import { brandConfig } from "@/lib/config";
 import { sendAgreementEmail } from "@/lib/notify-email";
+import { defaultAgreementSubject } from "@/lib/emails/agreement-invite";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 
 export type AgreementDeliveryStatus =
@@ -100,8 +100,11 @@ export async function sendAgreementRequestEmail(input: {
   expiresAt?: string | null;
   /** Contact fields left blank on the contract (e.g. "phone number", "mailing address"). */
   missingFields?: string[];
+  /** Admin-edited subject/message from the Preview & Send composer. Falls back to the auto-generated default when blank. */
+  subject?: string | null;
+  message?: string | null;
 }): Promise<{ ok: boolean; message: string; deliveryId?: string }> {
-  const subject = `Your photography agreement · ${brandConfig.name}`;
+  const subject = input.subject?.trim() || defaultAgreementSubject();
 
   let deliveryId: string;
   try {
@@ -128,6 +131,8 @@ export async function sendAgreementRequestEmail(input: {
     agreementUrl: input.agreementUrl,
     expiresAt: input.expiresAt,
     missingFields: input.missingFields,
+    subject: input.subject,
+    message: input.message,
     idempotencyKey: `agreement-${deliveryId}`,
   });
 

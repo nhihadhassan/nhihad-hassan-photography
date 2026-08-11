@@ -4,11 +4,10 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { AgreementDocument } from "@/components/agreement-document";
-import { AgreementSendPanel } from "@/components/agreement-send-panel";
+import { AgreementEmailComposer } from "@/components/agreement-email-composer";
 import { buildAgreementView } from "@/lib/agreement-view";
 import { isAgreementPastExpiry } from "@/lib/agreement-status";
 import { getAgreementRequestById, getSignedAgreementsByToken } from "@/lib/agreements";
-import { buildAgreementEmail } from "@/lib/notify-email";
 import { agreementSignUrl } from "@/lib/agreement-url";
 import { missingContactFields } from "@/lib/agreement-values";
 
@@ -56,15 +55,6 @@ export default async function AgreementPreviewPage({
   ].filter((recipient): recipient is { name: string | null; email: string } => Boolean(recipient.email));
 
   const missingFields = missingContactFields(request.details);
-  const emails = recipients.map((recipient) => ({
-    recipient,
-    content: buildAgreementEmail({
-      clientName: recipient.name,
-      agreementUrl,
-      expiresAt: request.expires_at,
-      missingFields,
-    }),
-  }));
 
   const blockedReason = request.revoked_at
     ? "This signing link has been revoked, so it can no longer be emailed."
@@ -90,8 +80,8 @@ export default async function AgreementPreviewPage({
         <p className="text-sm font-medium text-admin-accent">Preview before sending</p>
         <h1 className="admin-display mt-1 text-3xl text-admin-ink">{view.contractTitle}</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-muted">
-          This is the email and the contract exactly as the signers will receive them. Nothing has
-          been sent yet, and opening this page does not mark the contract as viewed.
+          Review the contract, personalize the email if you like, and send. Nothing has been sent
+          yet, and opening this page does not mark the contract as viewed.
         </p>
       </div>
 
@@ -129,35 +119,6 @@ export default async function AgreementPreviewPage({
       </section>
 
       <section className="mt-8">
-        <h2 className="admin-display text-xl text-admin-ink">The email</h2>
-        <div className="mt-3 grid gap-5">
-          {emails.map(({ recipient, content }) => (
-            <div key={recipient.email} className="overflow-hidden rounded-md border border-admin-ink/10 bg-admin-surface">
-              <div className="border-b border-admin-ink/10 px-4 py-3 text-sm">
-                <p className="text-admin-ink/55">
-                  To <span className="font-medium text-admin-ink">{recipient.email}</span>
-                </p>
-                <p className="mt-1 text-admin-ink/55">
-                  Subject <span className="font-medium text-admin-ink">{content.subject}</span>
-                </p>
-              </div>
-              <iframe
-                title={`Email preview for ${recipient.email}`}
-                srcDoc={content.html}
-                sandbox=""
-                className="h-[560px] w-full border-0 bg-white"
-              />
-            </div>
-          ))}
-          {!emails.length ? (
-            <p className="rounded-md border border-admin-ink/10 bg-admin-surface p-5 text-sm text-admin-ink/65">
-              Add a signer email to preview the message.
-            </p>
-          ) : null}
-        </div>
-      </section>
-
-      <section className="mt-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="admin-display text-xl text-admin-ink">The contract</h2>
           <a
@@ -190,11 +151,20 @@ export default async function AgreementPreviewPage({
       </section>
 
       <section id="send" className="mt-8 scroll-mt-24 border-t border-admin-line pt-6">
-        <h2 className="admin-display text-xl text-admin-ink">Send it</h2>
-        <div className="mt-3">
-          <AgreementSendPanel
+        <h2 className="admin-display text-xl text-admin-ink">The email</h2>
+        <p className="mt-1 text-sm text-admin-muted">
+          A good default is filled in already — edit it if you want to add a personal note, or send
+          as is.
+        </p>
+        <div className="mt-4">
+          <AgreementEmailComposer
             requestId={request.id}
-            recipients={recipients.map((recipient) => recipient.email)}
+            recipients={recipients}
+            agreementUrl={agreementUrl}
+            expiresAt={request.expires_at}
+            missingFields={missingFields}
+            savedSubject={request.invite_subject}
+            savedMessage={request.invite_message}
             alreadySent={Boolean(request.sent_at || request.latest_delivery)}
             disabledReason={blockedReason}
           />

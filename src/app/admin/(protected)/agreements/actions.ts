@@ -9,6 +9,7 @@ import {
   updateAgreementAutomationSettings,
   updateAgreementDetails,
   updateAgreementIdentity,
+  updateAgreementInviteDraft,
   type AgreementDetails,
 } from "@/lib/agreements";
 import { isAgreementPastExpiry } from "@/lib/agreement-status";
@@ -36,6 +37,9 @@ async function emailAgreementSigners(input: {
   secondName?: string;
   secondEmail?: string;
   missingFields?: string[];
+  /** Admin-edited subject/message from the Preview & Send composer. Falls back to the auto-generated default when blank. */
+  subject?: string | null;
+  message?: string | null;
 }) {
   const recipients = [
     { name: input.primaryName, email: input.primaryEmail },
@@ -50,8 +54,20 @@ async function emailAgreementSigners(input: {
     agreementUrl: input.agreementUrl,
     expiresAt: input.expiresAt,
     missingFields: input.missingFields,
+    subject: input.subject,
+    message: input.message,
   })));
   const failed = results.filter((result) => !result.ok);
+
+  // Save the composed wording so a resend or quick "Send now" keeps it.
+  // Non-fatal: the email already went out either way.
+  if (results.some((result) => result.ok)) {
+    updateAgreementInviteDraft(input.agreementRequestId, {
+      subject: input.subject?.trim() || null,
+      message: input.message?.trim() || null,
+    }).catch((err) => console.warn("[agreement-invite] draft save failed:", err));
+  }
+
   if (failed.length) {
     return {
       ok: false,
@@ -215,6 +231,8 @@ export async function createGalleryAgreementRequestAction(
 
 export async function sendAgreementRequestEmailAction(
   id: string,
+  /** Explicit wording from the Preview & Send composer. Omit to reuse the saved/default wording (the quick "Send now" button does this). */
+  overrides?: { subject?: string; message?: string },
 ): Promise<{ ok: boolean; message: string }> {
   await requireAdmin();
   try {
@@ -238,6 +256,8 @@ export async function sendAgreementRequestEmailAction(
       secondName: request.details.secondSignerName,
       secondEmail: request.details.secondSignerEmail,
       missingFields: missingContactFields(request.details),
+      subject: overrides?.subject ?? request.invite_subject,
+      message: overrides?.message ?? request.invite_message,
     });
     revalidatePath("/admin/agreements");
     return { ok: result.ok, message: result.message };

@@ -100,6 +100,9 @@ export type AgreementRequest = {
   cover_focal_y: number | null;
   gallery_title?: string | null;
   latest_delivery: AgreementDelivery | null;
+  /** Saved email subject/message overrides from a previous Preview & Send edit. null = use the auto-generated default. */
+  invite_subject: string | null;
+  invite_message: string | null;
 };
 
 export type AgreementCover = {
@@ -230,6 +233,8 @@ function mapRequest(row: Record<string, unknown>): AgreementRequest {
     cover_focal_y: row.cover_focal_y === null || row.cover_focal_y === undefined ? null : Number(row.cover_focal_y),
     gallery_title: gallery?.title ?? null,
     latest_delivery: null,
+    invite_subject: (row.invite_subject as string | null) ?? null,
+    invite_message: (row.invite_message as string | null) ?? null,
   };
 }
 
@@ -487,6 +492,25 @@ export async function updateAgreementAutomationSettings(
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Only an active, unsigned contract can be changed.");
+}
+
+/**
+ * Saves the admin's composed email wording from the Preview & Send screen so
+ * a resend or the quick "Send now" button reuses it. Mirrors how gallery
+ * invites save invite_subject/invite_message. Non-fatal by design at the
+ * call site -- losing a saved draft should never block the email that was
+ * just sent.
+ */
+export async function updateAgreementInviteDraft(
+  id: string,
+  input: { subject: string | null; message: string | null },
+): Promise<void> {
+  const admin = getServiceRoleSupabaseClient();
+  const { error } = await admin
+    .from("agreement_requests")
+    .update({ invite_subject: input.subject, invite_message: input.message })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 export async function updateAgreementDetails(id: string, details: AgreementDetails) {

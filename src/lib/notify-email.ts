@@ -140,59 +140,72 @@ function fallbackLinkHtml(url: string): string {
   return `<p style="margin:14px 0 0 0;font-size:13px;color:#6b6459;">If the button doesn't work, open this link:<br /><a href="${escapeHtml(url)}" style="color:#6b6459;text-decoration:underline;">${escapeHtml(url)}</a></p>`;
 }
 
-/**
- * On signing, email a confirmation/copy to the client and a notification to the
- * photographer. Best-effort: each send is independent and never throws.
- */
-export async function sendSignedAgreementEmails(input: {
+/** Send the completed agreement link to the client after every required signer is in. */
+export async function sendSignedAgreementClientEmail(input: {
+  agreementRequestId: string;
   signerName: string;
   clientEmail: string | null;
   /** Public /agreement/{token} URL. Never an /admin path. */
   url: string;
-  /** Admin's own contract list, offered as a secondary link in the photographer's copy only. */
+}): Promise<SendResult | null> {
+  if (!input.clientEmail) return null;
+  const first = input.signerName.trim().split(/\s+/)[0] || "there";
+  return sendMail({
+    to: input.clientEmail,
+    replyTo: brandConfig.contactEmail,
+    subject: `Your signed booking agreement · ${brandConfig.name}`,
+    text: `Hi ${first},\n\nThank you for signing your booking agreement with ${brandConfig.name}. You can view or print a copy anytime here:\n\n${input.url}\n\nLooking forward to working together.`,
+    html: emailShell({
+      eyebrow: "Agreement signed",
+      heading: "Thanks for signing.",
+      bodyHtml: `<p style="margin:0 0 14px 0;">Hi ${escapeHtml(first)},</p><p style="margin:0 0 14px 0;">Thank you for signing your booking agreement with ${escapeHtml(brandConfig.name)}. You can view or print a copy anytime using the button below.</p>${fallbackLinkHtml(input.url)}`,
+      ctaLabel: "View your signed agreement",
+      ctaUrl: input.url,
+    }),
+    tags: [{ name: "category", value: "agreement_signed_client" }],
+    idempotencyKey: `agreement-signed-client-${input.agreementRequestId}`,
+  });
+}
+
+/**
+ * Notify the photographer as soon as an individual client signature is safely
+ * stored. This deliberately does not wait for a dual-signer agreement to be
+ * complete, so every successful signer submission produces one notification.
+ */
+export async function sendAgreementSignedAdminNotification(input: {
+  signedAgreementId: string;
+  signerName: string;
+  signerEmail: string | null;
+  complete: boolean;
+  finalizationSucceeded: boolean;
+  /** Public /agreement/{token} URL. Never an /admin path. */
+  url: string;
+  /** Admin's own contract list, offered as a secondary link. */
   adminUrl?: string;
-}): Promise<void> {
-  const tasks: Promise<SendResult>[] = [];
-
-  if (input.clientEmail) {
-    const first = input.signerName.trim().split(/\s+/)[0] || "there";
-    tasks.push(
-      sendMail({
-        to: input.clientEmail,
-        replyTo: brandConfig.contactEmail,
-        subject: `Your signed booking agreement · ${brandConfig.name}`,
-        text: `Hi ${first},\n\nThank you for signing your booking agreement with ${brandConfig.name}. You can view or print a copy anytime here:\n\n${input.url}\n\nLooking forward to working together.`,
-        html: emailShell({
-          eyebrow: "Agreement signed",
-          heading: "Thanks for signing.",
-          bodyHtml: `<p style="margin:0 0 14px 0;">Hi ${escapeHtml(first)},</p><p style="margin:0 0 14px 0;">Thank you for signing your booking agreement with ${escapeHtml(brandConfig.name)}. You can view or print a copy anytime using the button below.</p>${fallbackLinkHtml(input.url)}`,
-          ctaLabel: "View your signed agreement",
-          ctaUrl: input.url,
-        }),
-      }),
-    );
-  }
-
+}): Promise<SendResult> {
   const adminLinkHtml = input.adminUrl
     ? `<p style="margin:6px 0 0 0;font-size:13px;"><a href="${escapeHtml(input.adminUrl)}" style="color:#6b6459;text-decoration:underline;">Open in admin</a></p>`
     : "";
-  tasks.push(
-    sendMail({
-      to: adminRecipient(),
-      replyTo: input.clientEmail ?? undefined,
-      subject: `${input.signerName} signed the agreement`,
-      text: `${input.signerName} just signed their booking agreement.\n\nView client agreement: ${input.url}${input.adminUrl ? `\nOpen in admin: ${input.adminUrl}` : ""}`,
-      html: emailShell({
-        eyebrow: "Agreement signed",
-        heading: `${input.signerName} signed.`,
-        bodyHtml: `<p style="margin:0;">${escapeHtml(input.signerName)} just signed their booking agreement.</p>${adminLinkHtml}`,
-        ctaLabel: "View client agreement",
-        ctaUrl: input.url,
-      }),
+  const statusText = !input.finalizationSucceeded
+    ? "The signature is saved, but automatic finalization needs attention."
+    : input.complete
+      ? "The agreement is now complete."
+      : "The signature is saved; another required signer is still outstanding.";
+  return sendMail({
+    to: adminRecipient(),
+    replyTo: input.signerEmail ?? undefined,
+    subject: `${input.signerName} signed the agreement`,
+    text: `${input.signerName} just signed their booking agreement. ${statusText}\n\nView client agreement: ${input.url}${input.adminUrl ? `\nOpen in admin: ${input.adminUrl}` : ""}`,
+    html: emailShell({
+      eyebrow: "Agreement signed",
+      heading: `${input.signerName} signed.`,
+      bodyHtml: `<p style="margin:0 0 8px 0;">${escapeHtml(input.signerName)} just signed their booking agreement.</p><p style="margin:0;">${escapeHtml(statusText)}</p>${adminLinkHtml}`,
+      ctaLabel: "View client agreement",
+      ctaUrl: input.url,
     }),
-  );
-
-  await Promise.allSettled(tasks);
+    tags: [{ name: "category", value: "agreement_signed_admin" }],
+    idempotencyKey: `agreement-signed-admin-${input.signedAgreementId}`,
+  });
 }
 
 export async function sendAgreementEmail(input: {

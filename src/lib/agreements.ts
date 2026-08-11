@@ -3,7 +3,10 @@ import { randomBytes } from "node:crypto";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import { getBookingAgreement } from "@/lib/booking-agreement";
 import { advanceBookingStage } from "@/lib/bookings";
-import { sendSignedAgreementEmails } from "@/lib/notify-email";
+import {
+  sendAgreementSignedAdminNotification,
+  sendSignedAgreementClientEmail,
+} from "@/lib/notify-email";
 import { brandConfig } from "@/lib/config";
 import { hasR2Config } from "@/lib/env";
 import { getSignedReadUrl } from "@/lib/r2";
@@ -682,17 +685,21 @@ export async function signAgreement(input: {
 
   const clientDetails = input.clientDetails ?? request.client_details;
 
-  const { error: insertError } = await admin.from("signed_agreements").insert({
-    agreement_request_id: request.id,
-    gallery_id: request.gallery_id,
-    signer_name: assignedSigner?.name ?? input.signerName,
-    signer_email: assignedSigner?.email ?? input.signerEmail ?? request.client_email ?? null,
-    signature_data_url: input.signatureDataUrl ?? null,
-    agreement_snapshot: snapshot,
-    client_details: clientDetails,
-    signed_ip: input.ip ?? null,
-    user_agent: input.userAgent ?? null,
-  });
+  const { data: insertedSignature, error: insertError } = await admin
+    .from("signed_agreements")
+    .insert({
+      agreement_request_id: request.id,
+      gallery_id: request.gallery_id,
+      signer_name: assignedSigner?.name ?? input.signerName,
+      signer_email: assignedSigner?.email ?? input.signerEmail ?? request.client_email ?? null,
+      signature_data_url: input.signatureDataUrl ?? null,
+      agreement_snapshot: snapshot,
+      client_details: clientDetails,
+      signed_ip: input.ip ?? null,
+      user_agent: input.userAgent ?? null,
+    })
+    .select("id")
+    .single();
   if (insertError) return { ok: false, message: insertError.message };
 
   // Every required client signature is in. The photographer's own signature is
@@ -700,6 +707,9 @@ export async function signAgreement(input: {
   // sent_at), not a second interactive step, so completion finalizes the
   // agreement immediately: no manual countersign gate.
   const complete = (existingRows?.length ?? 0) + 1 >= Math.max(1, requiredSigners.length);
+  const signerName = assignedSigner?.name ?? input.signerName;
+  const signerEmail = assignedSigner?.email ?? input.signerEmail ?? request.client_email ?? null;
+  const publicAgreementUrl = agreementSignUrl(request.token);
   const now = new Date().toISOString();
   const { data: finalized, error: finalizeError } = await admin
     .from("agreement_requests")
@@ -713,6 +723,26 @@ export async function signAgreement(input: {
     .eq("id", request.id)
     .select("id")
     .maybeSingle();
+
+  // Notification is keyed to the stored signature, not to finalization. That
+  // way the photographer is still alerted if a later status update needs
+  // attention, while normal signatures finalize before the email is sent.
+  const photographerNotification = await sendAgreementSignedAdminNotification({
+    signedAgreementId: insertedSignature.id,
+    signerName,
+    signerEmail,
+    complete,
+    finalizationSucceeded: !finalizeError && (!complete || Boolean(finalized)),
+    url: publicAgreementUrl,
+    adminUrl: adminAgreementsUrl(),
+  }).catch((error) => ({
+    ok: false,
+    message: error instanceof Error ? error.message : "Photographer notification failed.",
+  }));
+  if (!photographerNotification.ok) {
+    console.error("Agreement signature notification failed:", photographerNotification.message);
+  }
+
   if (finalizeError) return { ok: false, message: finalizeError.message };
   if (complete && !finalized) return { ok: false, message: "This agreement could not be finalized." };
 
@@ -733,15 +763,20 @@ export async function signAgreement(input: {
       await advanceBookingStage(bookingId, (count ?? 0) > 0 ? "booked" : "contract_out");
     }
 
-    // Release the completed copy to the client and notify the photographer.
-    // The client CTA and the admin's own copy both link to the public
-    // agreement; the admin copy additionally offers a distinct admin link.
-    await sendSignedAgreementEmails({
+    // Release the completed copy to the client. The photographer was already
+    // notified as soon as this individual signature was safely stored above.
+    const clientNotification = await sendSignedAgreementClientEmail({
+      agreementRequestId: request.id,
       signerName: request.client_name ?? input.signerName,
       clientEmail: request.client_email,
-      url: agreementSignUrl(request.token),
-      adminUrl: adminAgreementsUrl(),
-    }).catch(() => undefined);
+      url: publicAgreementUrl,
+    }).catch((error) => ({
+      ok: false,
+      message: error instanceof Error ? error.message : "Signed agreement client email failed.",
+    }));
+    if (clientNotification && !clientNotification.ok) {
+      console.error("Signed agreement client email failed:", clientNotification.message);
+    }
   }
 
   return { ok: true, complete };

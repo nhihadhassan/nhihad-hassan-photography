@@ -8,8 +8,15 @@ import type { ClientEditableField } from "@/lib/agreements";
 
 export type DetailRow = { param: string; label: string; value: string | null };
 
-/** Fields the client can fill in directly on the document (see AgreementInlineField). */
+/**
+ * Fields the client can fill in directly on the document (see
+ * AgreementInlineField). Contact info is always theirs to edit/correct.
+ * Start time and venue are the photographer's call -- only open those up
+ * when the photographer left them blank (e.g. a surprise proposal where
+ * the client picks the spot); once set, they render as normal read-only text.
+ */
 const CLIENT_EDITABLE_PARAMS = new Set<ClientEditableField>(["phone", "clientAddress", "startTime", "location"]);
+const CLIENT_EDITABLE_ONLY_IF_EMPTY = new Set<ClientEditableField>(["startTime", "location"]);
 
 const VARIABLE_LABELS: Record<string, string> = {
   effectiveDate: "effective date",
@@ -62,11 +69,18 @@ function VariableValue({ value, label, underlined = false, param, signToken }: {
   param?: string;
   signToken?: string;
 }) {
-  if (signToken && param && CLIENT_EDITABLE_PARAMS.has(param as ClientEditableField)) {
+  const editableParam = param as ClientEditableField | undefined;
+  const isClientEditable =
+    signToken &&
+    editableParam &&
+    CLIENT_EDITABLE_PARAMS.has(editableParam) &&
+    !(CLIENT_EDITABLE_ONLY_IF_EMPTY.has(editableParam) && value);
+
+  if (isClientEditable) {
     return (
       <AgreementInlineField
         token={signToken}
-        param={param as ClientEditableField}
+        param={editableParam!}
         value={value}
         label={label}
         underlined={underlined}

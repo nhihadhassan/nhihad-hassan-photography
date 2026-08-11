@@ -240,7 +240,7 @@ export function SignaturePad({ onChange, defaultName }: { onChange: (dataUrl: st
                 }`}
               >
                 <span
-                  className="h-7 overflow-hidden text-[22px] leading-[1.3] text-ink"
+                  className="block h-8 w-full overflow-hidden text-ellipsis whitespace-nowrap text-[22px] leading-[1.5] text-ink"
                   style={{ fontFamily: s.cssVar }}
                 >
                   {(typedName.trim() || "Sign").slice(0, 10)}

@@ -69,7 +69,7 @@ export async function submitSignatureAction(
   return {
     status: "success",
     message: result.complete
-      ? "Your details and signature are complete. You will receive the finalized copy once the agreement is countersigned."
+      ? "Your signature is complete and the agreement is finalized."
       : "Your signature is recorded. The agreement is waiting for the other signer.",
   };
 }

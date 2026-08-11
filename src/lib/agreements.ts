@@ -716,7 +716,15 @@ export async function signAgreement(input: {
     .update({
       client_details: clientDetails,
       ...(complete
-        ? { client_submitted_at: now, finalized_at: now, signed_at: now }
+        ? {
+            client_submitted_at: now,
+            // The photographer's standing signature is part of every sent
+            // contract, so its effective timestamp is the send time rather
+            // than a separate manual countersignature action.
+            photographer_signed_at: request.sent_at ?? now,
+            finalized_at: now,
+            signed_at: now,
+          }
         : {}),
       updated_at: now,
     })

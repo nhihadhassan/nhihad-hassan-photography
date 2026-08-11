@@ -6,7 +6,6 @@ import { SiteFooter } from "@/components/site-footer";
 import { PrintButton } from "@/components/print-button";
 import { AgreementDocument } from "@/components/agreement-document";
 import { AgreementSignForm } from "@/components/agreement-sign-form";
-import { AgreementMissingDetailsForm } from "@/components/agreement-missing-details-form";
 import { brandConfig } from "@/lib/config";
 import {
   getAgreementCover,
@@ -14,7 +13,6 @@ import {
   getSignedAgreementsByToken,
 } from "@/lib/agreements";
 import { buildAgreementView } from "@/lib/agreement-view";
-import { missingContactFields } from "@/lib/agreement-values";
 import { sanitizeFilename } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -110,7 +108,6 @@ export default async function AgreementSigningPage({
     remainingSigners,
   } = view;
   const photographerName = brandConfig.name;
-  const missingFields = missingContactFields(request.details);
   const printFilename = sanitizeFilename(
     `NHPhotography Services Agreement - ${
       partyNameList.length ? partyNameList.join(" & ") : clientName || "Client"
@@ -135,18 +132,11 @@ export default async function AgreementSigningPage({
         </div>
       </> : null}
       {!fullySigned && remainingSigners.length ? (
-        <>
-          <AgreementMissingDetailsForm
-            token={token}
-            missingPhone={missingFields.includes("phone number")}
-            missingAddress={missingFields.includes("mailing address")}
-          />
-          <AgreementSignForm
-            token={token}
-            signers={remainingSigners}
-            photographerName={photographerName}
-          />
-        </>
+        <AgreementSignForm
+          token={token}
+          signers={remainingSigners}
+          photographerName={photographerName}
+        />
       ) : null}
       {fullySigned ? <p className="mt-4 text-xs text-ink/45">This record is kept by the photographer as confirmation of the completed agreement.</p> : null}
       {request.sent_at ? (
@@ -271,6 +261,7 @@ export default async function AgreementSigningPage({
             referenceFormatting={view.referenceFormatting}
             depositTerm={view.depositTerm}
             signatureSlot={signatureSlot}
+            signToken={fullySigned ? undefined : token}
           />
         </div>
       </main>

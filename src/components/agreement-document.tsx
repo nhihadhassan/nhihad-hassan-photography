@@ -3,8 +3,12 @@ import { Reveal } from "@/components/reveal";
 import { brandConfig } from "@/lib/config";
 import type { AgreementSection } from "@/data/booking-agreement";
 import { AGREEMENT_INTRO_LEAD, parseRichText, splitClauseLead } from "@/lib/rich-text-tokens";
+import { AgreementInlineField } from "@/components/agreement-inline-field";
 
 export type DetailRow = { param: string; label: string; value: string | null };
+
+/** Fields the client can fill in directly on the document (see AgreementInlineField). */
+const CLIENT_EDITABLE_PARAMS = new Set(["phone", "clientAddress"]);
 
 const VARIABLE_LABELS: Record<string, string> = {
   effectiveDate: "effective date",
@@ -50,7 +54,25 @@ function formatVariableValue(param: string, value?: string): string | undefined 
   }).format(new Date(Date.UTC(year, month - 1, day)));
 }
 
-function VariableValue({ value, label, underlined = false }: { value?: string; label: string; underlined?: boolean }) {
+function VariableValue({ value, label, underlined = false, param, signToken }: {
+  value?: string;
+  label: string;
+  underlined?: boolean;
+  param?: string;
+  signToken?: string;
+}) {
+  if (signToken && param && CLIENT_EDITABLE_PARAMS.has(param)) {
+    return (
+      <AgreementInlineField
+        token={signToken}
+        param={param as "phone" | "clientAddress"}
+        value={value}
+        label={label}
+        underlined={underlined}
+      />
+    );
+  }
+
   if (value) {
     return underlined ? (
       <span className="font-medium underline decoration-ink/55 decoration-1 underline-offset-2">{value}</span>
@@ -66,10 +88,11 @@ function VariableValue({ value, label, underlined = false }: { value?: string; l
   );
 }
 
-function RichText({ text, values, underlineVariables = false }: {
+function RichText({ text, values, underlineVariables = false, signToken }: {
   text: string;
   values: Record<string, string | undefined>;
   underlineVariables?: boolean;
+  signToken?: string;
 }) {
   return (
     <>
@@ -81,6 +104,8 @@ function RichText({ text, values, underlineVariables = false }: {
               value={formatVariableValue(token.key, values[token.key])}
               label={VARIABLE_LABELS[token.key] ?? token.key}
               underlined={underlineVariables}
+              param={token.key}
+              signToken={signToken}
             />
           );
         }
@@ -93,34 +118,36 @@ function RichText({ text, values, underlineVariables = false }: {
   );
 }
 
-function Clause({ children, values, referenceFormatting }: {
+function Clause({ children, values, referenceFormatting, signToken }: {
   children: string;
   values: Record<string, string | undefined>;
   referenceFormatting: boolean;
+  signToken?: string;
 }) {
   const { lead, rest } = splitClauseLead(children);
 
-  if (!lead) return referenceFormatting ? <RichText text={children} values={values} /> : <>{children}</>;
+  if (!lead) return referenceFormatting ? <RichText text={children} values={values} signToken={signToken} /> : <>{children}</>;
 
   return (
     <>
       <span className="font-semibold text-ink/90">{lead}</span>
-      {rest ? <> {referenceFormatting ? <RichText text={rest} values={values} /> : rest}</> : null}
+      {rest ? <> {referenceFormatting ? <RichText text={rest} values={values} signToken={signToken} /> : rest}</> : null}
     </>
   );
 }
 
-function AgreementIntro({ children, values, referenceFormatting }: {
+function AgreementIntro({ children, values, referenceFormatting, signToken }: {
   children: string;
   values: Record<string, string | undefined>;
   referenceFormatting: boolean;
+  signToken?: string;
 }) {
   if (!referenceFormatting || !children.startsWith(AGREEMENT_INTRO_LEAD)) return <>{children}</>;
 
   return (
     <>
       <strong className="font-bold text-ink">{AGREEMENT_INTRO_LEAD}</strong>
-      <RichText text={children.slice(AGREEMENT_INTRO_LEAD.length)} values={values} underlineVariables />
+      <RichText text={children.slice(AGREEMENT_INTRO_LEAD.length)} values={values} underlineVariables signToken={signToken} />
     </>
   );
 }
@@ -140,11 +167,11 @@ function DetailTable({ rows }: { rows: DetailRow[] }) {
   );
 }
 
-function VariableList({ rows, bullets = false }: { rows: DetailRow[]; bullets?: boolean }) {
+function VariableList({ rows, bullets = false, signToken }: { rows: DetailRow[]; bullets?: boolean; signToken?: string }) {
   const items = rows.map((row) => (
     <div key={row.param} className="leading-7">
       <span>{row.label}: </span>
-      <VariableValue value={row.value ?? undefined} label={row.label.toLowerCase()} />
+      <VariableValue value={row.value ?? undefined} label={row.label.toLowerCase()} param={row.param} signToken={signToken} />
     </div>
   ));
 
@@ -201,6 +228,7 @@ export function AgreementDocument({
   depositTerm = "Retainer",
   actionSlot,
   signatureSlot,
+  signToken,
 }: {
   title?: string;
   intro: string;
@@ -213,6 +241,8 @@ export function AgreementDocument({
   depositTerm?: "Retainer" | "Deposit";
   actionSlot?: ReactNode;
   signatureSlot?: ReactNode;
+  /** Public signing token. When set, the client can fill phone/mailing-address blanks inline instead of a separate form. */
+  signToken?: string;
 }) {
   return (
     <article className="mx-auto max-w-none px-6 py-10 sm:px-12 sm:py-14 print:px-0 print:py-0">
@@ -227,7 +257,7 @@ export function AgreementDocument({
           {title}
         </h1>
         <p className="mt-6 text-[14px] leading-[1.72] text-ink/78 print:text-[10.5pt] print:leading-[1.5]">
-          <AgreementIntro values={agreementValues} referenceFormatting={referenceFormatting}>{intro}</AgreementIntro>
+          <AgreementIntro values={agreementValues} referenceFormatting={referenceFormatting} signToken={signToken}>{intro}</AgreementIntro>
         </p>
 
         {actionSlot ? (
@@ -280,10 +310,10 @@ export function AgreementDocument({
                 {section.clauses.map((clause, i) => (
                   <Fragment key={i}>
                     <p className="text-[14px] leading-[1.72] text-ink/78 print:text-[10.5pt] print:leading-[1.5]">
-                      <Clause values={agreementValues} referenceFormatting={referenceFormatting}>{clause}</Clause>
+                      <Clause values={agreementValues} referenceFormatting={referenceFormatting} signToken={signToken}>{clause}</Clause>
                     </p>
                     {referenceFormatting && section.heading.startsWith("1.") && i === 0 && serviceRows?.length ? (
-                      <div className="py-2"><VariableList rows={serviceRows} /></div>
+                      <div className="py-2"><VariableList rows={serviceRows} signToken={signToken} /></div>
                     ) : null}
                     {section.heading.startsWith("2.") && i === 0 && feeRows?.length ? (
                       <div className="py-2">

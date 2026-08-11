@@ -60,7 +60,7 @@ function SignerCard({
       <p className="text-sm font-semibold text-ink">{signer.name}</p>
 
       <div className="mt-3">
-        <SignaturePad onChange={setSignature} />
+        <SignaturePad onChange={setSignature} defaultName={signer.name} />
       </div>
 
       <label className="mt-4 flex items-start gap-2.5 text-sm text-ink/75">

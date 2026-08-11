@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
 import {
   Abril_Fatface,
+  Alex_Brush,
   Bodoni_Moda,
-  Caveat,
   Cormorant_Garamond,
   DM_Serif_Display,
   Dancing_Script,
   Geist,
   Geist_Mono,
   Great_Vibes,
+  Homemade_Apple,
   Libre_Baskerville,
   Lora,
   Montserrat,
   Newsreader,
   Oswald,
-  Pacifico,
   Playfair_Display,
   Plus_Jakarta_Sans,
   Space_Grotesk,
@@ -134,15 +134,15 @@ const greatVibes = Great_Vibes({
   preload: false,
 });
 
-const caveat = Caveat({
-  variable: "--font-signature-caveat",
+const alexBrush = Alex_Brush({
+  variable: "--font-signature-brush",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: "400",
   preload: false,
 });
 
-const pacifico = Pacifico({
-  variable: "--font-signature-pacifico",
+const homemadeApple = Homemade_Apple({
+  variable: "--font-signature-handwritten",
   subsets: ["latin"],
   weight: "400",
   preload: false,
@@ -246,7 +246,7 @@ export default async function RootLayout({
     <html
       lang="en"
       style={themeStyle as React.CSSProperties}
-      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${bodoni.variable} ${montserrat.variable} ${playfair.variable} ${dmSerif.variable} ${libreBaskerville.variable} ${lora.variable} ${newsreader.variable} ${oswald.variable} ${spaceGrotesk.variable} ${plusJakarta.variable} ${abrilFatface.variable} ${dancingScript.variable} ${greatVibes.variable} ${caveat.variable} ${pacifico.variable} h-full scroll-smooth antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${bodoni.variable} ${montserrat.variable} ${playfair.variable} ${dmSerif.variable} ${libreBaskerville.variable} ${lora.variable} ${newsreader.variable} ${oswald.variable} ${spaceGrotesk.variable} ${plusJakarta.variable} ${abrilFatface.variable} ${dancingScript.variable} ${greatVibes.variable} ${alexBrush.variable} ${homemadeApple.variable} h-full scroll-smooth antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <script

@@ -27,9 +27,12 @@ function FieldError({ errors }: { errors?: string[] }) {
 export function NewCollectionForm({
   locations,
   clients,
+  defaultCoverFont,
 }: {
   locations: string[];
   clients: ClientSummary[];
+  /** Cover font used on the most recent gallery, so this one starts the same way. */
+  defaultCoverFont?: string;
 }) {
   const [state, formAction, pending] = useActionState(createGalleryQuick, initialState);
   // null = blank (no preset)
@@ -110,13 +113,13 @@ export function NewCollectionForm({
         <PremiumDatePicker label="Event date" name="event_date" placeholder="Choose a date" />
         <label className="grid gap-1.5">
           <span className="text-sm font-medium text-admin-ink">Location</span>
-          <LocationCombobox name="location" suggestions={locations} />
+          <LocationCombobox name="location" suggestions={locations} defaultValue="Toronto" />
         </label>
       </div>
 
       <label className="grid gap-1.5 sm:max-w-[50%]">
         <span className="text-sm font-medium text-admin-ink">Cover title font</span>
-        <select className={inputClass} name="cover_font" defaultValue="montserrat">
+        <select className={inputClass} name="cover_font" defaultValue={defaultCoverFont ?? "montserrat"}>
           {GALLERY_COVER_FONTS.map((font) => (
             <option key={font.value} value={font.value}>
               {font.label}

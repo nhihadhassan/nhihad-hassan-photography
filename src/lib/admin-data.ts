@@ -172,6 +172,28 @@ export async function getRecentGalleryLocations(limit = 12): Promise<string[]> {
   return ordered.slice(0, limit);
 }
 
+/**
+ * The cover title font used on the most recently created gallery, so a new
+ * collection defaults to whatever the photographer picked last time instead
+ * of always resetting to "Montserrat". Falls back to null (caller defaults
+ * to montserrat) if there are no galleries yet.
+ */
+export async function getMostRecentCoverFont(): Promise<string | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("galleries")
+    .select("cover_font")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data?.cover_font as string | null) ?? null;
+}
+
 export async function getAdminGallery(id: string) {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase

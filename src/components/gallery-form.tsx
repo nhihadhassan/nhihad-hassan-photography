@@ -4,6 +4,8 @@ import { useActionState, useState } from "react";
 import {
   ChevronDown,
   Download,
+  Eye,
+  EyeOff,
   FileText,
   ImageIcon,
   Key,
@@ -40,6 +42,40 @@ const textareaClass =
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
   return <p className="text-sm text-admin-danger">{errors[0]}</p>;
+}
+
+/** Password/PIN input with a show/hide toggle, since these are read back before sending an invite. */
+function RevealableInput({
+  name,
+  placeholder,
+  minLength,
+}: {
+  name: string;
+  placeholder: string;
+  minLength?: number;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        className={`${inputClass} w-full pr-10`}
+        name={name}
+        type={visible ? "text" : "password"}
+        autoComplete="new-password"
+        placeholder={placeholder}
+        minLength={minLength}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        aria-label={visible ? "Hide" : "Show"}
+        aria-pressed={visible}
+        className="absolute right-1 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-md text-admin-ink/45 transition hover:bg-admin-ink/6 hover:text-admin-ink/70"
+      >
+        {visible ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}
+      </button>
+    </div>
+  );
 }
 
 /** Red asterisk marking a required field. */
@@ -373,14 +409,9 @@ export function GalleryForm({
               <span className="text-sm font-medium">
                 {gallery?.has_password ? "New password" : "Password"}
               </span>
-              <input
-                className={inputClass}
+              <RevealableInput
                 name="password"
-                type="password"
-                autoComplete="new-password"
-                placeholder={
-                  gallery?.has_password ? "Leave blank to keep current" : "Choose a memorable phrase"
-                }
+                placeholder={gallery?.has_password ? "Leave blank to keep current" : "Choose a memorable phrase"}
                 minLength={4}
               />
               <span className="text-xs text-admin-ink/65">
@@ -483,14 +514,9 @@ export function GalleryForm({
               <span className="text-sm font-medium">
                 {gallery?.has_download_pin ? "New download PIN" : "Download PIN"}
               </span>
-              <input
-                className={inputClass}
+              <RevealableInput
                 name="download_pin"
-                type="password"
-                autoComplete="new-password"
-                placeholder={
-                  gallery?.has_download_pin ? "Leave blank to keep current" : "Optional PIN code"
-                }
+                placeholder={gallery?.has_download_pin ? "Leave blank to keep current" : "Optional PIN code"}
                 minLength={4}
               />
               <span className="text-xs text-admin-ink/65">Stored hashed. Never logged or emailed.</span>

@@ -2,13 +2,17 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { NewCollectionForm } from "@/components/new-collection-form";
 import { requireAdmin } from "@/lib/auth";
-import { getRecentGalleryLocations } from "@/lib/admin-data";
+import { getMostRecentCoverFont, getRecentGalleryLocations } from "@/lib/admin-data";
 import { getClientList } from "@/lib/clients";
 
 export default async function NewGalleryPage() {
   await requireAdmin();
 
-  const [locations, clients] = await Promise.all([getRecentGalleryLocations(), getClientList()]);
+  const [locations, clients, defaultCoverFont] = await Promise.all([
+    getRecentGalleryLocations(),
+    getClientList(),
+    getMostRecentCoverFont(),
+  ]);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -28,7 +32,7 @@ export default async function NewGalleryPage() {
         </p>
       </div>
       <div className="mt-7">
-        <NewCollectionForm locations={locations} clients={clients} />
+        <NewCollectionForm locations={locations} clients={clients} defaultCoverFont={defaultCoverFont ?? undefined} />
       </div>
     </div>
   );

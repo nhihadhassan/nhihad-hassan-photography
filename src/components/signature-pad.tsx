@@ -15,8 +15,8 @@ type SignatureStyle = {
 const SIGNATURE_STYLES: SignatureStyle[] = [
   { id: "dancing", label: "Flowing", font: '"Dancing Script"', cssVar: "var(--font-signature-dancing)" },
   { id: "vibes", label: "Elegant", font: '"Great Vibes"', cssVar: "var(--font-signature-vibes)" },
-  { id: "caveat", label: "Casual", font: '"Caveat"', cssVar: "var(--font-signature-caveat)" },
-  { id: "pacifico", label: "Bold", font: '"Pacifico"', cssVar: "var(--font-signature-pacifico)" },
+  { id: "brush", label: "Brush", font: '"Alex Brush"', cssVar: "var(--font-signature-brush)" },
+  { id: "handwritten", label: "Handwritten", font: '"Homemade Apple"', cssVar: "var(--font-signature-handwritten)" },
 ];
 
 /** Renders `name` in the given signature font onto an offscreen canvas and returns a PNG data URL. */

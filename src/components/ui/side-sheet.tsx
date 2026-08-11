@@ -53,22 +53,22 @@ export function SideSheet({
         ref={panelRef}
         tabIndex={-1}
         className={cn(
-          "relative h-full w-full max-w-md overflow-y-auto border-l border-admin-line-strong bg-admin-surface shadow-2xl outline-none motion-safe:animate-[sheet-in_220ms_ease-out]",
+          "relative h-full w-full max-w-md overflow-y-auto bg-admin-surface shadow-2xl outline-none motion-safe:animate-[sheet-in_220ms_ease-out] sm:border-l sm:border-admin-line-strong",
           className,
         )}
       >
-        <div className="sticky top-0 flex items-center justify-between border-b border-admin-line bg-admin-surface/95 px-5 py-4 backdrop-blur">
+        <div className="sticky top-0 flex items-center justify-between border-b border-admin-line bg-admin-surface/95 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur sm:px-5 sm:py-4">
           <h2 className="admin-display text-lg text-admin-ink">{title}</h2>
           <button
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="rounded-md p-1.5 text-admin-muted hover:bg-admin-raise hover:text-admin-ink"
+            className="inline-flex size-11 items-center justify-center rounded-md text-admin-muted hover:bg-admin-raise hover:text-admin-ink"
           >
             <X className="size-4" aria-hidden="true" />
           </button>
         </div>
-        <div className="px-5 py-5">{children}</div>
+        <div className="px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 sm:px-5">{children}</div>
       </div>
     </div>
   );

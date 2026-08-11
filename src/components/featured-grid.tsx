@@ -64,7 +64,7 @@ function FeaturedCard({ item }: { item: PortfolioCard }) {
           href={`/portfolio/${item.category}`}
           onClick={(e) => e.stopPropagation()}
           aria-label={`View ${categoryLabels[item.category]} portfolio`}
-          className="flex size-10 shrink-0 items-center justify-center rounded-full border border-soft-white/30 text-soft-white/85 transition hover:border-copper hover:text-copper"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full border border-soft-white/30 text-soft-white/85 transition hover:border-copper hover:text-copper"
         >
           <ArrowUpRight className="size-4" aria-hidden="true" />
         </Link>
@@ -90,7 +90,7 @@ export function FeaturedGrid({ items }: { items: PortfolioCard[] }) {
       <div className="mt-10 flex justify-center">
         <Link
           href="/portfolio"
-          className="inline-flex items-center gap-2 rounded-full border border-soft-white/20 px-6 py-2.5 text-xs uppercase tracking-[0.18em] text-soft-white/80 transition hover:border-copper hover:text-copper"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-soft-white/20 px-6 py-2.5 text-xs uppercase tracking-[0.18em] text-soft-white/80 transition hover:border-copper hover:text-copper"
         >
           View more
           <ArrowUpRight className="size-3.5" aria-hidden="true" />

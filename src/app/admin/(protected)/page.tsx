@@ -115,14 +115,14 @@ export default async function TodayPage() {
                 {item.action.external ? (
                   <a
                     href={item.action.href}
-                    className="shrink-0 rounded-lg border border-admin-line-strong bg-admin-surface px-3 py-1.5 text-xs font-medium text-admin-ink hover:bg-admin-raise"
+                    className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-admin-line-strong bg-admin-surface px-3 py-1.5 text-xs font-medium text-admin-ink hover:bg-admin-raise sm:min-h-9"
                   >
                     {item.action.label}
                   </a>
                 ) : (
                   <Link
                     href={item.action.href}
-                    className="shrink-0 rounded-lg border border-admin-line-strong bg-admin-surface px-3 py-1.5 text-xs font-medium text-admin-ink hover:bg-admin-raise"
+                    className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-admin-line-strong bg-admin-surface px-3 py-1.5 text-xs font-medium text-admin-ink hover:bg-admin-raise sm:min-h-9"
                   >
                     {item.action.label}
                   </Link>
@@ -143,7 +143,7 @@ export default async function TodayPage() {
               <Link
                 key={action.label}
                 href={action.href}
-                className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-admin-line-strong bg-admin-surface px-4 text-sm font-medium text-admin-ink transition hover:bg-admin-raise"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-admin-line-strong bg-admin-surface px-4 text-sm font-medium text-admin-ink transition hover:bg-admin-raise sm:min-h-10"
               >
                 <Icon className="size-4 text-admin-muted" aria-hidden="true" />
                 {action.label}

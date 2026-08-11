@@ -31,7 +31,7 @@ export default async function BookingDetailsPage({ searchParams }: Props) {
       <div className="min-h-[100dvh] bg-[#f3eee5] text-ink">
         <SiteHeader tone="light" />
         <main className="mx-auto max-w-2xl px-4 pb-24 pt-40 text-center sm:px-6">
-          <h1 className="font-serif text-6xl leading-none">Choose a date and time first.</h1>
+          <h1 className="font-serif text-5xl leading-[0.96] sm:text-6xl">Choose a date and time first.</h1>
           <Link href="/contact" className="mt-8 inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-soft-white">Start booking</Link>
         </main>
         <SiteFooter />

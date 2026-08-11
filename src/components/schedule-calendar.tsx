@@ -47,6 +47,9 @@ export function ScheduleCalendar({ events }: { events: ScheduleEvent[] }) {
   const days = useMemo(() => (view === "month" ? monthDays(cursor) : weekDays(cursor)), [cursor, view]);
   const monthLabel = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, month: "long", year: "numeric" }).format(cursor);
   const todayKey = ymd(new Date());
+  const mobileDays = days
+    .map((day) => ({ day, key: ymd(day), events: byDay.get(ymd(day)) ?? [] }))
+    .filter(({ day, events }) => (view === "week" || day.getMonth() === cursor.getMonth()) && events.length > 0);
 
   function shift(dir: number) {
     setCursor((c) => {
@@ -61,13 +64,13 @@ export function ScheduleCalendar({ events }: { events: ScheduleEvent[] }) {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <button onClick={() => shift(-1)} aria-label="Previous" className="rounded-lg border border-admin-line p-1.5 text-admin-muted hover:bg-admin-raise">
+          <button onClick={() => shift(-1)} aria-label="Previous" className="inline-flex size-11 items-center justify-center rounded-lg border border-admin-line text-admin-muted hover:bg-admin-raise sm:size-9">
             <ChevronLeft className="size-4" aria-hidden="true" />
           </button>
-          <button onClick={() => setCursor(new Date())} className="rounded-lg border border-admin-line px-3 py-1.5 text-sm text-admin-ink hover:bg-admin-raise">
+          <button onClick={() => setCursor(new Date())} className="min-h-11 rounded-lg border border-admin-line px-3 py-1.5 text-sm text-admin-ink hover:bg-admin-raise sm:min-h-9">
             Today
           </button>
-          <button onClick={() => shift(1)} aria-label="Next" className="rounded-lg border border-admin-line p-1.5 text-admin-muted hover:bg-admin-raise">
+          <button onClick={() => shift(1)} aria-label="Next" className="inline-flex size-11 items-center justify-center rounded-lg border border-admin-line text-admin-muted hover:bg-admin-raise sm:size-9">
             <ChevronRight className="size-4" aria-hidden="true" />
           </button>
           <span className="admin-display ml-1 text-lg text-admin-ink">{monthLabel}</span>
@@ -78,7 +81,7 @@ export function ScheduleCalendar({ events }: { events: ScheduleEvent[] }) {
               key={v}
               onClick={() => setView(v)}
               aria-pressed={view === v}
-              className={cn("min-h-8 rounded-md px-3 text-xs font-medium capitalize", view === v ? "bg-admin-ink text-admin-surface" : "text-admin-muted")}
+              className={cn("min-h-11 rounded-md px-3 text-xs font-medium capitalize sm:min-h-8", view === v ? "bg-admin-ink text-admin-surface" : "text-admin-muted")}
             >
               {v}
             </button>
@@ -86,7 +89,47 @@ export function ScheduleCalendar({ events }: { events: ScheduleEvent[] }) {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-7 gap-px overflow-hidden rounded-xl border border-admin-line bg-admin-line">
+      <div className="mt-4 overflow-hidden rounded-xl border border-admin-line bg-admin-surface md:hidden">
+        {mobileDays.length > 0 ? (
+          <div className="divide-y divide-admin-line">
+            {mobileDays.map(({ day, key, events: dayEvents }) => (
+              <section key={key} className="p-4">
+                <div className="flex items-baseline justify-between gap-3">
+                  <h2 className={cn("text-sm font-semibold", key === todayKey ? "text-admin-accent" : "text-admin-ink")}>
+                    {new Intl.DateTimeFormat("en-CA", { timeZone: TZ, weekday: "long", month: "short", day: "numeric" }).format(day)}
+                  </h2>
+                  {key === todayKey ? <span className="text-xs font-medium text-admin-accent">Today</span> : null}
+                </div>
+                <div className="mt-3 space-y-2">
+                  {dayEvents.map((event) => (
+                    <button
+                      key={event.id}
+                      type="button"
+                      onClick={() => setSelected(event)}
+                      className={cn(
+                        "flex min-h-12 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left",
+                        event.tentative
+                          ? "bg-admin-status-waiting-tint text-admin-status-waiting"
+                          : "bg-admin-status-info-tint text-admin-status-info",
+                      )}
+                    >
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium">{event.title}</span>
+                      <span className="shrink-0 text-xs tabular-nums">{event.allDay ? "All day" : timeLabel(event.startIso)}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div className="px-5 py-12 text-center">
+            <p className="text-sm font-medium text-admin-ink">No events in this {view}.</p>
+            <p className="mt-1 text-sm text-admin-muted">Use the arrows to check another date.</p>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 hidden grid-cols-7 gap-px overflow-hidden rounded-xl border border-admin-line bg-admin-line md:grid">
         {WEEKDAYS.map((d) => (
           <div key={d} className="bg-admin-surface px-2 py-1.5 text-center text-xs font-medium text-admin-muted">{d}</div>
         ))}

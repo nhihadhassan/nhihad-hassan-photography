@@ -131,7 +131,7 @@ export function SelectsDrawer({ slug, photos, downloadEnabled = false }: Selects
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="flex size-10 items-center justify-center rounded-full border border-ink/12 text-ink/68 transition hover:bg-ink hover:text-soft-white"
+                className="flex size-11 items-center justify-center rounded-full border border-ink/12 text-ink/68 transition hover:bg-ink hover:text-soft-white"
               >
                 <X className="size-4" aria-hidden="true" />
               </button>
@@ -185,7 +185,7 @@ export function SelectsDrawer({ slug, photos, downloadEnabled = false }: Selects
                               type="button"
                               onClick={() => remove(photo.id)}
                               aria-label={`Remove ${photo.alt}`}
-                              className="absolute right-1 top-1 flex size-7 items-center justify-center rounded-full bg-ink/72 text-soft-white opacity-0 transition group-hover:opacity-100"
+                              className="absolute right-1 top-1 flex size-9 items-center justify-center rounded-full bg-ink/72 text-soft-white opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
                             >
                               <X className="size-3.5" aria-hidden="true" />
                             </button>

@@ -107,7 +107,7 @@ export function PipelineBoard({ cards, packages }: { cards: PipelineCard[]; pack
         sort={sort}
         setSort={setSort}
       />
-      <div className="mt-4 flex gap-3 overflow-x-auto pb-3">
+      <div className="mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3">
         {BOOKING_STAGES.map((stage) => {
           const inStage = filtered
             .filter((c) => c.stage === stage)
@@ -120,7 +120,7 @@ export function PipelineBoard({ cards, packages }: { cards: PipelineCard[]; pack
                 if (dragId) commitMove(dragId, stage);
                 setDragId(null);
               }}
-              className="w-64 shrink-0 rounded-xl border border-admin-line bg-admin-bg p-2.5"
+              className="w-[82vw] max-w-80 shrink-0 snap-start rounded-xl border border-admin-line bg-admin-bg p-2.5 sm:w-64"
             >
               <div className="flex items-center justify-between px-1 pb-2">
                 <h2 className="text-sm font-semibold text-admin-ink">{BOOKING_STAGE_LABELS[stage]}</h2>
@@ -170,14 +170,14 @@ function ViewControls({
         <button
           onClick={() => setView("board")}
           aria-pressed={view === "board"}
-          className={cn("inline-flex min-h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium", view === "board" ? "bg-admin-ink text-admin-surface" : "text-admin-muted")}
+          className={cn("inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 text-xs font-medium sm:min-h-8 sm:px-2.5", view === "board" ? "bg-admin-ink text-admin-surface" : "text-admin-muted")}
         >
           <LayoutGrid className="size-3.5" aria-hidden="true" /> Board
         </button>
         <button
           onClick={() => setView("list")}
           aria-pressed={view === "list"}
-          className={cn("inline-flex min-h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium", view === "list" ? "bg-admin-ink text-admin-surface" : "text-admin-muted")}
+          className={cn("inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 text-xs font-medium sm:min-h-8 sm:px-2.5", view === "list" ? "bg-admin-ink text-admin-surface" : "text-admin-muted")}
         >
           <Rows3 className="size-3.5" aria-hidden="true" /> List
         </button>
@@ -188,7 +188,7 @@ function ViewControls({
           value={pkg}
           onChange={(e) => setPkg(e.target.value)}
           aria-label="Filter by package"
-          className="min-h-9 rounded-lg border border-admin-line bg-admin-surface px-2.5 text-sm text-admin-ink"
+          className="min-h-11 rounded-lg border border-admin-line bg-admin-surface px-2.5 text-base text-admin-ink sm:min-h-9 sm:text-sm"
         >
           <option value="all">All packages</option>
           {packages.map((p) => (
@@ -202,7 +202,7 @@ function ViewControls({
           value={sort}
           onChange={(e) => setSort(e.target.value as SortKey)}
           aria-label="Sort within stage"
-          className="min-h-9 rounded-lg border border-admin-line bg-admin-surface px-2.5 text-sm text-admin-ink"
+          className="min-h-11 rounded-lg border border-admin-line bg-admin-surface px-2.5 text-base text-admin-ink sm:min-h-9 sm:text-sm"
         >
           <option value="activity">Most time in stage</option>
           <option value="shoot">Shoot date</option>
@@ -254,7 +254,7 @@ function PipelineCardView({
           disabled={!prev}
           onClick={() => prev && onMove(card.id, prev)}
           aria-label="Move to previous stage"
-          className="inline-flex size-7 items-center justify-center rounded-md border border-admin-line text-admin-muted hover:bg-admin-raise disabled:opacity-30"
+          className="inline-flex size-11 items-center justify-center rounded-md border border-admin-line text-admin-muted hover:bg-admin-raise disabled:opacity-30 sm:size-8"
         >
           <ChevronLeft className="size-4" aria-hidden="true" />
         </button>
@@ -263,7 +263,7 @@ function PipelineCardView({
           disabled={!next}
           onClick={() => next && onMove(card.id, next)}
           aria-label="Move to next stage"
-          className="inline-flex size-7 items-center justify-center rounded-md border border-admin-line text-admin-muted hover:bg-admin-raise disabled:opacity-30"
+          className="inline-flex size-11 items-center justify-center rounded-md border border-admin-line text-admin-muted hover:bg-admin-raise disabled:opacity-30 sm:size-8"
         >
           <ChevronRight className="size-4" aria-hidden="true" />
         </button>

@@ -71,7 +71,7 @@ export default async function AccessLogsPage({ searchParams }: PageProps) {
             requests. IPs are stored as one-way hashes only; passwords are never logged.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-3 text-sm">
+        <div className="grid grid-cols-3 gap-2 text-sm sm:gap-3">
           <div className="rounded-md border border-admin-ink/10 bg-admin-surface p-3">
             <span className="block text-xl font-semibold">{stats.total}</span>
             <span className="text-xs text-admin-ink/65">Attempts · 24h</span>
@@ -91,14 +91,14 @@ export default async function AccessLogsPage({ searchParams }: PageProps) {
         method="get"
         className="mt-8 flex flex-wrap items-end gap-3 rounded-md border border-admin-ink/10 bg-admin-surface p-4"
       >
-        <label className="grid gap-1.5">
+        <label className="grid w-full gap-1.5 sm:w-auto">
           <span className="text-xs font-medium uppercase tracking-wide text-admin-ink/60">
             Gallery
           </span>
           <select
             name="gallery"
             defaultValue={galleryFilter ?? "all"}
-            className="min-h-10 rounded-md border border-admin-ink/10 bg-white px-3 text-sm"
+            className="min-h-11 w-full rounded-md border border-admin-ink/10 bg-white px-3 text-base sm:min-h-10 sm:text-sm"
           >
             <option value="all">All galleries</option>
             {galleries.map((g) => (
@@ -110,14 +110,14 @@ export default async function AccessLogsPage({ searchParams }: PageProps) {
         </label>
         <button
           type="submit"
-          className="inline-flex min-h-10 items-center gap-2 rounded-md bg-admin-ink px-4 text-sm font-medium text-admin-surface"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-admin-ink px-4 text-sm font-medium text-admin-surface sm:min-h-10"
         >
           Apply filter
         </button>
         {galleryFilter ? (
           <Link
             href="/admin/access-logs"
-            className="inline-flex min-h-10 items-center gap-2 rounded-md border border-admin-ink/12 px-4 text-sm text-admin-ink/68"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-admin-ink/12 px-4 text-sm text-admin-ink/68 sm:min-h-10"
           >
             Clear
           </Link>
@@ -141,7 +141,39 @@ export default async function AccessLogsPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="mt-6 overflow-hidden rounded-md border border-admin-ink/10 bg-admin-surface">
-          <div className="overflow-x-auto">
+          <div className="divide-y divide-admin-line md:hidden">
+            {logs.map((log) => (
+              <article key={log.id} className="space-y-3 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    {log.gallery_slug ? (
+                      <Link href={`/admin/galleries/${log.gallery_id}`} className="block truncate text-sm font-medium text-admin-ink">
+                        {log.gallery_title ?? log.gallery_slug}
+                      </Link>
+                    ) : (
+                      <span className="text-sm text-admin-muted">Deleted gallery</span>
+                    )}
+                    <p className="mt-1 text-xs text-admin-muted">{formatTimestamp(log.accessed_at)}</p>
+                  </div>
+                  <span className={"inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium " + reasonClass(log.reason, log.success)}>
+                    {log.success ? <Shield className="size-3" aria-hidden="true" /> : null}
+                    {REASON_LABEL[log.reason ?? ""] ?? log.reason ?? "Unknown"}
+                  </span>
+                </div>
+                <dl className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="min-w-0">
+                    <dt className="font-medium uppercase tracking-wide text-admin-muted">IP hash</dt>
+                    <dd className="mt-1 truncate font-mono text-admin-ink/70">{log.ip_hash ?? "—"}</dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="font-medium uppercase tracking-wide text-admin-muted">Client</dt>
+                    <dd className="mt-1 truncate text-admin-ink/70">{summariseUserAgent(log.user_agent)}</dd>
+                  </div>
+                </dl>
+              </article>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-[720px] text-sm">
             <thead className="bg-admin-bg text-xs uppercase tracking-wide text-admin-ink/65">
               <tr>

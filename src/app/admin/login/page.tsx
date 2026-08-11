@@ -16,12 +16,12 @@ export default async function AdminLoginPage() {
 
   return (
     <main className="grid min-h-[100dvh] place-items-center bg-admin-bg px-4 py-10 text-admin-ink">
-      <div className="w-full max-w-md rounded-md border border-admin-ink/10 bg-admin-surface p-8 shadow-[0_24px_80px_-52px_rgba(23,19,15,0.45)]">
+      <div className="w-full max-w-md rounded-md border border-admin-ink/10 bg-admin-surface p-6 shadow-[0_24px_80px_-52px_rgba(23,19,15,0.45)] sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div className="flex size-12 items-center justify-center rounded-full bg-admin-ink text-admin-surface">
             <LockKeyhole className="size-5" aria-hidden="true" />
           </div>
-          <Link href="/" className="text-sm text-admin-ink/65 transition hover:text-admin-ink">
+          <Link href="/" className="inline-flex min-h-11 items-center text-sm text-admin-ink/65 transition hover:text-admin-ink">
             Public site
           </Link>
         </div>

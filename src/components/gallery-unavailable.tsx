@@ -10,7 +10,7 @@ export function GalleryUnavailable() {
           <Camera className="size-5 text-copper" aria-hidden="true" />
         </div>
         <p className="mt-6 text-xs uppercase tracking-[0.22em] text-copper">Gallery unavailable</p>
-        <h1 className="mt-3 font-serif text-5xl leading-none text-soft-white">
+        <h1 className="mt-3 font-serif text-4xl leading-none text-soft-white sm:text-5xl">
           This gallery is not available.
         </h1>
         <p className="mt-5 text-sm leading-6 text-soft-white/62">
@@ -36,4 +36,3 @@ export function GalleryUnavailable() {
     </main>
   );
 }
-

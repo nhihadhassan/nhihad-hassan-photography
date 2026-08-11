@@ -30,7 +30,7 @@ export function SiteHeader({ tone = "dark" }: SiteHeaderProps) {
   }`;
 
   return (
-    <header className="absolute inset-x-0 top-0 z-20 px-4 py-6 sm:px-8 sm:py-7">
+    <header className="absolute inset-x-0 top-0 z-20 px-4 pb-6 pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-8 sm:py-7">
       <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
         <nav className={`col-start-1 ${navGroupClass}`}>
           {navItems.slice(0, 2).map((item) => (

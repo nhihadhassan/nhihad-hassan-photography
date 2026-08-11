@@ -33,7 +33,7 @@ export default async function BookPage({ searchParams }: Props) {
         <SiteHeader />
         <main className="mx-auto max-w-3xl px-4 pb-24 pt-40 text-center sm:px-6">
           <p className="text-xs uppercase tracking-[0.2em] text-copper">Choose a session first</p>
-          <h1 className="mt-5 font-serif text-6xl leading-none">Let&apos;s find the right package.</h1>
+          <h1 className="mt-5 font-serif text-5xl leading-[0.96] sm:text-6xl">Let&apos;s find the right package.</h1>
           <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-soft-white/62">
             Select a service and package, then you can choose an available date and time.
           </p>

@@ -16,7 +16,7 @@ export async function AdminShell({
       <div className="min-h-[100dvh] bg-admin-bg text-admin-ink">
         <AdminNav adminEmail={adminEmail} />
         <div className="md:pl-16 lg:pl-64">
-          <main className="px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+          <main className="px-4 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6 sm:px-6 sm:py-8 lg:px-8">{children}</main>
         </div>
       </div>
     </AdminCommandProvider>

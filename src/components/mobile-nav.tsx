@@ -73,7 +73,7 @@ export function MobileNav({ items, tone = "dark" }: MobileNavProps) {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="fixed inset-0 z-50 bg-ink/96 backdrop-blur-md md:hidden"
           >
-            <div className="flex h-full flex-col px-6 pb-10 pt-6">
+            <div className="flex h-full flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
               <div className="flex items-center justify-end">
                 <button
                   type="button"
@@ -90,7 +90,7 @@ export function MobileNav({ items, tone = "dark" }: MobileNavProps) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={reduceMotion ? undefined : { opacity: 0, y: 16 }}
                 transition={{ duration: 0.28, ease: "easeOut", delay: 0.04 }}
-                className="mt-12 flex flex-1 flex-col justify-center"
+                className="mt-8 flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-4"
               >
                 <ul className="flex flex-col gap-2">
                   {items.map((item) => {
@@ -103,7 +103,7 @@ export function MobileNav({ items, tone = "dark" }: MobileNavProps) {
                           href={item.href}
                           onClick={close}
                           aria-current={isActive ? "page" : undefined}
-                          className={`block font-serif text-5xl leading-tight transition hover:text-copper ${
+                          className={`block font-serif text-[clamp(2.5rem,12.5vw,3rem)] leading-tight transition hover:text-copper ${
                             isActive ? "text-copper" : "text-soft-white"
                           }`}
                         >

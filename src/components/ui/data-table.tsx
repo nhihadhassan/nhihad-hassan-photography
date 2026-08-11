@@ -110,12 +110,13 @@ export function DataTable<T>({
   }
 
   const selectedRows = visible.filter((r) => selected.has(getRowId(r)));
+  const mobileColumns = columns.filter((column) => !column.hideOnMobile);
 
   return (
     <div className="rounded-xl border border-admin-line bg-admin-surface">
       <div className="flex flex-col gap-3 border-b border-admin-line p-3 sm:flex-row sm:items-center sm:justify-between">
         {filterTabs && filterTabs.length > 0 ? (
-          <div className="flex flex-wrap gap-1" role="tablist">
+          <div className="flex gap-1 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0" role="tablist">
             {filterTabs.map((t) => (
               <button
                 key={t.key}
@@ -123,7 +124,7 @@ export function DataTable<T>({
                 aria-selected={tab === t.key}
                 onClick={() => setTab(t.key)}
                 className={cn(
-                  "rounded-lg px-3 py-1.5 text-sm font-medium transition",
+                  "min-h-11 shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition sm:min-h-9",
                   tab === t.key
                     ? "bg-admin-ink text-admin-surface"
                     : "text-admin-muted hover:bg-admin-raise hover:text-admin-ink",
@@ -144,7 +145,7 @@ export function DataTable<T>({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={searchPlaceholder}
-              className="min-h-9 w-full rounded-lg border border-admin-line bg-admin-bg py-1.5 pl-9 pr-3 text-sm text-admin-ink outline-none focus-visible:border-admin-accent sm:w-64"
+              className="min-h-11 w-full rounded-lg border border-admin-line bg-admin-bg py-1.5 pl-9 pr-3 text-base text-admin-ink outline-none focus-visible:border-admin-accent sm:min-h-9 sm:w-64 sm:text-sm"
             />
           </label>
         ) : null}
@@ -161,7 +162,7 @@ export function DataTable<T>({
                 setSelected(new Set());
               }}
               className={cn(
-                "rounded-md px-2.5 py-1 text-xs font-medium",
+                "min-h-10 rounded-md px-2.5 py-1 text-xs font-medium",
                 a.tone === "danger"
                   ? "text-admin-danger hover:bg-admin-status-danger-tint"
                   : "text-admin-ink hover:bg-admin-raise",
@@ -173,7 +174,69 @@ export function DataTable<T>({
         </div>
       ) : null}
 
-      <div className="overflow-x-auto">
+      <div className="divide-y divide-admin-line sm:hidden">
+        {visible.map((row) => {
+          const id = getRowId(row);
+          const href = getRowHref?.(row);
+          const primary = mobileColumns[0];
+          const details = mobileColumns.slice(1);
+
+          return (
+            <article key={id} className="group px-4 py-4">
+              <div className="flex items-start gap-3">
+                {bulkActions ? (
+                  <label className="flex size-11 shrink-0 items-center justify-center -ml-2 -mt-2">
+                    <span className="sr-only">Select row</span>
+                    <input
+                      type="checkbox"
+                      checked={selected.has(id)}
+                      onChange={() => toggleRow(id)}
+                      className="size-5 accent-admin-ink"
+                    />
+                  </label>
+                ) : null}
+
+                <div className="min-w-0 flex-1">
+                  {primary ? (
+                    href ? (
+                      <button
+                        type="button"
+                        onClick={() => router.push(href)}
+                        className="block min-h-11 w-full text-left text-base text-admin-ink"
+                      >
+                        {primary.render(row)}
+                      </button>
+                    ) : (
+                      <div className="min-h-11 text-base text-admin-ink">{primary.render(row)}</div>
+                    )
+                  ) : null}
+
+                  {details.length > 0 ? (
+                    <dl className="mt-2 grid gap-x-4 gap-y-2 text-sm grid-cols-2">
+                      {details.map((column) => (
+                        <div key={column.key} className="min-w-0">
+                          <dt className="text-[11px] font-medium uppercase tracking-wide text-admin-muted">{column.header}</dt>
+                          <dd className={cn("mt-0.5 break-words text-admin-ink", column.numeric && "tabular-nums")}>
+                            {column.render(row)}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  ) : null}
+                </div>
+
+                {rowActions ? (
+                  <div className="shrink-0" onClick={(event) => event.stopPropagation()}>
+                    {rowActions(row)}
+                  </div>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+
+      <div className="hidden overflow-x-auto sm:block">
         <table className="w-full border-collapse text-sm">
           <thead className="sticky top-0 z-10 bg-admin-surface">
             <tr className="border-b border-admin-line text-left text-xs uppercase tracking-wide text-admin-muted">
@@ -184,7 +247,7 @@ export function DataTable<T>({
                     aria-label="Select all"
                     checked={allSelected}
                     onChange={toggleAll}
-                    className="size-4 accent-admin-ink"
+                    className="size-5 accent-admin-ink"
                   />
                 </th>
               ) : null}
@@ -236,7 +299,7 @@ export function DataTable<T>({
                         aria-label="Select row"
                         checked={selected.has(id)}
                         onChange={() => toggleRow(id)}
-                        className="size-4 accent-admin-ink"
+                        className="size-5 accent-admin-ink"
                       />
                     </td>
                   ) : null}
@@ -254,7 +317,7 @@ export function DataTable<T>({
                   ))}
                   {rowActions ? (
                     <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
-                      <span className="opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
+                      <span className="opacity-0 transition group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
                         {rowActions(row)}
                       </span>
                     </td>

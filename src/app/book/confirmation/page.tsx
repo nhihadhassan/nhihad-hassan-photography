@@ -32,7 +32,7 @@ export default async function BookingConfirmationPage({ searchParams }: Props) {
       <div className="min-h-[100dvh] bg-[#f3eee5] text-ink">
         <SiteHeader tone="light" />
         <main className="mx-auto max-w-2xl px-4 pb-24 pt-40 text-center sm:px-6">
-          <h1 className="font-serif text-6xl leading-none">Start with a session request.</h1>
+          <h1 className="font-serif text-5xl leading-[0.96] sm:text-6xl">Start with a session request.</h1>
           <p className="mx-auto mt-5 max-w-lg text-base leading-7 text-ink/60">Choose a package, date, and time before reviewing the payment steps.</p>
           <Link href="/contact" className="mt-8 inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-soft-white">Start booking</Link>
         </main>

@@ -1,9 +1,10 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
 import { DataTable, type Column, type FilterTab } from "@/components/ui/data-table";
 import { StatusChip, statusForInvoice, type StatusKey } from "@/components/ui/status-chip";
 import { InvoiceSendButton } from "@/components/invoice-send-button";
+import { ReceiptSendButton } from "@/components/receipt-send-button";
+import Link from "next/link";
 import { formatMoney, formatRelativeDate } from "@/lib/utils";
 
 export type InvoiceRow = {
@@ -13,13 +14,14 @@ export type InvoiceRow = {
   paid: number;
   balance: number;
   dueIso: string | null;
-  invoiceUrl: string;
   hasEmail: boolean;
   sentAt: string | null;
   viewedAt: string | null;
   cancelledAt: string | null;
   deliveryStatus: string | null;
   deliveryAt: string | null;
+  receiptId: string | null;
+  receiptSentAt: string | null;
 };
 
 function statusOf(r: InvoiceRow): StatusKey {
@@ -63,12 +65,12 @@ export function InvoicesTable({ rows }: { rows: InvoiceRow[] }) {
   ];
 
   const tabs: FilterTab<InvoiceRow>[] = [
+    { key: "all", label: "All", predicate: () => true },
     { key: "open", label: "Open", predicate: (r) => r.balance > 0.5 && statusOf(r) !== "cancelled" },
     { key: "draft", label: "Draft", predicate: (r) => statusOf(r) === "draft" },
     { key: "overdue", label: "Overdue", predicate: (r) => statusOf(r) === "overdue" },
     { key: "paid", label: "Paid", predicate: (r) => statusOf(r) === "paid" },
     { key: "cancelled", label: "Cancelled", predicate: (r) => statusOf(r) === "cancelled" },
-    { key: "all", label: "All", predicate: () => true },
   ];
 
   return (
@@ -81,21 +83,29 @@ export function InvoicesTable({ rows }: { rows: InvoiceRow[] }) {
       searchPlaceholder="Search invoices"
       filterTabs={tabs}
       rowActions={(r) => (
-        <div className="flex items-center gap-2">
-          <a
-            href={r.invoiceUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-sm text-admin-accent hover:text-admin-ink"
-          >
-            View <ExternalLink className="size-3.5" aria-hidden="true" />
-          </a>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/admin/invoices/${r.id}/preview`} className="text-xs font-medium text-admin-accent hover:text-admin-ink">
+            Review invoice
+          </Link>
           <InvoiceSendButton
             bookingId={r.id}
             sentBefore={Boolean(r.sentAt)}
             disabled={!r.hasEmail}
             compact
           />
+          {r.balance > 0.005 ? (
+            <Link href={`/admin/bookings/${r.id}#payment`} className="text-xs font-medium text-admin-accent hover:text-admin-ink">
+              Confirm payment
+            </Link>
+          ) : null}
+          {r.receiptId ? (
+            <>
+              <Link href={`/admin/receipts/${r.receiptId}`} className="text-xs font-medium text-admin-accent hover:text-admin-ink">
+                Review receipt
+              </Link>
+              <ReceiptSendButton receiptId={r.receiptId} sentBefore={Boolean(r.receiptSentAt)} disabled={!r.hasEmail} />
+            </>
+          ) : null}
         </div>
       )}
       emptyState="No invoices yet."

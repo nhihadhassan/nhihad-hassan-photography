@@ -25,7 +25,13 @@ export function GalleryGrid({
   enableDownload = false,
   slug,
 }: GalleryGridProps) {
-  const [openAt, setOpenAt] = useState<number | null>(null);
+  const [openAt, setOpenAt] = useState<number | null>(() => {
+    if (typeof window === "undefined" || photos.length === 0) return null;
+    const pid = new URLSearchParams(window.location.search).get("p");
+    if (!pid) return null;
+    const index = photos.findIndex((photo) => photo.id === pid);
+    return index >= 0 ? index : null;
+  });
   const [slideshow, setSlideshow] = useState(false);
   const [loadedIds, setLoadedIds] = useState<Set<string>>(() => new Set());
   const { isSelected } = useSelects();
@@ -39,15 +45,6 @@ export function GalleryGrid({
     window.addEventListener(START_SLIDESHOW_EVENT, start);
     return () => window.removeEventListener(START_SLIDESHOW_EVENT, start);
   }, [photos.length]);
-
-  // Open directly to a shared photo link (?p=<id>) on first load.
-  useEffect(() => {
-    if (photos.length === 0) return;
-    const pid = new URLSearchParams(window.location.search).get("p");
-    if (!pid) return;
-    const idx = photos.findIndex((photo) => photo.id === pid);
-    if (idx >= 0) setOpenAt(idx);
-  }, [photos]);
 
   return (
     <>

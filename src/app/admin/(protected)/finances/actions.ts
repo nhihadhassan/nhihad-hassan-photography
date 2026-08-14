@@ -60,6 +60,36 @@ export async function addPaymentAction(_prev: FinanceState, formData: FormData):
   }
 }
 
+export async function confirmBookingPaymentAction(input: {
+  bookingId: string;
+  amount: number;
+  paidOn: string;
+}): Promise<{ ok: boolean; message: string }> {
+  await requireAdmin();
+  if (!input.bookingId || !Number.isFinite(input.amount) || input.amount <= 0) {
+    return { ok: false, message: "Enter a valid payment amount." };
+  }
+  try {
+    const booking = await getBookingById(input.bookingId);
+    if (!booking) return { ok: false, message: "Booking not found." };
+    await createPayment({
+      bookingId: booking.id,
+      clientName: booking.client_name,
+      clientEmail: booking.client_email,
+      amount: input.amount,
+      kind: "balance",
+      paidOn: input.paidOn,
+      method: "interac",
+    });
+    revalidatePath("/admin");
+    revalidatePath("/admin/invoices");
+    revalidatePath(`/admin/bookings/${booking.id}`);
+    return { ok: true, message: "Payment confirmed and receipt prepared." };
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "Could not confirm payment." };
+  }
+}
+
 export async function addExpenseAction(_prev: FinanceState, formData: FormData): Promise<FinanceState> {
   await requireAdmin();
   const amount = parseAmount(String(formData.get("amount") ?? ""));

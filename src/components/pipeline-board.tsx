@@ -22,6 +22,7 @@ export type PipelineCard = {
   daysInStage: number;
   stale: boolean;
   totalValue: number;
+  deliveryDueDate: string | null;
 };
 
 const MONEY_TONE: Record<MoneyTone, string> = {
@@ -111,7 +112,14 @@ export function PipelineBoard({ cards, packages }: { cards: PipelineCard[]; pack
         {BOOKING_STAGES.map((stage) => {
           const inStage = filtered
             .filter((c) => c.stage === stage)
-            .sort((a, b) => (sort === "shoot" ? a.shootLabel.localeCompare(b.shootLabel) : b.daysInStage - a.daysInStage));
+            .sort((a, b) => {
+              if (sort === "shoot") return a.shootLabel.localeCompare(b.shootLabel);
+              if (stage === "editing") {
+                const dueOrder = (a.deliveryDueDate ?? "9999-12-31").localeCompare(b.deliveryDueDate ?? "9999-12-31");
+                if (dueOrder !== 0) return dueOrder;
+              }
+              return b.daysInStage - a.daysInStage;
+            });
           return (
             <div
               key={stage}
@@ -245,7 +253,9 @@ function PipelineCardView({
           {card.money.label}
         </span>
         <span className={cn("text-[11px] tabular-nums", card.stale ? "text-admin-status-danger" : "text-admin-muted")}>
-          {card.daysInStage}d in stage
+          {card.deliveryDueDate && card.stage === "editing"
+            ? `${card.stale ? "Overdue" : "Due"} ${new Date(`${card.deliveryDueDate}T12:00:00`).toLocaleDateString("en-CA", { month: "short", day: "numeric" })}`
+            : `${card.daysInStage}d in stage`}
         </span>
       </div>
       <div className="mt-2.5 flex items-center justify-between">
@@ -277,6 +287,7 @@ function PipelineList({ cards }: { cards: PipelineCard[] }) {
     { key: "title", header: "Client", render: (c) => <span className="font-medium">{c.title}</span>, sortValue: (c) => c.title },
     { key: "package", header: "Package", render: (c) => c.packageLabel || "-", hideOnMobile: true },
     { key: "shoot", header: "Shoot", render: (c) => c.shootLabel, sortValue: (c) => c.shootLabel, hideOnMobile: true },
+    { key: "deadline", header: "Delivery", render: (c) => c.deliveryDueDate ? new Date(`${c.deliveryDueDate}T12:00:00`).toLocaleDateString("en-CA", { month: "short", day: "numeric" }) : "-", sortValue: (c) => c.deliveryDueDate ?? "", hideOnMobile: true },
     { key: "stage", header: "Stage", render: (c) => BOOKING_STAGE_LABELS[c.stage], sortValue: (c) => BOOKING_STAGES.indexOf(c.stage) },
     {
       key: "money",

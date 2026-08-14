@@ -336,3 +336,36 @@ export async function sendInvoiceEmail(input: {
     ],
   });
 }
+
+/** Send a payment receipt only after the photographer explicitly approves it. */
+export async function sendReceiptEmail(input: {
+  to: string;
+  clientName: string;
+  receiptNumber: string;
+  amount: string;
+  receiptUrl: string;
+  pdf: Uint8Array;
+  idempotencyKey: string;
+}): Promise<SendResult> {
+  const first = input.clientName.trim().split(/\s+/)[0] || "there";
+  const bodyHtml = `
+    <p style="margin:0 0 14px 0;">Hi ${escapeHtml(first)},</p>
+    <p style="margin:0 0 14px 0;">Thank you. This confirms your payment of <strong>${escapeHtml(input.amount)}</strong>.</p>
+    <p style="margin:0;">Your receipt is attached and is also available using the button below.</p>`;
+  return sendMail({
+    to: input.to,
+    replyTo: brandConfig.contactEmail,
+    subject: `Receipt ${input.receiptNumber} · ${brandConfig.name}`,
+    text: `Hi ${first},\n\nThank you. This confirms your payment of ${input.amount}.\n\nView your receipt:\n${input.receiptUrl}`,
+    html: emailShell({
+      eyebrow: "Payment received",
+      heading: "Thank you.",
+      bodyHtml,
+      ctaLabel: "View receipt",
+      ctaUrl: input.receiptUrl,
+    }),
+    attachments: [{ filename: `${input.receiptNumber}.pdf`, content: Buffer.from(input.pdf) }],
+    tags: [{ name: "category", value: "receipt" }],
+    idempotencyKey: input.idempotencyKey,
+  });
+}

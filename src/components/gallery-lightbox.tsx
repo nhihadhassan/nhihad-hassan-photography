@@ -39,14 +39,15 @@ export function GalleryLightbox({
   const [index, setIndex] = useState(initialIndex);
   const [loading, setLoading] = useState(true);
   const [trackedInitial, setTrackedInitial] = useState(initialIndex);
-  const [playing, setPlaying] = useState(false);
+  const [playOverride, setPlayOverride] = useState<boolean | null>(null);
   const lastFocusRef = useRef<HTMLElement | null>(null);
   const reduceMotion = useReducedMotion();
 
-  // Start/stop slideshow playback when the lightbox opens or closes.
-  useEffect(() => {
-    setPlaying(open ? autoPlay : false);
-  }, [open, autoPlay]);
+  const playing = open ? (playOverride ?? autoPlay) : false;
+  const close = useCallback(() => {
+    setPlayOverride(null);
+    onClose();
+  }, [onClose]);
 
   // Auto-advance while playing, looping back to the first photo at the end.
   useEffect(() => {
@@ -100,7 +101,7 @@ export function GalleryLightbox({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        onClose();
+        close();
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         goPrev();
@@ -111,7 +112,7 @@ export function GalleryLightbox({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose, goPrev, goNext]);
+  }, [open, close, goPrev, goNext]);
 
   const handleDragEnd = useCallback(
     (_: unknown, info: PanInfo) => {
@@ -144,7 +145,7 @@ export function GalleryLightbox({
           exit={{ opacity: 0 }}
           transition={{ duration: transitionDuration }}
           onClick={(event) => {
-            if (event.target === event.currentTarget) onClose();
+            if (event.target === event.currentTarget) close();
           }}
         >
           <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between p-4 sm:p-6">
@@ -155,7 +156,7 @@ export function GalleryLightbox({
               {total > 1 ? (
                 <button
                   type="button"
-                  onClick={() => setPlaying((value) => !value)}
+                  onClick={() => setPlayOverride((value) => !(value ?? autoPlay))}
                   aria-label={playing ? "Pause slideshow" : "Play slideshow"}
                   className="pointer-events-auto flex size-11 items-center justify-center rounded-full border border-soft-white/12 bg-ink/55 text-soft-white backdrop-blur transition hover:border-soft-white/30 hover:bg-soft-white hover:text-ink"
                 >
@@ -169,7 +170,7 @@ export function GalleryLightbox({
             </div>
             <button
               type="button"
-              onClick={onClose}
+              onClick={close}
               aria-label="Close lightbox"
               className="pointer-events-auto flex size-11 items-center justify-center rounded-full border border-soft-white/12 bg-ink/55 text-soft-white backdrop-blur transition hover:border-soft-white/30 hover:bg-soft-white hover:text-ink"
             >

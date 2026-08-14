@@ -29,6 +29,15 @@ export type TemplateOption = {
   supportsSecondSigner: boolean;
 };
 
+export type AgreementCalendarPrefill = {
+  calendarEventId: string;
+  title: string;
+  date: string;
+  startTime: string;
+  coverageTime: string;
+  location: string;
+};
+
 const inputClass =
   "min-h-11 rounded-md border border-admin-ink/12 bg-white/70 px-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus:border-admin-copper";
 
@@ -103,18 +112,27 @@ function NewAgreementStarter({
   clients,
   templates,
   pricing,
+  prefill,
 }: {
   clients: ClientSummary[];
   templates: TemplateOption[];
   pricing: PricingCategory[];
+  prefill?: AgreementCalendarPrefill | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [selectedClientKey, setSelectedClientKey] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
-  const [templateId, setTemplateId] = useState<string>(templates[0]?.slug ?? "photography");
-  const [packageValue, setPackageValue] = useState("");
+  const [templateId, setTemplateId] = useState<string>(() => {
+    if (prefill?.title && isWeddingAgreementType(prefill.title)) {
+      return templates.find((template) => template.slug === "wedding" || isWeddingAgreementType(template.name))?.slug
+        ?? templates[0]?.slug
+        ?? "photography";
+    }
+    return templates[0]?.slug ?? "photography";
+  });
+  const [packageValue, setPackageValue] = useState(prefill?.title ?? "");
   const [error, setError] = useState<string | null>(null);
   const selectedTemplate = templates.find((t) => t.slug === templateId);
 
@@ -157,6 +175,11 @@ function NewAgreementStarter({
         template: templateId,
         type: packageValue || null,
         total: packageMatch ? exactPrice(packageMatch.tier.price) : null,
+        calendarEventId: prefill?.calendarEventId ?? null,
+        date: prefill?.date ?? null,
+        startTime: prefill?.startTime ?? null,
+        coverageTime: prefill?.coverageTime ?? null,
+        location: prefill?.location ?? null,
       });
       if (result.ok && result.id) {
         router.push(`/admin/agreements/${result.id}/edit`);
@@ -179,6 +202,12 @@ function NewAgreementStarter({
           </p>
         </div>
       </div>
+      {prefill ? (
+        <p className="mt-4 rounded-md bg-admin-status-info-tint px-3 py-2 text-sm text-admin-status-info">
+          Prefilled from Google Calendar: {prefill.date} at {prefill.startTime}
+          {prefill.location ? ` · ${prefill.location}` : ""}
+        </p>
+      ) : null}
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <ClientPicker
           clients={clients}
@@ -235,6 +264,7 @@ function NewAgreementStarter({
           Starting package <span className="font-normal text-admin-ink/55">(optional)</span>
           <select className={inputClass} value={packageValue} onChange={(event) => choosePackage(event.target.value)}>
             <option value="">Choose later, in the contract</option>
+            {prefill?.title && !packageMatch ? <option value={prefill.title}>{prefill.title}</option> : null}
             {pricing.map((category) => (
               <optgroup key={category.id} label={category.label}>
                 {category.tiers.map((tier) => (
@@ -519,16 +549,18 @@ export function AgreementAdmin({
   pricing,
   siteOrigin,
   templates,
+  prefill,
 }: {
   requests: AgreementRequest[];
   clients: ClientSummary[];
   pricing: PricingCategory[];
   siteOrigin: string;
   templates: TemplateOption[];
+  prefill?: AgreementCalendarPrefill | null;
 }) {
   return (
     <div className="grid gap-8">
-      <NewAgreementStarter clients={clients} templates={templates} pricing={pricing} />
+      <NewAgreementStarter clients={clients} templates={templates} pricing={pricing} prefill={prefill} />
       <section>
         <h2 className="text-lg font-semibold tracking-tight">Signing links</h2>
         <div className="mt-4 grid gap-3">

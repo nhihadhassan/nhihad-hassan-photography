@@ -72,6 +72,7 @@ export type AgreementDetails = {
 export type AgreementRequest = {
   id: string;
   gallery_id: string | null;
+  calendar_event_id: string | null;
   token: string;
   client_name: string | null;
   client_email: string | null;
@@ -205,6 +206,7 @@ function mapRequest(row: Record<string, unknown>): AgreementRequest {
   return {
     id: String(row.id),
     gallery_id: (row.gallery_id as string | null) ?? null,
+    calendar_event_id: (row.calendar_event_id as string | null) ?? null,
     token: String(row.token),
     client_name: (row.client_name as string | null) ?? null,
     client_email: (row.client_email as string | null) ?? null,
@@ -265,6 +267,7 @@ function mapSigned(row: Record<string, unknown>): SignedAgreement {
 
 export async function createAgreementRequest(input: {
   galleryId?: string | null;
+  calendarEventId?: string | null;
   clientName?: string | null;
   clientEmail?: string | null;
   details?: AgreementDetails;
@@ -280,6 +283,7 @@ export async function createAgreementRequest(input: {
     .from("agreement_requests")
     .insert({
       gallery_id: input.galleryId ?? null,
+      calendar_event_id: input.calendarEventId ?? null,
       token,
       client_name: input.clientName ?? null,
       client_email: input.clientEmail ?? null,

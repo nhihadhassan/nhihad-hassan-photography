@@ -5,6 +5,8 @@ import { getAdminAgreementRequests, type AgreementRequest } from "@/lib/agreemen
 import { getAdminClientReviews, type ClientReview } from "@/lib/reviews";
 import { getServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 import { parseAmount } from "@/lib/utils";
+import { normalizeClientEmail, titleCaseClientName } from "@/lib/client-names";
+import { listPayments } from "@/lib/finance";
 
 export type ClientProfile = {
   key: string;
@@ -39,8 +41,7 @@ export type ClientSummary = {
 };
 
 function emailKey(email: string | null | undefined): string | null {
-  const e = email?.trim().toLowerCase();
-  return e || null;
+  return normalizeClientEmail(email);
 }
 
 function maxDate(a: string | null, b: string | null): string | null {
@@ -54,6 +55,8 @@ type Draft = {
   name: string | null;
   email: string | null;
   phone: string | null;
+  address: string | null;
+  notes: string | null;
   nameDate: string | null; // recency of the name source, to pick the freshest name
   inquiries: InquiryRecord[];
   bookings: BookingWithLinks[];
@@ -63,6 +66,74 @@ type Draft = {
 };
 
 type ProfileOverride = { name: string | null; email: string | null; phone: string | null; address: string | null; notes: string | null };
+
+type CanonicalClient = ProfileOverride & {
+  id: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type ClientLink = {
+  client_id: string;
+  record_id: string;
+};
+
+async function getCanonicalClientData(): Promise<{
+  clients: CanonicalClient[];
+  agreementLinks: ClientLink[];
+  bookingLinks: ClientLink[];
+}> {
+  const admin = getServiceRoleSupabaseClient();
+  const [clientsResult, agreementResult, bookingResult] = await Promise.all([
+    admin.from("clients").select("id,name,email,phone,address,notes,created_at,updated_at"),
+    admin.from("agreement_clients").select("client_id,agreement_request_id"),
+    admin.from("booking_clients").select("client_id,booking_id"),
+  ]);
+  if (clientsResult.error) throw new Error(clientsResult.error.message);
+  if (agreementResult.error) throw new Error(agreementResult.error.message);
+  if (bookingResult.error) throw new Error(bookingResult.error.message);
+  return {
+    clients: (clientsResult.data ?? []) as CanonicalClient[],
+    agreementLinks: (agreementResult.data ?? []).map((row) => ({
+      client_id: String(row.client_id),
+      record_id: String(row.agreement_request_id),
+    })),
+    bookingLinks: (bookingResult.data ?? []).map((row) => ({
+      client_id: String(row.client_id),
+      record_id: String(row.booking_id),
+    })),
+  };
+}
+
+export async function createClient(input: {
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  notes?: string | null;
+}): Promise<CanonicalClient> {
+  const admin = getServiceRoleSupabaseClient();
+  const email = normalizeClientEmail(input.email);
+  if (email) {
+    const { data: existing } = await admin.from("clients").select("id").ilike("email", email).maybeSingle();
+    if (existing?.id) throw new Error("A client with this email already exists.");
+  }
+  const now = new Date().toISOString();
+  const { data, error } = await admin
+    .from("clients")
+    .insert({
+      name: titleCaseClientName(input.name),
+      email,
+      phone: input.phone?.trim() || null,
+      address: input.address?.trim() || null,
+      notes: input.notes?.trim() || null,
+      updated_at: now,
+    })
+    .select("id,name,email,phone,address,notes,created_at,updated_at")
+    .single();
+  if (error || !data) throw new Error(error?.message ?? "Could not add the client.");
+  return data as CanonicalClient;
+}
 
 async function getProfileOverrides(): Promise<Map<string, ProfileOverride>> {
   const admin = getServiceRoleSupabaseClient();
@@ -94,13 +165,29 @@ export async function updateClientProfileOverride(
   input: { name?: string | null; email?: string | null; phone?: string | null; address?: string | null; notes?: string | null },
 ) {
   const admin = getServiceRoleSupabaseClient();
+  const { data: canonical } = await admin.from("clients").select("id").eq("id", key).maybeSingle();
+  if (canonical?.id) {
+    const { error } = await admin
+      .from("clients")
+      .update({
+        name: input.name?.trim() ?? "",
+        email: normalizeClientEmail(input.email),
+        phone: input.phone?.trim() || null,
+        address: input.address?.trim() || null,
+        notes: input.notes?.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", key);
+    if (error) throw new Error(error.message);
+    return;
+  }
   const { error } = await admin
     .from("client_profile_overrides")
     .upsert(
       {
         key,
         name: input.name?.trim() || null,
-        email: input.email?.trim() || null,
+        email: normalizeClientEmail(input.email),
         phone: input.phone?.trim() || null,
         address: input.address?.trim() || null,
         notes: input.notes?.trim() || null,
@@ -113,22 +200,32 @@ export async function updateClientProfileOverride(
 
 /** Aggregate every client-linked record into one profile per person. */
 async function buildProfiles(): Promise<Map<string, ClientProfile>> {
-  const [galleries, inquiries, bookings, agreements, reviews, overrides] = await Promise.all([
+  const [galleries, inquiries, bookings, agreements, reviews, overrides, canonical, payments] = await Promise.all([
     getAdminGalleries(),
     getAdminInquiries(),
     getAdminBookings(),
     getAdminAgreementRequests(),
     getAdminClientReviews(),
     getProfileOverrides(),
+    getCanonicalClientData(),
+    listPayments(),
   ]);
 
   // Pass 1: map a known name to its email key, so name-only records (e.g. a
   // gallery without an email, or a review) merge into the right person.
   const nameToKey = new Map<string, string>();
+  const emailToKey = new Map<string, string>();
+  for (const client of canonical.clients) {
+    const email = emailKey(client.email);
+    const name = client.name?.trim().toLowerCase();
+    if (email) emailToKey.set(email, client.id);
+    if (name) nameToKey.set(name, client.id);
+  }
   const remember = (name: string | null | undefined, email: string | null | undefined) => {
     const k = emailKey(email);
     const n = name?.trim().toLowerCase();
-    if (k && n && !nameToKey.has(n)) nameToKey.set(n, k);
+    const resolved = (k && emailToKey.get(k)) || k;
+    if (resolved && n && !nameToKey.has(n)) nameToKey.set(n, resolved);
   };
   for (const g of galleries) remember(g.client_name, g.client_email);
   for (const i of inquiries) remember(i.name, i.email);
@@ -138,7 +235,7 @@ async function buildProfiles(): Promise<Map<string, ClientProfile>> {
   const drafts = new Map<string, Draft>();
   const keyFor = (name: string | null | undefined, email: string | null | undefined): string | null => {
     const k = emailKey(email);
-    if (k) return k;
+    if (k) return emailToKey.get(k) ?? k;
     const n = name?.trim().toLowerCase();
     if (!n) return null;
     return nameToKey.get(n) ?? `name:${n}`;
@@ -146,11 +243,21 @@ async function buildProfiles(): Promise<Map<string, ClientProfile>> {
   const draft = (key: string): Draft => {
     let d = drafts.get(key);
     if (!d) {
-      d = { key, name: null, email: null, phone: null, nameDate: null, inquiries: [], bookings: [], galleries: [], agreements: [], reviews: [] };
+      d = { key, name: null, email: null, phone: null, address: null, notes: null, nameDate: null, inquiries: [], bookings: [], galleries: [], agreements: [], reviews: [] };
       drafts.set(key, d);
     }
     return d;
   };
+
+  for (const client of canonical.clients) {
+    const d = draft(client.id);
+    d.name = client.name;
+    d.email = client.email;
+    d.phone = client.phone;
+    d.address = client.address;
+    d.notes = client.notes;
+    d.nameDate = client.updated_at;
+  }
   const setIdentity = (d: Draft, name: string | null | undefined, email: string | null | undefined, phone: string | null | undefined, date: string | null) => {
     if (!d.email && email?.trim()) d.email = email.trim();
     if (!d.phone && phone?.trim()) d.phone = phone.trim();
@@ -189,6 +296,19 @@ async function buildProfiles(): Promise<Map<string, ClientProfile>> {
     setIdentity(d, a.client_name, a.client_email, null, a.created_at);
     d.agreements.push(a);
   }
+
+  const bookingById = new Map(bookings.map((booking) => [booking.id, booking]));
+  for (const link of canonical.bookingLinks) {
+    const linked = bookingById.get(link.record_id);
+    const d = drafts.get(link.client_id);
+    if (linked && d && !d.bookings.some((booking) => booking.id === linked.id)) d.bookings.push(linked);
+  }
+  const agreementById = new Map(agreements.map((agreement) => [agreement.id, agreement]));
+  for (const link of canonical.agreementLinks) {
+    const linked = agreementById.get(link.record_id);
+    const d = drafts.get(link.client_id);
+    if (linked && d && !d.agreements.some((agreement) => agreement.id === linked.id)) d.agreements.push(linked);
+  }
   // Reviews carry no email; attribute by reviewer name.
   for (const r of reviews) {
     const key = keyFor(r.reviewer_name, null);
@@ -199,6 +319,10 @@ async function buildProfiles(): Promise<Map<string, ClientProfile>> {
   }
 
   const now = Date.now();
+  const paidByBooking = new Map<string, number>();
+  for (const payment of payments) {
+    if (payment.booking_id) paidByBooking.set(payment.booking_id, (paidByBooking.get(payment.booking_id) ?? 0) + payment.amount);
+  }
   const profiles = new Map<string, ClientProfile>();
   for (const d of drafts.values()) {
     let lastActivity: string | null = null;
@@ -215,7 +339,10 @@ async function buildProfiles(): Promise<Map<string, ClientProfile>> {
       }
     }
 
-    const outstandingBalance = d.bookings.reduce((sum, b) => sum + (parseAmount(b.balance) ?? 0), 0);
+    const outstandingBalance = d.bookings.reduce((sum, booking) => {
+      const total = parseAmount(booking.total) ?? parseAmount(booking.balance) ?? 0;
+      return sum + Math.max(0, total - (paidByBooking.get(booking.id) ?? 0));
+    }, 0);
     const hasUnsignedContract = d.agreements.some((a) => !a.signed_at && !a.revoked_at);
     const override = overrides.get(d.key);
 
@@ -224,8 +351,8 @@ async function buildProfiles(): Promise<Map<string, ClientProfile>> {
       name: override?.name || d.name || override?.email || d.email || "Unknown",
       email: override?.email || d.email,
       phone: override?.phone || d.phone,
-      address: override?.address || null,
-      notes: override?.notes || null,
+      address: override?.address || d.address || null,
+      notes: override?.notes || d.notes || null,
       inquiries: d.inquiries,
       bookings: d.bookings,
       galleries: d.galleries,

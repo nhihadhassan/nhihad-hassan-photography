@@ -4,13 +4,32 @@ import { getClientList } from "@/lib/clients";
 import { getPricing } from "@/lib/pricing";
 import { siteUrl } from "@/lib/seo";
 import { listContractTemplates } from "@/lib/contract-templates";
-import { AgreementAdmin } from "@/components/agreement-admin";
+import { AgreementAdmin, type AgreementCalendarPrefill } from "@/components/agreement-admin";
 import { ContractsTable, type ContractRow } from "@/components/tables/contracts-table";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminAgreementsPage() {
+const TZ = "America/Toronto";
+
+function calendarPrefill(params: Record<string, string | string[] | undefined>): AgreementCalendarPrefill | null {
+  const value = (key: string) => typeof params[key] === "string" ? params[key] as string : "";
+  const id = value("calendar_event_id");
+  const startIso = value("start");
+  const endIso = value("end");
+  if (!id || !startIso || !endIso) return null;
+  const start = new Date(startIso);
+  const end = new Date(endIso);
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) return null;
+  const date = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, month: "long", day: "numeric", year: "numeric" }).format(start);
+  const startTime = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, hour: "numeric", minute: "2-digit" }).format(start);
+  const minutes = Math.round((end.getTime() - start.getTime()) / 60_000);
+  const coverageTime = minutes % 60 === 0 ? `${minutes / 60} ${minutes === 60 ? "hour" : "hours"}` : `${minutes} minutes`;
+  return { calendarEventId: id, title: value("title"), date, startTime, coverageTime, location: value("location") };
+}
+
+export default async function AdminAgreementsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireAdmin();
+  const params = await searchParams;
 
   const [requests, clients, pricing, contractTemplates] = await Promise.all([
     getAdminAgreementRequests(),
@@ -69,6 +88,7 @@ export default async function AdminAgreementsPage() {
             pricing={pricing}
             siteOrigin={siteOrigin}
             templates={templates}
+            prefill={calendarPrefill(params)}
           />
         </div>
       </div>

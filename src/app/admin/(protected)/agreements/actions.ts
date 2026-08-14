@@ -19,6 +19,8 @@ import { agreementSignUrl } from "@/lib/agreement-url";
 import { torontoLocalToUtc } from "@/lib/ics";
 import { isWeddingAgreementType } from "@/data/wedding-agreement";
 import { missingContactFields } from "@/lib/agreement-values";
+import { contractAutomationValues } from "@/lib/contract-automation-values";
+import { materializeAgreementWorkflow } from "@/lib/contract-automation";
 
 const todayInToronto = () =>
   new Intl.DateTimeFormat("en-CA", {
@@ -91,11 +93,16 @@ async function emailAgreementSigners(input: {
  */
 export async function createDraftAgreementAction(input: {
   galleryId?: string | null;
+  calendarEventId?: string | null;
   clientName: string;
   clientEmail?: string | null;
   template: string;
   type?: string | null;
   total?: string | null;
+  date?: string | null;
+  startTime?: string | null;
+  coverageTime?: string | null;
+  location?: string | null;
 }): Promise<{ ok: boolean; message: string; id?: string }> {
   await requireAdmin();
   try {
@@ -104,6 +111,7 @@ export async function createDraftAgreementAction(input: {
     }
     const { id } = await createAgreementRequest({
       galleryId: input.galleryId ?? null,
+      calendarEventId: input.calendarEventId ?? null,
       clientName: input.clientName.trim(),
       clientEmail: input.clientEmail?.trim() || null,
       details: {
@@ -114,6 +122,10 @@ export async function createDraftAgreementAction(input: {
         type: input.type?.trim() || undefined,
         description: input.type?.trim() || undefined,
         total: input.total?.trim() || undefined,
+        date: input.date?.trim() || undefined,
+        startTime: input.startTime?.trim() || undefined,
+        coverageTime: input.coverageTime?.trim() || undefined,
+        location: input.location?.trim() || undefined,
         city: "Toronto",
         window: "1 year from delivery",
         licenseType: "Personal use only",
@@ -246,6 +258,13 @@ export async function sendAgreementRequestEmailAction(
     if (!request.client_email) {
       return { ok: false, message: "This agreement has no client email. Add one before sending." };
     }
+    const automation = contractAutomationValues(request.details);
+    if (!automation.ok) {
+      return {
+        ok: false,
+        message: `Complete the contract's ${automation.missing.join(", ")} before sending.`,
+      };
+    }
 
     const result = await emailAgreementSigners({
       agreementRequestId: request.id,
@@ -259,7 +278,23 @@ export async function sendAgreementRequestEmailAction(
       subject: overrides?.subject ?? request.invite_subject,
       message: overrides?.message ?? request.invite_message,
     });
+    if (result.ok) {
+      try {
+        await materializeAgreementWorkflow(request.id);
+      } catch (automationError) {
+        return {
+          ok: false,
+          message: `The contract was sent, but its booking and invoice could not be prepared: ${
+            automationError instanceof Error ? automationError.message : "unknown error"
+          }`,
+        };
+      }
+    }
     revalidatePath("/admin/agreements");
+    revalidatePath("/admin");
+    revalidatePath("/admin/pipeline");
+    revalidatePath("/admin/invoices");
+    revalidatePath("/admin/clients");
     return { ok: result.ok, message: result.message };
   } catch (error) {
     return {

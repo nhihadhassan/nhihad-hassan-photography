@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { getClientList } from "@/lib/clients";
 import { ClientsDataTable } from "@/components/tables/clients-data-table";
+import { AddClientInline } from "@/components/add-client-inline";
 
 export const dynamic = "force-dynamic";
 
@@ -10,16 +11,12 @@ export default async function AdminClientsPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div>
-        <p className="text-sm font-medium text-admin-accent">Clients</p>
-        <h1 className="admin-display mt-1 text-3xl text-admin-ink">Clients</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-muted">
-          Everyone who has inquired, booked, or received a gallery, merged into one profile each.
-          Open a client to see their full history.
-        </p>
+      <div className="flex flex-col flex-wrap gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-3xl font-semibold tracking-tight text-admin-ink">Clients</h1>
+        <AddClientInline />
       </div>
 
-      <div className="mt-8">
+      <div className="mt-6">
         <ClientsDataTable rows={clients} />
       </div>
     </div>

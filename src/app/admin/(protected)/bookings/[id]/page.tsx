@@ -14,6 +14,9 @@ import { CopyText } from "@/components/ui/copy-text";
 import { BookingTimeline } from "@/components/booking-timeline";
 import { BookingNoteComposer } from "@/components/booking-note-composer";
 import { InvoiceSendButton } from "@/components/invoice-send-button";
+import { ConfirmPaymentInline } from "@/components/confirm-payment-inline";
+import { ReceiptSendButton } from "@/components/receipt-send-button";
+import { listReceiptsForBooking } from "@/lib/receipts";
 import {
   listInvoiceDeliveriesForBooking,
   successfulInvoiceDelivery,
@@ -42,12 +45,13 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
   const booking = await getBookingById(id);
   if (!booking) notFound();
 
-  const [timeline, agreements, galleries, invoiceDeliveries, invoice] = await Promise.all([
+  const [timeline, agreements, galleries, invoiceDeliveries, invoice, receipts] = await Promise.all([
     getBookingTimeline(booking),
     getAdminAgreementRequests(),
     getAdminGalleries(),
     listInvoiceDeliveriesForBooking(booking.id),
     getInvoiceView(booking),
+    listReceiptsForBooking(booking.id),
   ]);
 
   const agreement = agreements.find((a) => a.id === booking.agreement_request_id) ?? null;
@@ -73,8 +77,8 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
 
   return (
     <div className="mx-auto max-w-5xl">
-      <Link href="/admin/schedule" className="text-sm text-admin-muted hover:text-admin-ink">
-        Schedule
+      <Link href="/admin#bookings" className="text-sm text-admin-muted hover:text-admin-ink">
+        Today
       </Link>
 
       {/* Header */}
@@ -131,6 +135,33 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
             <p className="text-sm font-medium text-admin-ink">{booking.client_name ?? "No name"}</p>
             {booking.client_email ? <CopyText value={booking.client_email} /> : null}
           </RailBlock>
+
+          {balance > 0.005 ? <ConfirmPaymentInline bookingId={booking.id} balance={balance} /> : null}
+
+          {receipts.length > 0 ? (
+            <RailBlock title="Receipts">
+              <div className="space-y-3">
+                {receipts.map((receipt) => (
+                  <div key={receipt.id} className="border-b border-admin-line pb-3 last:border-0 last:pb-0">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <Link href={`/admin/receipts/${receipt.id}`} className="font-medium text-admin-ink hover:text-admin-accent">
+                        Receipt {receipt.receipt_no}
+                      </Link>
+                      <span className="text-xs text-admin-muted">
+                        {receipt.voided_at ? "Void" : receipt.sent_at ? "Sent" : "Prepared"}
+                      </span>
+                    </div>
+                    {!receipt.voided_at ? (
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <Link href={`/admin/receipts/${receipt.id}`} className="text-xs text-admin-accent hover:text-admin-ink">Review receipt</Link>
+                        <ReceiptSendButton receiptId={receipt.id} sentBefore={Boolean(receipt.sent_at)} disabled={!booking.client_email} />
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </RailBlock>
+          ) : null}
 
           <RailBlock title="Contract">
             {agreement ? (

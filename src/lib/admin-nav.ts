@@ -1,6 +1,5 @@
 import {
   BellRing,
-  CalendarDays,
   ClipboardList,
   Download,
   FileSignature,
@@ -35,10 +34,10 @@ export type AdminNavGroup = {
 
 /**
  * The admin information architecture. The primary group is the spec's sidebar
- * order (Today, Pipeline, Schedule, Clients, Invoices, Finances, Contracts,
- * Settings). Schedule merges the old Calendar and Bookings pages: a live view
- * of the NHP Bookings Google Calendar alongside the bookings used for
- * invoicing and stage tracking. Invoices is the create/send/track surface for
+ * order (Today, Pipeline, Clients, Invoices, Finances, Contracts, Settings).
+ * Today includes the live Google Calendar and compact bookings list that used
+ * to occupy separate Schedule and Bookings pages. Invoices is the
+ * create/send/track surface for
  * a single invoice; Finances is the payments/expenses ledger and CSV export,
  * business-wide rather than per-invoice. Everything else that used to live in
  * the flat nav is folded into Content and Automations groups so the primary
@@ -51,7 +50,6 @@ export const adminNavGroups: AdminNavGroup[] = [
     items: [
       { href: "/admin", label: "Today", icon: LayoutDashboard },
       { href: "/admin/pipeline", label: "Pipeline", icon: Workflow },
-      { href: "/admin/schedule", label: "Schedule", icon: CalendarDays },
       { href: "/admin/clients", label: "Clients", icon: Users },
       { href: "/admin/invoices", label: "Invoices", icon: Receipt },
       { href: "/admin/finances", label: "Finances", icon: PiggyBank },

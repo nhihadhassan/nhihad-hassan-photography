@@ -188,11 +188,20 @@ export function ScheduleCalendar({ events }: { events: ScheduleEvent[] }) {
               </Link>
             ) : (
               <Link
-                href="/admin/bookings/new"
+                href={{
+                  pathname: "/admin/agreements",
+                  query: {
+                    calendar_event_id: selected.id,
+                    title: selected.title,
+                    start: selected.startIso,
+                    end: selected.endIso,
+                    location: selected.location ?? "",
+                  },
+                }}
                 className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-admin-line px-4 text-sm font-medium text-admin-ink hover:bg-admin-raise"
               >
                 <Plus className="size-4" aria-hidden="true" />
-                Create a booking for this
+                Start contract
               </Link>
             )}
           </div>

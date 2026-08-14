@@ -20,10 +20,6 @@ export function AdminNav({ adminEmail }: { adminEmail: string | null }) {
   const currentItem = adminNavGroups.flatMap((group) => group.items).find((item) => isActiveNav(item.href, pathname));
 
   useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
     if (!mobileOpen) return;
     const previousOverflow = document.body.style.overflow;
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -172,6 +168,7 @@ export function AdminNav({ adminEmail }: { adminEmail: string | null }) {
                           key={item.href}
                           href={item.href}
                           aria-current={active ? "page" : undefined}
+                          onClick={() => setMobileOpen(false)}
                           className={cn(
                             "flex min-h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium transition",
                             active

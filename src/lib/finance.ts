@@ -112,7 +112,7 @@ export async function createPayment(input: {
   note?: string | null;
 }) {
   const admin = getServiceRoleSupabaseClient();
-  const { error } = await admin.from("payments").insert({
+  const { data, error } = await admin.from("payments").insert({
     booking_id: input.bookingId ?? null,
     client_name: input.clientName ?? null,
     client_email: input.clientEmail ?? null,
@@ -122,12 +122,24 @@ export async function createPayment(input: {
     paid_time: input.paidTime ?? null,
     method: input.method ?? "interac",
     note: input.note ?? null,
-  });
-  if (error) throw new Error(error.message);
+  }).select("*").single();
+  if (error || !data) throw new Error(error?.message ?? "Could not record payment.");
+  const payment = { ...data, amount: num(data.amount) } as Payment;
+  if (payment.booking_id) {
+    const { ensureReceiptForPayment } = await import("@/lib/receipts");
+    await ensureReceiptForPayment(payment.id);
+  }
+  return payment;
 }
 
 export async function deletePayment(id: string) {
   const admin = getServiceRoleSupabaseClient();
+  const { data: receipt } = await admin.from("receipts").select("id,sent_at").eq("payment_id", id).maybeSingle();
+  if (receipt?.sent_at) throw new Error("Void the sent receipt before deleting this payment.");
+  if (receipt?.id) {
+    const { error: receiptError } = await admin.from("receipts").delete().eq("id", receipt.id);
+    if (receiptError) throw new Error(receiptError.message);
+  }
   const { error } = await admin.from("payments").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }

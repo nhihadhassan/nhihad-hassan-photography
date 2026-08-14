@@ -5,8 +5,8 @@ import { getAdminBookings } from "@/lib/bookings";
 import { getFinanceSummary, listPayments } from "@/lib/finance";
 import { listInvoiceDeliveries } from "@/lib/invoice-deliveries";
 import { formatMoney, parseAmount } from "@/lib/utils";
-import { siteUrl } from "@/lib/seo";
 import { InvoicesTable, type InvoiceRow } from "@/components/tables/invoices-table";
+import { listReceipts } from "@/lib/receipts";
 
 export const dynamic = "force-dynamic";
 
@@ -21,14 +21,14 @@ function SummaryMetric({ label, value, accent }: { label: string; value: string;
 
 export default async function AdminInvoicesPage() {
   await requireAdmin();
-  const [bookings, payments, deliveries, summary] = await Promise.all([
+  const [bookings, payments, deliveries, summary, receipts] = await Promise.all([
     getAdminBookings(),
     listPayments(),
     listInvoiceDeliveries(),
     getFinanceSummary(),
+    listReceipts(),
   ]);
 
-  const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
   const paidByBooking = new Map<string, number>();
   for (const p of payments) {
     if (p.booking_id) paidByBooking.set(p.booking_id, (paidByBooking.get(p.booking_id) ?? 0) + p.amount);
@@ -39,12 +39,19 @@ export default async function AdminInvoicesPage() {
       latestDeliveryByBooking.set(delivery.booking_id, delivery);
     }
   }
+  const latestReceiptByBooking = new Map<string, (typeof receipts)[number]>();
+  for (const receipt of receipts) {
+    if (!receipt.voided_at && !latestReceiptByBooking.has(receipt.booking_id)) {
+      latestReceiptByBooking.set(receipt.booking_id, receipt);
+    }
+  }
 
   const rows: InvoiceRow[] = bookings
     .map((b) => {
       const total = parseAmount(b.total) ?? 0;
       const paid = paidByBooking.get(b.id) ?? 0;
       const delivery = latestDeliveryByBooking.get(b.id);
+      const receipt = latestReceiptByBooking.get(b.id);
       return {
         id: b.id,
         client: b.client_name ?? b.shoot_type ?? "Untitled invoice",
@@ -52,13 +59,14 @@ export default async function AdminInvoicesPage() {
         paid,
         balance: Math.max(0, total - paid),
         dueIso: b.invoice_due_date ?? b.start_at,
-        invoiceUrl: `${origin}/invoice/${b.token}`,
         hasEmail: Boolean(b.client_email),
         sentAt: b.invoice_sent_at,
         viewedAt: b.invoice_viewed_at,
         cancelledAt: b.invoice_cancelled_at,
         deliveryStatus: delivery?.status ?? null,
         deliveryAt: delivery?.last_event_at ?? delivery?.created_at ?? null,
+        receiptId: receipt?.id ?? null,
+        receiptSentAt: receipt?.sent_at ?? null,
       };
     })
     // A brand-new draft with no line items and no legacy total yet has
@@ -69,8 +77,7 @@ export default async function AdminInvoicesPage() {
     <div className="mx-auto max-w-5xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-admin-accent">Invoices</p>
-          <h1 className="admin-display mt-1 text-3xl text-admin-ink">Invoices</h1>
+          <h1 className="admin-display text-3xl text-admin-ink">Invoices</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-muted">
             Create, send, and track invoices. Payments and business expenses live on the{" "}
             <Link href="/admin/finances" className="text-admin-accent hover:underline">

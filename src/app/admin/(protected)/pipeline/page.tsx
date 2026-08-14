@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
-import { getAdminBookings } from "@/lib/bookings";
+import { getAdminBookings, getOperationalBookingStage } from "@/lib/bookings";
 import { listPayments } from "@/lib/finance";
 import { parseAmount } from "@/lib/utils";
 import { STAGE_STALE_DAYS } from "@/lib/booking-stages";
@@ -15,11 +15,21 @@ function shootDate(iso: string | null) {
   return new Date(iso).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric", timeZone: TZ });
 }
 
+function torontoDateKey(date: Date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
 function buildCards(
   bookings: Awaited<ReturnType<typeof getAdminBookings>>,
   paidByBooking: Map<string, number>,
 ): PipelineCard[] {
   const now = Date.now();
+  const today = torontoDateKey(new Date(now));
   return bookings.map((b) => {
     const total = parseAmount(b.total) ?? 0;
     const paid = paidByBooking.get(b.id) ?? 0;
@@ -31,19 +41,23 @@ function buildCards(
     else money = { label: "No deposit", tone: "neutral" };
 
     const daysInStage = Math.floor((now - new Date(b.updated_at).getTime()) / DAY);
-    const threshold = STAGE_STALE_DAYS[b.stage];
-    const stale = threshold !== null && daysInStage > threshold;
+    const stage = getOperationalBookingStage(b);
+    const threshold = STAGE_STALE_DAYS[stage];
+    const stale = stage === "editing" && b.delivery_due_date
+      ? b.delivery_due_date < today
+      : threshold !== null && daysInStage > threshold;
 
     return {
       id: b.id,
       title: b.client_name ?? b.shoot_type ?? "Booking",
       packageLabel: b.shoot_type ?? "",
       shootLabel: shootDate(b.start_at),
-      stage: b.stage,
+      stage,
       money,
       daysInStage,
       stale,
       totalValue: total,
+      deliveryDueDate: b.delivery_due_date,
     };
   });
 }

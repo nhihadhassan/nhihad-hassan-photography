@@ -26,29 +26,26 @@ export async function POST(request: Request, { params }: Params) {
 
   const { data: photos, error: readError } = await supabase
     .from("photos")
-    .select("id,sort_order")
+    .select("id")
     .eq("gallery_id", galleryId);
   if (readError) {
     return NextResponse.json({ error: readError.message }, { status: 500 });
   }
 
-  const current = new Map((photos ?? []).map((p) => [p.id, p.sort_order]));
-  const ids = orderedIds.filter((id) => current.has(id));
+  const valid = new Set((photos ?? []).map((p) => p.id));
+  const ids = orderedIds.filter((id) => valid.has(id));
   if (ids.length === 0) {
     return NextResponse.json({ error: "No matching photos in this gallery." }, { status: 400 });
   }
 
-  // Only rows whose position actually moved are written, so a single nudge
-  // costs two updates rather than one per photo in the gallery.
-  const changed = ids
-    .map((id, index) => ({ id, index }))
-    .filter(({ id, index }) => current.get(id) !== index);
-
-  for (const { id, index } of changed) {
-    const { error } = await supabase.from("photos").update({ sort_order: index }).eq("id", id);
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+  // One statement for the whole order. The function skips rows already in
+  // place, so a single nudge writes two rows rather than the whole gallery.
+  const { error: writeError } = await supabase.rpc("set_photo_order", {
+    p_gallery_id: galleryId,
+    p_photo_ids: ids,
+  });
+  if (writeError) {
+    return NextResponse.json({ error: writeError.message }, { status: 500 });
   }
 
   const { data: gallery } = await supabase
@@ -65,5 +62,5 @@ export async function POST(request: Request, { params }: Params) {
     revalidatePath(`/galleries/${gallery.slug}/view`);
   }
 
-  return NextResponse.json({ ok: true, updated: changed.length });
+  return NextResponse.json({ ok: true, count: ids.length });
 }

@@ -19,6 +19,10 @@ export type PhotoRecord = {
   sort_order: number;
   is_hidden: boolean;
   created_at: string;
+  /** 'video' for a video row; everything pre-dating video support is 'image'. */
+  media_type: "image" | "video";
+  /** Video length in seconds, extracted client-side at upload. Null for images. */
+  duration_seconds: number | null;
 };
 
 export type PhotoWithUrls = PhotoRecord & {
@@ -27,7 +31,7 @@ export type PhotoWithUrls = PhotoRecord & {
 };
 
 const PHOTO_COLUMNS =
-  "id,gallery_id,section_id,original_key,web_key,thumbnail_key,filename,width,height,size_bytes,mime_type,blur_data_url,sort_order,is_hidden,created_at";
+  "id,gallery_id,section_id,original_key,web_key,thumbnail_key,filename,width,height,size_bytes,mime_type,blur_data_url,sort_order,is_hidden,created_at,media_type,duration_seconds";
 
 async function attachSignedUrls(photos: PhotoRecord[]): Promise<PhotoWithUrls[]> {
   if (!photos.length) {

@@ -13,10 +13,12 @@ import {
   CheckSquare,
   Eye,
   EyeOff,
+  Film,
   Grid2X2,
   Grid3X3,
   ImageOff,
   Loader2,
+  Play,
   Save,
   Shuffle,
   Sparkles,
@@ -38,9 +40,18 @@ import {
   togglePhotoHidden,
 } from "@/app/admin/(protected)/galleries/[id]/photos/actions";
 
-const ACCEPT = "image/jpeg,image/png,image/webp,image/jpg";
-const MAX_BYTES = 50 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
+const IMAGE_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
+const VIDEO_TYPES = new Set(["video/mp4", "video/quicktime"]);
+// .mov almost always decodes fine enough for <video> metadata (duration,
+// dimensions) even in browsers that can't play its HEVC frames, so it stays
+// in the accepted-types set — just excluded from PREVIEWABLE_VIDEO_TYPES
+// below, which is what actually decides whether the gallery attempts inline
+// playback versus showing a download-only card.
+const ALLOWED_TYPES = new Set([...IMAGE_TYPES, ...VIDEO_TYPES]);
+const PREVIEWABLE_VIDEO_TYPES = new Set(["video/mp4"]);
+const ACCEPT = [...ALLOWED_TYPES].join(",");
+const MAX_IMAGE_BYTES = 50 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 500 * 1024 * 1024;
 
 type UploadItem = {
   id: string;
@@ -59,6 +70,14 @@ function formatBytes(bytes: number | null) {
   if (mb >= 1) return `${mb.toFixed(1)} MB`;
   const kb = bytes / 1024;
   return `${kb.toFixed(0)} KB`;
+}
+
+function formatDuration(seconds: number | null): string | null {
+  if (!seconds || !Number.isFinite(seconds) || seconds <= 0) return null;
+  const total = Math.round(seconds);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
 }
 
 /**
@@ -92,18 +111,202 @@ async function readImageDimensions(file: File): Promise<{ width: number; height:
   });
 }
 
+const VIDEO_PROBE_TIMEOUT_MS = 8000;
+
+type VideoMetadata = { width: number | null; height: number | null; durationSeconds: number | null };
+
 /**
- * Three-step upload that bypasses Vercel's request body size limit:
- *   1. POST /api/admin/photos/presign  → get a presigned R2 PUT URL (tiny JSON payload)
- *   2. PUT  <presigned R2 URL>         → upload file directly to R2 (skips Vercel entirely)
- *   3. POST /api/admin/photos/process  → server downloads from R2, runs Sharp, inserts DB row
- *
- * Progress is reported in three phases:
- *   0–5 %   presigning
- *   5–85 %  direct upload to R2 (XHR progress events)
- *   85–100% Sharp processing on the server
+ * Reads duration/width/height straight from the video file's own metadata,
+ * entirely client-side — no upload, no server transcoding. Best-effort:
+ * resolves all-null rather than rejecting, so a file the browser can't parse
+ * (an exotic .mov codec, say) still uploads, just without those fields.
  */
-async function uploadWithProgress({
+async function readVideoMetadata(file: File): Promise<VideoMetadata> {
+  if (typeof window === "undefined") return { width: null, height: null, durationSeconds: null };
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.muted = true;
+    let settled = false;
+    const finish = (result: VideoMetadata) => {
+      if (settled) return;
+      settled = true;
+      URL.revokeObjectURL(url);
+      resolve(result);
+    };
+    const timer = window.setTimeout(
+      () => finish({ width: null, height: null, durationSeconds: null }),
+      VIDEO_PROBE_TIMEOUT_MS,
+    );
+    video.onloadedmetadata = () => {
+      window.clearTimeout(timer);
+      finish({
+        width: video.videoWidth || null,
+        height: video.videoHeight || null,
+        durationSeconds: Number.isFinite(video.duration) ? video.duration : null,
+      });
+    };
+    video.onerror = () => {
+      window.clearTimeout(timer);
+      finish({ width: null, height: null, durationSeconds: null });
+    };
+    video.src = url;
+  });
+}
+
+const POSTER_MAX_DIMENSION = 1600;
+
+/**
+ * Grabs a frame from a video file and encodes it as a poster JPEG, entirely
+ * client-side (seek into the file, draw to a canvas, export). This is what
+ * lets video uploads skip server-side transcoding altogether. Only called
+ * for MP4 — see PREVIEWABLE_VIDEO_TYPES. Best-effort: resolves null on any
+ * failure rather than rejecting, so the video still uploads and the gallery
+ * falls back to a generic video card instead of a real frame.
+ */
+async function extractVideoPoster(file: File): Promise<Blob | null> {
+  if (typeof window === "undefined") return null;
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "auto";
+    video.muted = true;
+    video.playsInline = true;
+    let settled = false;
+    const finish = (result: Blob | null) => {
+      if (settled) return;
+      settled = true;
+      URL.revokeObjectURL(url);
+      resolve(result);
+    };
+    const timer = window.setTimeout(() => finish(null), VIDEO_PROBE_TIMEOUT_MS);
+    video.onloadedmetadata = () => {
+      // A tenth of the way in, capped at 2s — skips a common black/fade-in
+      // opening frame without needing to decode much of the file.
+      const seekTo = Math.min(2, (video.duration || 0) * 0.1);
+      video.currentTime = Number.isFinite(seekTo) && seekTo > 0 ? seekTo : 0;
+    };
+    video.onseeked = () => {
+      window.clearTimeout(timer);
+      try {
+        const sourceWidth = video.videoWidth;
+        const sourceHeight = video.videoHeight;
+        if (!sourceWidth || !sourceHeight) return finish(null);
+        const scale = Math.min(1, POSTER_MAX_DIMENSION / Math.max(sourceWidth, sourceHeight));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(sourceWidth * scale);
+        canvas.height = Math.round(sourceHeight * scale);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return finish(null);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => finish(blob), "image/jpeg", 0.82);
+      } catch {
+        finish(null);
+      }
+    };
+    video.onerror = () => {
+      window.clearTimeout(timer);
+      finish(null);
+    };
+    video.src = url;
+  });
+}
+
+type PresignResponse = {
+  presigned_url: string;
+  original_key: string;
+  gallery_id: string;
+  filename: string;
+  content_type: string;
+  size: number;
+  width: number | null;
+  height: number | null;
+};
+
+/**
+ * Presigns an R2 PUT for one blob and performs the direct upload, reporting
+ * 0–100 progress for just this transfer. Shared by the image path, and by
+ * the video path's two PUTs (original file, then poster JPEG).
+ */
+async function presignAndPutToR2(params: {
+  blob: Blob;
+  filename: string;
+  contentType: string;
+  galleryId: string;
+  variant?: "originals" | "thumbnails";
+  width?: number | null;
+  height?: number | null;
+  onProgress?: (pct: number) => void;
+}): Promise<{ ok: true; key: string } | { ok: false; error: string }> {
+  let presignData: PresignResponse;
+  try {
+    const res = await fetch("/api/admin/photos/presign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        gallery_id: params.galleryId,
+        filename: params.filename,
+        content_type: params.contentType,
+        size: params.blob.size,
+        width: params.width ?? null,
+        height: params.height ?? null,
+        variant: params.variant,
+      }),
+    });
+    if (!res.ok) {
+      let message = `Presign failed (${res.status})`;
+      try {
+        const body = (await res.json()) as { error?: string };
+        if (body.error) message = body.error;
+      } catch { /* ignore */ }
+      return { ok: false, error: message };
+    }
+    presignData = (await res.json()) as PresignResponse;
+  } catch {
+    return { ok: false, error: "Network error (presign)." };
+  }
+
+  const putResult = await new Promise<{ ok: true } | { ok: false; error: string }>((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", presignData.presigned_url);
+    xhr.setRequestHeader("Content-Type", params.contentType);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && params.onProgress) {
+        params.onProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve({ ok: true });
+      } else {
+        resolve({ ok: false, error: `Direct upload failed (${xhr.status}).` });
+      }
+    };
+
+    xhr.onerror = () => resolve({ ok: false, error: "Network error (direct upload)." });
+    xhr.send(params.blob);
+  });
+
+  if (!putResult.ok) return putResult;
+  return { ok: true, key: presignData.original_key };
+}
+
+function derivePosterFilename(originalFilename: string): string {
+  const dot = originalFilename.lastIndexOf(".");
+  const stem = dot > 0 ? originalFilename.slice(0, dot) : originalFilename;
+  return `${stem}-poster.jpg`;
+}
+
+/**
+ * Image upload: presign → direct PUT to R2 → server processes with Sharp
+ * (web + thumbnail variants) and inserts the row.
+ *
+ * Progress: 0–5% presigning, 5–85% upload, 85–100% server processing.
+ */
+async function uploadImage({
   file,
   galleryId,
   width,
@@ -116,24 +319,26 @@ async function uploadWithProgress({
   height: number | null;
   onProgress: (pct: number) => void;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
-  // ── Step 1: presign ────────────────────────────────────────────────────────
   onProgress(2);
-  let presignData: {
-    presigned_url: string;
-    original_key: string;
-    gallery_id: string;
-    filename: string;
-    content_type: string;
-    size: number;
-    width: number | null;
-    height: number | null;
-  };
+  const put = await presignAndPutToR2({
+    blob: file,
+    filename: file.name,
+    contentType: file.type,
+    galleryId,
+    width,
+    height,
+    onProgress: (pct) => onProgress(5 + Math.round(pct * 0.8)),
+  });
+  if (!put.ok) return put;
+  onProgress(87);
+
   try {
-    const res = await fetch("/api/admin/photos/presign", {
+    const res = await fetch("/api/admin/photos/process", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         gallery_id: galleryId,
+        original_key: put.key,
         filename: file.name,
         content_type: file.type,
         size: file.size,
@@ -142,62 +347,86 @@ async function uploadWithProgress({
       }),
     });
     if (!res.ok) {
-      let message = `Presign failed (${res.status})`;
+      let message = `Processing failed (${res.status})`;
       try {
         const body = (await res.json()) as { error?: string };
         if (body.error) message = body.error;
       } catch { /* ignore */ }
       return { ok: false, error: message };
     }
-    presignData = (await res.json()) as typeof presignData;
   } catch {
-    return { ok: false, error: "Network error (presign)." };
+    return { ok: false, error: "Network error (processing)." };
   }
 
-  // ── Step 2: direct PUT to R2 ───────────────────────────────────────────────
-  const uploadResult = await new Promise<{ ok: true } | { ok: false; error: string }>(
-    (resolve) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("PUT", presignData.presigned_url);
-      xhr.setRequestHeader("Content-Type", file.type);
+  onProgress(100);
+  return { ok: true };
+}
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          // Map 0→100% upload progress into the 5–85% overall range.
-          const pct = 5 + Math.round((event.loaded / event.total) * 80);
-          onProgress(pct);
-        }
-      };
+/**
+ * Video upload: presign → direct PUT of the original file to R2 → (if a
+ * poster was extracted client-side) presign → direct PUT of the poster JPEG
+ * → tell the server to record the row. The original video is never sent to
+ * or read by a server function — see the process route's video branch.
+ *
+ * Progress: 0–2% presigning original, 2–70% original upload, 70–90% poster
+ * upload (skipped straight through if there's no poster), 90–100% record.
+ */
+async function uploadVideo({
+  file,
+  galleryId,
+  metadata,
+  posterBlob,
+  onProgress,
+}: {
+  file: File;
+  galleryId: string;
+  metadata: VideoMetadata;
+  posterBlob: Blob | null;
+  onProgress: (pct: number) => void;
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  onProgress(2);
+  const originalPut = await presignAndPutToR2({
+    blob: file,
+    filename: file.name,
+    contentType: file.type,
+    galleryId,
+    width: metadata.width,
+    height: metadata.height,
+    onProgress: (pct) => onProgress(2 + Math.round(pct * 0.68)),
+  });
+  if (!originalPut.ok) return originalPut;
+  onProgress(70);
 
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve({ ok: true });
-        } else {
-          resolve({ ok: false, error: `Direct upload failed (${xhr.status}).` });
-        }
-      };
+  // A missing/failed poster degrades to a generic video card rather than
+  // failing the whole upload — the video itself uploaded fine.
+  let posterKey: string | null = null;
+  if (posterBlob) {
+    const posterPut = await presignAndPutToR2({
+      blob: posterBlob,
+      filename: derivePosterFilename(file.name),
+      contentType: "image/jpeg",
+      galleryId,
+      variant: "thumbnails",
+      onProgress: (pct) => onProgress(70 + Math.round(pct * 0.2)),
+    });
+    if (posterPut.ok) posterKey = posterPut.key;
+  }
+  onProgress(90);
 
-      xhr.onerror = () => resolve({ ok: false, error: "Network error (direct upload)." });
-      xhr.send(file);
-    },
-  );
-
-  if (!uploadResult.ok) return uploadResult;
-  onProgress(87);
-
-  // ── Step 3: process (Sharp + DB insert) ───────────────────────────────────
   try {
     const res = await fetch("/api/admin/photos/process", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        gallery_id: presignData.gallery_id,
-        original_key: presignData.original_key,
-        filename: presignData.filename,
-        content_type: presignData.content_type,
-        size: presignData.size,
-        width: presignData.width,
-        height: presignData.height,
+        gallery_id: galleryId,
+        original_key: originalPut.key,
+        filename: file.name,
+        content_type: file.type,
+        size: file.size,
+        width: metadata.width,
+        height: metadata.height,
+        poster_key: posterKey,
+        duration_seconds: metadata.durationSeconds,
       }),
     });
     if (!res.ok) {
@@ -406,13 +635,15 @@ export function PhotoManager({
           continue;
         }
 
-        if (file.size > MAX_BYTES) {
+        const isVideo = VIDEO_TYPES.has(file.type);
+        const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+        if (file.size > maxBytes) {
           validated.push({
             id,
             file,
             status: "error",
             progress: 0,
-            error: `Too large (${formatBytes(file.size)}). Max 50 MB.`,
+            error: `Too large (${formatBytes(file.size)}). Max ${isVideo ? "500 MB" : "50 MB"}.`,
           });
           continue;
         }
@@ -427,16 +658,37 @@ export function PhotoManager({
         setUploads((prev) =>
           prev.map((u) => (u.id === item.id ? { ...u, status: "uploading" } : u)),
         );
-        const dims = await readImageDimensions(item.file);
-        const result = await uploadWithProgress({
-          file: item.file,
-          galleryId,
-          width: dims?.width ?? null,
-          height: dims?.height ?? null,
-          onProgress: (pct) => {
-            setUploads((prev) => prev.map((u) => (u.id === item.id ? { ...u, progress: pct } : u)));
-          },
-        });
+        const onProgress = (pct: number) => {
+          setUploads((prev) => prev.map((u) => (u.id === item.id ? { ...u, progress: pct } : u)));
+        };
+
+        let result: { ok: true } | { ok: false; error: string };
+        if (VIDEO_TYPES.has(item.file.type)) {
+          const metadata = await readVideoMetadata(item.file);
+          // Frame extraction only for MP4 — see PREVIEWABLE_VIDEO_TYPES. A
+          // .mov never attempts inline playback, so a poster for it would
+          // never be shown.
+          const posterBlob = PREVIEWABLE_VIDEO_TYPES.has(item.file.type)
+            ? await extractVideoPoster(item.file)
+            : null;
+          result = await uploadVideo({
+            file: item.file,
+            galleryId,
+            metadata,
+            posterBlob,
+            onProgress,
+          });
+        } else {
+          const dims = await readImageDimensions(item.file);
+          result = await uploadImage({
+            file: item.file,
+            galleryId,
+            width: dims?.width ?? null,
+            height: dims?.height ?? null,
+            onProgress,
+          });
+        }
+
         setUploads((prev) =>
           prev.map((u) =>
             u.id === item.id
@@ -546,7 +798,7 @@ export function PhotoManager({
             <Upload className="size-5" aria-hidden="true" />
           </span>
           <p className="text-base font-medium text-admin-ink">
-            Drop photos here or{" "}
+            Drop photos or videos here or{" "}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -556,7 +808,11 @@ export function PhotoManager({
             </button>
           </p>
           <p className="text-xs text-admin-ink/65">
-            JPG, PNG, or WebP · up to 50 MB each · multi-select supported
+            JPG, PNG, or WebP up to 50 MB · MP4 or MOV up to 500 MB · multi-select supported
+          </p>
+          <p className="text-[11px] text-admin-ink/50">
+            MP4 shows and plays in the gallery. MOV uploads for download only and won&apos;t
+            preview inline.
           </p>
         </div>
       </div>
@@ -866,7 +1122,22 @@ export function PhotoManager({
                         <span className="size-2.5 rounded-full" />
                       )}
                     </button>
-                    {photo.display_url ? (
+                    {photo.media_type === "video" ? (
+                      photo.thumbnail_key && photo.thumbnail_url ? (
+                        <Image
+                          src={photo.thumbnail_url}
+                          alt={`Video ${index + 1} of ${photoListItems.length}`}
+                          fill
+                          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                          className={"object-cover " + (photo.is_hidden ? "opacity-50" : "")}
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center bg-admin-ink/15 text-admin-ink/40">
+                          <Film className="size-8" aria-hidden="true" />
+                        </div>
+                      )
+                    ) : photo.display_url ? (
                       <Image
                         src={photo.thumbnail_url || photo.display_url}
                         alt={`Photo ${index + 1} of ${photoListItems.length}`}
@@ -882,6 +1153,23 @@ export function PhotoManager({
                         <ImageOff className="size-6" aria-hidden="true" />
                       </div>
                     )}
+                    {photo.media_type === "video" && (
+                      <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                        <span className="flex size-10 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur">
+                          <Play className="size-4 translate-x-[1px]" aria-hidden="true" fill="currentColor" />
+                        </span>
+                      </span>
+                    )}
+                    {photo.media_type === "video" && photo.mime_type === "video/quicktime" && (
+                      <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-admin-copper px-2 py-0.5 text-[10px] font-medium text-white">
+                        MOV · download only
+                      </span>
+                    )}
+                    {photo.media_type === "video" && formatDuration(photo.duration_seconds) && (
+                      <span className="absolute bottom-2 right-2 inline-flex items-center rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                        {formatDuration(photo.duration_seconds)}
+                      </span>
+                    )}
                     {isCover && (
                       <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-admin-accent px-2 py-0.5 text-[10px] font-medium text-white">
                         <Star className="size-3" aria-hidden="true" />
@@ -894,7 +1182,7 @@ export function PhotoManager({
                         Hidden
                       </span>
                     )}
-                    {(() => {
+                    {photo.media_type === "image" && (() => {
                       const state = backfillStates[photo.id];
                       const hasVariants = Boolean(photo.web_key && photo.thumbnail_key);
                       if (state?.status === "running") {
@@ -946,19 +1234,21 @@ export function PhotoManager({
                     </p>
 
                     <div className="mt-3 flex flex-wrap gap-1.5">
-                      <form action={(form) => runAction(form, setGalleryCover)}>
-                        <input type="hidden" name="photo_id" value={photo.id} />
-                        <input type="hidden" name="gallery_id" value={galleryId} />
-                        <button
-                          type="submit"
-                          disabled={pending || isCover}
-                          title={isCover ? "Current cover" : "Set as cover"}
-                          className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[10px] text-admin-ink/65 hover:bg-admin-ink hover:text-admin-surface disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          <Star className="size-3" aria-hidden="true" />
-                          Cover
-                        </button>
-                      </form>
+                      {photo.media_type === "image" && (
+                        <form action={(form) => runAction(form, setGalleryCover)}>
+                          <input type="hidden" name="photo_id" value={photo.id} />
+                          <input type="hidden" name="gallery_id" value={galleryId} />
+                          <button
+                            type="submit"
+                            disabled={pending || isCover}
+                            title={isCover ? "Current cover" : "Set as cover"}
+                            className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[10px] text-admin-ink/65 hover:bg-admin-ink hover:text-admin-surface disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <Star className="size-3" aria-hidden="true" />
+                            Cover
+                          </button>
+                        </form>
+                      )}
 
                       <form action={(form) => runAction(form, togglePhotoHidden)}>
                         <input type="hidden" name="id" value={photo.id} />

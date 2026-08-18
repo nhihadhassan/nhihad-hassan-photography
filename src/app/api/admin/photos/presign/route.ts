@@ -3,7 +3,9 @@ import { getAdminUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasR2Config } from "@/lib/env";
 import {
+  ALLOWED_GALLERY_VIDEO_MIME_TYPES,
   ALLOWED_MIME_TYPES,
+  MAX_GALLERY_VIDEO_UPLOAD_BYTES,
   MAX_UPLOAD_BYTES,
   buildObjectKey,
   getSignedPutUrl,
@@ -23,6 +25,13 @@ type PresignBody = {
   size?: number;
   width?: number | null;
   height?: number | null;
+  /**
+   * Which R2 folder the object belongs in. Defaults to "originals" (photos,
+   * video files). The video upload flow also calls this route a second time
+   * with "thumbnails" to presign the client-extracted poster JPEG — it isn't
+   * a variant Sharp generated, but it belongs in the same folder as one.
+   */
+  variant?: "originals" | "thumbnails";
 };
 
 export async function POST(request: Request) {
@@ -40,22 +49,31 @@ export async function POST(request: Request) {
     return jsonError(400, "Invalid JSON body.");
   }
 
-  const { gallery_id, filename, content_type, size, width, height } = body;
+  const { gallery_id, filename, content_type, size, width, height, variant } = body;
+  const objectVariant = variant === "thumbnails" ? "thumbnails" : "originals";
 
   if (!gallery_id) return jsonError(400, "Missing gallery_id.");
   if (!filename) return jsonError(400, "Missing filename.");
   if (!content_type) return jsonError(400, "Missing content_type.");
   if (!size || size <= 0) return jsonError(400, "Missing or invalid size.");
 
-  if (!(ALLOWED_MIME_TYPES as readonly string[]).includes(content_type)) {
-    return jsonError(415, `Unsupported file type "${content_type}". Use JPG, PNG, or WebP.`);
+  // Gallery uploads accept photos (this route also carries video poster
+  // JPEGs) and, separately, short video clips — each with its own size cap.
+  // Journal/portfolio uploads use ALLOWED_MIME_TYPES/MAX_UPLOAD_BYTES
+  // directly and never see video.
+  const isImage = (ALLOWED_MIME_TYPES as readonly string[]).includes(content_type);
+  const isVideo = (ALLOWED_GALLERY_VIDEO_MIME_TYPES as readonly string[]).includes(content_type);
+
+  if (!isImage && !isVideo) {
+    return jsonError(
+      415,
+      `Unsupported file type "${content_type}". Use JPG, PNG, WebP, MP4, or MOV.`,
+    );
   }
 
-  if (size > MAX_UPLOAD_BYTES) {
-    return jsonError(
-      413,
-      `File is too large. Max ${Math.round(MAX_UPLOAD_BYTES / (1024 * 1024))} MB.`,
-    );
+  const maxBytes = isVideo ? MAX_GALLERY_VIDEO_UPLOAD_BYTES : MAX_UPLOAD_BYTES;
+  if (size > maxBytes) {
+    return jsonError(413, `File is too large. Max ${Math.round(maxBytes / (1024 * 1024))} MB.`);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -69,7 +87,7 @@ export async function POST(request: Request) {
     return jsonError(404, "Gallery not found.");
   }
 
-  const originalKey = buildObjectKey({ galleryId: gallery_id, variant: "originals", filename });
+  const originalKey = buildObjectKey({ galleryId: gallery_id, variant: objectVariant, filename });
 
   const presignedUrl = await getSignedPutUrl(originalKey, content_type, 3600);
 

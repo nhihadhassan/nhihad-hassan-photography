@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -42,6 +43,26 @@ export const ALLOWED_MIME_TYPES = [
 ] as const;
 
 export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+
+/**
+ * Video MIME types accepted for gallery uploads only — deliberately not
+ * merged into ALLOWED_MIME_TYPES, which the journal and portfolio upload
+ * routes also read and must stay image-only.
+ *
+ * video/mp4 is treated as previewable in-gallery (playable H.264 in every
+ * browser). video/quicktime (.mov) is accepted but download-only: Chrome and
+ * Firefox commonly can't decode the HEVC codec most .mov exports use, so the
+ * UI never attempts inline playback for it, regardless of the actual codec.
+ */
+export const ALLOWED_GALLERY_VIDEO_MIME_TYPES = ["video/mp4", "video/quicktime"] as const;
+
+/**
+ * 500 MB covers a few minutes of 4K video. Uploads are never transcoded (see
+ * the video_uploads migration), so this is also roughly the ceiling for what
+ * a client's connection and the browser's in-memory poster extraction can
+ * comfortably handle.
+ */
+export const MAX_GALLERY_VIDEO_UPLOAD_BYTES = 500 * 1024 * 1024;
 
 export type PhotoVariant = "originals" | "web" | "thumbnails";
 
@@ -130,6 +151,28 @@ export async function deleteManyFromR2(keys: string[]) {
   await Promise.all(keys.map((key) => deleteFromR2(key)));
 }
 
+/**
+ * Confirms an object exists (and returns its size) without downloading its
+ * bytes. Used to verify a video upload landed before recording the DB row,
+ * since — unlike images — video originals are never pulled into a Vercel
+ * function to be read.
+ */
+export async function headObjectMeta(
+  key: string,
+): Promise<{ exists: true; size: number } | { exists: false }> {
+  const { bucket } = requireR2Config();
+  const client = getClient();
+
+  try {
+    const result = await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+    return { exists: true, size: result.ContentLength ?? 0 };
+  } catch (err) {
+    const status = (err as { $metadata?: { httpStatusCode?: number } })?.$metadata?.httpStatusCode;
+    if (status === 404) return { exists: false };
+    throw err;
+  }
+}
+
 export async function downloadFromR2(key: string): Promise<Buffer> {
   const { bucket } = requireR2Config();
   const client = getClient();
@@ -180,6 +223,33 @@ export async function getSignedReadUrl(key: string, ttlSeconds = 3600) {
     new GetObjectCommand({
       Bucket: bucket,
       Key: key,
+    }),
+    { expiresIn: ttlSeconds },
+  );
+}
+
+/**
+ * Signed GET that forces a browser download (Content-Disposition: attachment)
+ * instead of an inline view, via R2's S3-compatible ResponseContentDisposition
+ * override. Used for video: the app hands out this URL and the browser then
+ * talks to R2 directly for the file bytes, so a multi-hundred-MB download
+ * never passes through — or gets buffered in memory by — a Vercel function.
+ */
+export async function getSignedDownloadUrl(
+  key: string,
+  downloadFilename: string,
+  ttlSeconds = 3600,
+) {
+  const { bucket } = requireR2Config();
+  const client = getClient();
+  const safeName = downloadFilename.replace(/["\\]/g, "_");
+
+  return getSignedUrl(
+    client,
+    new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ResponseContentDisposition: `attachment; filename="${safeName}"`,
     }),
     { expiresIn: ttlSeconds },
   );

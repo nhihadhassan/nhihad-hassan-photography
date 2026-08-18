@@ -8,7 +8,7 @@ import {
   streamGalleryZip,
   type DownloadablePhoto,
 } from "@/lib/download";
-import { downloadFromR2 } from "@/lib/r2";
+import { downloadFromR2, getSignedDownloadUrl } from "@/lib/r2";
 import { getRequestIpHash, getRequestUserAgent } from "@/lib/access-log";
 import {
   countRecentDownloads,
@@ -207,12 +207,19 @@ export async function POST(request: Request, { params }: Params) {
   // Resolve photos
   let query = admin
     .from("photos")
-    .select("id,filename,original_key,web_key,sort_order,mime_type")
+    .select("id,filename,original_key,web_key,sort_order,mime_type,media_type")
     .eq("gallery_id", gallery.id)
     .eq("is_hidden", false);
 
   if (scope === "selects") {
     query = query.in("id", submittedIds);
+  }
+
+  // Videos never enter a bulk ZIP (they can be large and are downloaded
+  // individually instead, via the branch below). "single" is unaffected —
+  // that's the scope a video download button actually uses.
+  if (scope === "all" || scope === "selects") {
+    query = query.eq("media_type", "image");
   }
 
   const { data: photoRows, error: photoErr } = await query;
@@ -252,9 +259,40 @@ export async function POST(request: Request, { params }: Params) {
 
   const quality = (gallery.download_quality as "web" | "full") ?? "web";
 
-  // Single-photo download: stream the one image file directly (no ZIP).
+  // Single-item download.
   if (scope === "single") {
     const row = photoRows![0];
+
+    // Video: never buffered into this function's memory — R2 hands out a
+    // signed URL with Content-Disposition already set to force a download,
+    // and the browser is redirected straight to it. Every gate above
+    // (rate limit, password, PIN, availability) has already run.
+    if (row.media_type === "video") {
+      const rawName = (row.filename as string) ?? "video";
+      const ext = rawName.includes(".") ? rawName.slice(rawName.lastIndexOf(".")) : ".mp4";
+      const stem = rawName.includes(".") ? rawName.slice(0, rawName.lastIndexOf(".")) : rawName;
+      const safeStem = stem.replace(/[\\/:*?"<>|\x00-\x1f]/g, "_").trim() || "video";
+      const downloadName = `${safeStem}${ext}`;
+
+      const signedUrl = await getSignedDownloadUrl(
+        row.original_key as string,
+        downloadName,
+        300,
+      );
+
+      await recordDownloadAttempt({
+        galleryId: gallery.id,
+        ipHash,
+        userAgent,
+        scope,
+        photoCount: 1,
+        success: true,
+        reason: "success",
+      });
+
+      return NextResponse.redirect(signedUrl, { status: 302 });
+    }
+
     const key =
       quality === "web"
         ? ((row.web_key as string | null) ?? (row.original_key as string))

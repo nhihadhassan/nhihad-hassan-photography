@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Maximize2 } from "lucide-react";
@@ -17,6 +17,23 @@ type GalleryGridProps = {
   enableDownload?: boolean;
   slug?: string;
 };
+
+function useColumnCount() {
+  // Starts at the server-rendered 3 and corrects on mount, so narrow viewports
+  // don't hydrate against a different column count.
+  const [count, setCount] = useState(3);
+  useEffect(() => {
+    const update = () => {
+      if (window.matchMedia("(min-width: 1024px)").matches) setCount(3);
+      else if (window.matchMedia("(min-width: 640px)").matches) setCount(2);
+      else setCount(1);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  return count;
+}
 
 export function GalleryGrid({
   photos,
@@ -35,6 +52,21 @@ export function GalleryGrid({
   const [slideshow, setSlideshow] = useState(false);
   const [loadedIds, setLoadedIds] = useState<Set<string>>(() => new Set());
   const { isSelected } = useSelects();
+  const columnCount = useColumnCount();
+
+  // Photos are dealt across the columns round-robin so reading order runs
+  // left-to-right (1 2 3 / 4 5 6). CSS multi-column would instead fill each
+  // column top-to-bottom, which reorders the gallery the admin arranged.
+  const columns = useMemo(() => {
+    const buckets: { photo: PublicGalleryPhoto; index: number }[][] = Array.from(
+      { length: columnCount },
+      () => [],
+    );
+    photos.forEach((photo, index) => {
+      buckets[index % columnCount].push({ photo, index });
+    });
+    return buckets;
+  }, [photos, columnCount]);
 
   useEffect(() => {
     const start = () => {
@@ -48,15 +80,17 @@ export function GalleryGrid({
 
   return (
     <>
-      <div className="mt-10 columns-1 gap-4 sm:columns-2 lg:columns-3">
-        {photos.map((photo, index) => {
+      <div className="mt-10 flex gap-4">
+        {columns.map((column, columnIndex) => (
+          <div key={columnIndex} className="flex min-w-0 flex-1 flex-col gap-4">
+        {column.map(({ photo, index }) => {
           const width = photo.width ?? (photo.orientation === "portrait" ? 900 : 1400);
           const height =
             photo.height ?? (photo.orientation === "portrait" ? 1125 : 950);
           const selected = enableSelects && isSelected(photo.id);
           const loaded = loadedIds.has(photo.id);
           return (
-            <article key={photo.id} className="group relative mb-4 break-inside-avoid">
+            <article key={photo.id} className="group relative">
               <button
                 type="button"
                 onClick={() => setOpenAt(index)}
@@ -103,6 +137,8 @@ export function GalleryGrid({
             </article>
           );
         })}
+          </div>
+        ))}
       </div>
       <GalleryLightbox
         photos={photos}

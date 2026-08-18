@@ -5,8 +5,10 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ArrowDown,
+  ArrowDownToLine,
   ArrowUp,
   ArrowUpDown,
+  ArrowUpToLine,
   CheckCircle2,
   CheckSquare,
   Eye,
@@ -32,8 +34,6 @@ import {
   clearGalleryCover,
   deletePhoto,
   deletePhotos,
-  movePhoto,
-  saveOrder,
   setGalleryCover,
   togglePhotoHidden,
 } from "@/app/admin/(protected)/galleries/[id]/photos/actions";
@@ -242,7 +242,72 @@ export function PhotoManager({
   const [sortMode, setSortMode] = useState<"manual" | "newest" | "oldest" | "name-asc" | "name-desc" | "random">("manual");
   const [randomSeed, setRandomSeed] = useState(0);
 
-  const photos = initialPhotos;
+  // Reordering is applied locally first and persisted in the background, so a
+  // move lands instantly instead of waiting on a server round trip that
+  // re-signs a URL for every photo in the gallery.
+  const [orderOverride, setOrderOverride] = useState<string[] | null>(null);
+  const [orderState, setOrderState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const photos = useMemo(() => {
+    if (!orderOverride) return initialPhotos;
+    const byId = new Map(initialPhotos.map((p) => [p.id, p]));
+    const ordered = orderOverride
+      .map((id) => byId.get(id))
+      .filter((p): p is PhotoWithUrls => Boolean(p));
+    const placed = new Set(ordered.map((p) => p.id));
+    return [...ordered, ...initialPhotos.filter((p) => !placed.has(p.id))];
+  }, [initialPhotos, orderOverride]);
+
+  const persistOrder = useCallback(
+    async (ids: string[]) => {
+      setOrderState("saving");
+      try {
+        const res = await fetch(`/api/admin/galleries/${galleryId}/photo-order`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photo_ids: ids }),
+        });
+        setOrderState(res.ok ? "saved" : "error");
+      } catch {
+        setOrderState("error");
+      }
+    },
+    [galleryId],
+  );
+
+  const scheduleOrderSave = useCallback(
+    (ids: string[]) => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      setOrderState("saving");
+      saveTimerRef.current = setTimeout(() => void persistOrder(ids), 700);
+    },
+    [persistOrder],
+  );
+
+  const reorderPhoto = useCallback(
+    (id: string, target: "up" | "down" | "top" | "bottom") => {
+      const ids = photos.map((p) => p.id);
+      const from = ids.indexOf(id);
+      if (from === -1) return;
+      const to =
+        target === "up"
+          ? from - 1
+          : target === "down"
+            ? from + 1
+            : target === "top"
+              ? 0
+              : ids.length - 1;
+      if (to === from || to < 0 || to >= ids.length) return;
+      const next = [...ids];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      setOrderOverride(next);
+      scheduleOrderSave(next);
+    },
+    [photos, scheduleOrderSave],
+  );
+
   const activeUploads = uploads.filter((u) => u.status === "uploading" || u.status === "pending");
   const completedUploads = uploads.filter((u) => u.status === "success");
   const erroredUploads = uploads.filter((u) => u.status === "error");
@@ -612,32 +677,42 @@ export function PhotoManager({
               </div>
 
               {/* Save order — persists the current displayed order as the gallery's real order */}
-              <form
-                action={(form) => {
+              <button
+                type="button"
+                onClick={() => {
                   if (
                     !window.confirm(
                       "Save this order? This becomes the gallery's order. Clients will see photos in this order.",
                     )
                   )
                     return;
-                  runAction(form, saveOrder);
+                  const ids = sortedPhotos.map((p) => p.id);
+                  setOrderOverride(ids);
                   setSortMode("manual");
+                  void persistOrder(ids);
                 }}
+                disabled={orderState === "saving"}
+                title="Save the current order as the gallery's order. Clients will see this order."
+                className="inline-flex items-center gap-1.5 rounded-md border border-admin-accent/40 bg-admin-accent/10 px-2.5 py-1.5 text-xs text-admin-accent transition hover:bg-admin-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <input type="hidden" name="gallery_id" value={galleryId} />
-                {sortedPhotos.map((p) => (
-                  <input key={p.id} type="hidden" name="photo_ids" value={p.id} />
-                ))}
-                <button
-                  type="submit"
-                  disabled={pending}
-                  title="Save the current order as the gallery's order. Clients will see this order."
-                  className="inline-flex items-center gap-1.5 rounded-md border border-admin-accent/40 bg-admin-accent/10 px-2.5 py-1.5 text-xs text-admin-accent transition hover:bg-admin-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                <Save className="size-3.5" aria-hidden="true" />
+                Save order
+              </button>
+
+              {orderState !== "idle" && (
+                <span
+                  className={
+                    "text-xs " +
+                    (orderState === "error" ? "text-admin-danger" : "text-admin-ink/70")
+                  }
                 >
-                  <Save className="size-3.5" aria-hidden="true" />
-                  Save order
-                </button>
-              </form>
+                  {orderState === "saving"
+                    ? "Saving order…"
+                    : orderState === "saved"
+                      ? "Order saved"
+                      : "Order not saved"}
+                </span>
+              )}
 
               {/* Grid size toggle */}
               <div className="flex items-center rounded-md border border-admin-ink/12 bg-white/60">
@@ -906,33 +981,42 @@ export function PhotoManager({
 
                       {sortMode === "manual" && (
                         <>
-                          <form action={(form) => runAction(form, movePhoto)}>
-                            <input type="hidden" name="id" value={photo.id} />
-                            <input type="hidden" name="gallery_id" value={galleryId} />
-                            <input type="hidden" name="direction" value="up" />
-                            <button
-                              type="submit"
-                              disabled={pending || isFirst}
-                              title="Move up"
-                              className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[10px] text-admin-ink/65 hover:bg-admin-ink hover:text-admin-surface disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                              <ArrowUp className="size-3" aria-hidden="true" />
-                            </button>
-                          </form>
-
-                          <form action={(form) => runAction(form, movePhoto)}>
-                            <input type="hidden" name="id" value={photo.id} />
-                            <input type="hidden" name="gallery_id" value={galleryId} />
-                            <input type="hidden" name="direction" value="down" />
-                            <button
-                              type="submit"
-                              disabled={pending || isLast}
-                              title="Move down"
-                              className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[10px] text-admin-ink/65 hover:bg-admin-ink hover:text-admin-surface disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                              <ArrowDown className="size-3" aria-hidden="true" />
-                            </button>
-                          </form>
+                          <button
+                            type="button"
+                            onClick={() => reorderPhoto(photo.id, "top")}
+                            disabled={isFirst}
+                            title="Move to top"
+                            className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[10px] text-admin-ink/65 hover:bg-admin-ink hover:text-admin-surface disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <ArrowUpToLine className="size-3" aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => reorderPhoto(photo.id, "up")}
+                            disabled={isFirst}
+                            title="Move up"
+                            className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[10px] text-admin-ink/65 hover:bg-admin-ink hover:text-admin-surface disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <ArrowUp className="size-3" aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => reorderPhoto(photo.id, "down")}
+                            disabled={isLast}
+                            title="Move down"
+                            className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[10px] text-admin-ink/65 hover:bg-admin-ink hover:text-admin-surface disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <ArrowDown className="size-3" aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => reorderPhoto(photo.id, "bottom")}
+                            disabled={isLast}
+                            title="Move to bottom"
+                            className="inline-flex items-center gap-1 rounded-md border border-admin-ink/10 min-h-9 px-2 py-1 text-[10px] text-admin-ink/65 hover:bg-admin-ink hover:text-admin-surface disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <ArrowDownToLine className="size-3" aria-hidden="true" />
+                          </button>
                         </>
                       )}
 

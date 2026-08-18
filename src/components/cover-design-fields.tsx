@@ -1,7 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getGalleryCoverFont, GALLERY_COVER_FONTS } from "@/lib/gallery-cover-fonts";
+
+/**
+ * The cover renders full-bleed at 100dvh, so the crop differs enormously
+ * between a wide desktop window and a tall phone. Both are previewed live:
+ * on desktop a landscape photo is barely cropped and the focal point looks
+ * like it does nothing, while on mobile it decides the whole composition.
+ */
+const CROP_PREVIEWS = [
+  { label: "Desktop", ratio: 16 / 9 },
+  { label: "Mobile", ratio: 9 / 19.5 },
+] as const;
 
 type CoverDesignFieldsProps = {
   coverImageUrl?: string | null;
@@ -63,12 +74,50 @@ export function CoverDesignFields({
   const [layout, setLayout] = useState(initialLayout);
   const [font, setFont] = useState(() => getGalleryCoverFont(initialFont).value);
 
-  const onPick = (e: React.MouseEvent<HTMLImageElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
-    const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState(false);
+
+  const applyFromPoint = useCallback((clientX: number, clientY: number) => {
+    const rect = frameRef.current?.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) return;
+    const x = Math.round(((clientX - rect.left) / rect.width) * 100);
+    const y = Math.round(((clientY - rect.top) / rect.height) * 100);
     setFocalX(Math.min(100, Math.max(0, x)));
     setFocalY(Math.min(100, Math.max(0, y)));
+  }, []);
+
+  // Dragging continues outside the image, so the listeners live on the window
+  // while a drag is in progress.
+  useEffect(() => {
+    if (!dragging) return;
+    const move = (e: PointerEvent) => {
+      e.preventDefault();
+      applyFromPoint(e.clientX, e.clientY);
+    };
+    const stop = () => setDragging(false);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+    };
+  }, [dragging, applyFromPoint]);
+
+  const nudge = (e: React.KeyboardEvent) => {
+    const step = e.shiftKey ? 10 : 1;
+    const map: Record<string, [number, number]> = {
+      ArrowLeft: [-step, 0],
+      ArrowRight: [step, 0],
+      ArrowUp: [0, -step],
+      ArrowDown: [0, step],
+    };
+    const delta = map[e.key];
+    if (!delta) return;
+    e.preventDefault();
+    setFocalX((v) => Math.min(100, Math.max(0, v + delta[0])));
+    setFocalY((v) => Math.min(100, Math.max(0, v + delta[1])));
   };
 
   return (
@@ -156,29 +205,72 @@ export function CoverDesignFields({
         <span className="text-sm font-medium">Cover focal point</span>
         {coverImageUrl ? (
           <>
-            <div className="flex justify-center rounded-md border border-admin-ink/10 bg-admin-ink/5 p-2">
-              <div className="relative inline-block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={coverImageUrl}
-                  alt="Cover preview"
-                  onClick={onPick}
-                  draggable={false}
-                  className="block max-h-[420px] w-auto max-w-full cursor-crosshair select-none rounded-sm"
-                />
-                <span
-                  className="pointer-events-none absolute size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white"
-                  style={{
-                    left: `${focalX}%`,
-                    top: `${focalY}%`,
-                    boxShadow: "0 0 0 2px rgba(0,0,0,0.45)",
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto]">
+              <div className="flex justify-center rounded-md border border-admin-ink/10 bg-admin-ink/5 p-2">
+                <div
+                  ref={frameRef}
+                  role="application"
+                  aria-label="Cover focal point"
+                  tabIndex={0}
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    setDragging(true);
+                    applyFromPoint(e.clientX, e.clientY);
                   }}
-                />
+                  onKeyDown={nudge}
+                  className="relative inline-block cursor-crosshair touch-none select-none rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-admin-copper"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={coverImageUrl}
+                    alt="Cover preview"
+                    draggable={false}
+                    className="block max-h-[360px] w-auto max-w-full select-none rounded-sm"
+                  />
+                  <span
+                    className="pointer-events-none absolute size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white"
+                    style={{
+                      left: `${focalX}%`,
+                      top: `${focalY}%`,
+                      boxShadow: "0 0 0 2px rgba(0,0,0,0.45)",
+                    }}
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
+                    style={{ left: `${focalX}%`, top: `${focalY}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Live crop previews: what the client actually sees. */}
+              <div className="flex gap-3">
+                {CROP_PREVIEWS.map((preview) => (
+                  <div key={preview.label} className="grid content-start gap-1.5">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-admin-ink/65">
+                      {preview.label}
+                    </span>
+                    <div
+                      className="overflow-hidden rounded-sm border border-admin-ink/10 bg-admin-ink/5"
+                      style={{ width: 132, height: 132 / preview.ratio }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={coverImageUrl}
+                        alt={`${preview.label} cover crop preview`}
+                        draggable={false}
+                        className="size-full select-none object-cover"
+                        style={{ objectPosition: `${focalX}% ${focalY}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
             <span className="text-xs text-admin-ink/65">
-              Click the spot to keep in view (e.g. a face). The cover image shifts to favour it.
-              Current: {focalX}% / {focalY}%.
+              Drag the point onto what should stay in view, such as a face. Arrow keys nudge it,
+              Shift speeds that up. The previews show the real crop: a wide photo barely moves on
+              desktop, while the mobile crop shifts a lot. Current: {focalX}% / {focalY}%.
             </span>
           </>
         ) : (

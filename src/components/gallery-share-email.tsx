@@ -63,6 +63,8 @@ export function GalleryShareEmail({
 
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  // Tracked locally because the share page is no longer revalidated on send.
+  const [sent, setSent] = useState<{ at: string; to: string } | null>(null);
 
   const previewHtml = useMemo(
     () =>
@@ -91,22 +93,26 @@ export function GalleryShareEmail({
 
   function handleSend() {
     setResult(null);
+    const to = recipient.trim();
     startTransition(async () => {
       const res = await sendGalleryInvite(galleryId, {
-        recipient: recipient.trim(),
+        recipient: to,
         subject,
         message,
         includePassword,
       });
       setResult(res);
+      if (res.ok) setSent({ at: new Date().toISOString(), to });
     });
   }
 
-  const hasSentBefore = Boolean(lastSentAt);
+  const effectiveSentAt = sent?.at ?? lastSentAt;
+  const effectiveSentTo = sent?.to ?? lastSentTo;
+  const hasSentBefore = Boolean(effectiveSentAt);
   const sentLabel =
-    hasSentBefore && lastSentAt
-      ? `Last sent ${formatRelativeDate(lastSentAt)}${
-          lastSentTo && lastSentTo !== recipient ? ` to ${lastSentTo}` : ""
+    hasSentBefore && effectiveSentAt
+      ? `Last sent ${formatRelativeDate(effectiveSentAt)}${
+          effectiveSentTo && effectiveSentTo !== recipient ? ` to ${effectiveSentTo}` : ""
         }`
       : null;
 

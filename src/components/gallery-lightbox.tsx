@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "framer-motion";
-import { ChevronLeft, ChevronRight, Loader2, Pause, Play, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Film, Loader2, Pause, Play, X } from "lucide-react";
 import type { PublicGalleryPhoto } from "@/lib/public-gallery";
 import { SelectToggle } from "@/components/select-toggle";
 import { PhotoDownloadButton } from "@/components/photo-download-button";
@@ -37,7 +37,12 @@ export function GalleryLightbox({
   autoPlay = false,
 }: GalleryLightboxProps) {
   const [index, setIndex] = useState(initialIndex);
-  const [loading, setLoading] = useState(true);
+  // A non-previewable video never fires a load event, so an initial index
+  // that opens directly on one (e.g. a ?p= deep link) must not start "loading".
+  const [loading, setLoading] = useState(() => {
+    const initial = photos[initialIndex];
+    return !(initial && initial.mediaType === "video" && !initial.previewable);
+  });
   const [trackedInitial, setTrackedInitial] = useState(initialIndex);
   const [playOverride, setPlayOverride] = useState<boolean | null>(null);
   const lastFocusRef = useRef<HTMLElement | null>(null);
@@ -49,20 +54,38 @@ export function GalleryLightbox({
     onClose();
   }, [onClose]);
 
+  // A non-previewable video (.mov) never fires onLoadedData — there's no
+  // media element attempting to load anything for it — so every navigation
+  // sets `loading` based on what the target slide actually needs, rather
+  // than always flipping it true and hoping something clears it.
+  const loadingForIndex = useCallback(
+    (i: number) => {
+      const target = photos[i];
+      return !(target && target.mediaType === "video" && !target.previewable);
+    },
+    [photos],
+  );
+
   // Auto-advance while playing, looping back to the first photo at the end.
+  // Paused on a video slide — a visitor watching a clip shouldn't get cut
+  // off after 4 seconds; they advance manually instead.
+  const currentMediaType = photos[index]?.mediaType;
   useEffect(() => {
-    if (!open || !playing || photos.length <= 1) return;
+    if (!open || !playing || photos.length <= 1 || currentMediaType === "video") return;
     const timer = setInterval(() => {
-      setLoading(true);
-      setIndex((current) => (current + 1) % photos.length);
+      setIndex((current) => {
+        const next = (current + 1) % photos.length;
+        setLoading(loadingForIndex(next));
+        return next;
+      });
     }, SLIDE_INTERVAL);
     return () => clearInterval(timer);
-  }, [open, playing, photos.length, index]);
+  }, [open, playing, photos.length, currentMediaType, loadingForIndex]);
 
   if (trackedInitial !== initialIndex) {
     setTrackedInitial(initialIndex);
     setIndex(initialIndex);
-    setLoading(true);
+    setLoading(loadingForIndex(initialIndex));
   }
 
   useEffect(() => {
@@ -86,15 +109,15 @@ export function GalleryLightbox({
 
   const goPrev = useCallback(() => {
     if (index <= 0) return;
-    setLoading(true);
+    setLoading(loadingForIndex(index - 1));
     setIndex(index - 1);
-  }, [index]);
+  }, [index, loadingForIndex]);
 
   const goNext = useCallback(() => {
     if (index >= photos.length - 1) return;
-    setLoading(true);
+    setLoading(loadingForIndex(index + 1));
     setIndex(index + 1);
-  }, [index, photos.length]);
+  }, [index, photos.length, loadingForIndex]);
 
   useEffect(() => {
     if (!open) return;
@@ -138,7 +161,7 @@ export function GalleryLightbox({
           key="gallery-lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label={`Photo ${index + 1} of ${total}`}
+          aria-label={`${photo?.mediaType === "video" ? "Video" : "Photo"} ${index + 1} of ${total}`}
           className="fixed inset-0 z-[100] flex flex-col bg-ink/97 text-soft-white"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -213,17 +236,58 @@ export function GalleryLightbox({
                 dragElastic={0.18}
                 onDragEnd={handleDragEnd}
               >
-                <Image
-                  src={photo.imageUrl}
-                  alt={photo.alt}
-                  fill
-                  sizes="100vw"
-                  className="select-none object-contain"
-                  draggable={false}
-                  priority
-                  unoptimized={unoptimizedImages}
-                  onLoad={() => setLoading(false)}
-                />
+                {photo.mediaType === "video" ? (
+                  photo.previewable ? (
+                    <video
+                      key={photo.id}
+                      src={photo.imageUrl}
+                      poster={photo.hasPoster ? photo.thumbnailUrl : undefined}
+                      controls
+                      playsInline
+                      className="size-full object-contain"
+                      onLoadedData={() => setLoading(false)}
+                    />
+                  ) : (
+                    <div className="flex size-full flex-col items-center justify-center gap-4 px-6 text-center">
+                      <Film className="size-10 text-soft-white/50" aria-hidden="true" />
+                      <div>
+                        <p className="text-sm font-medium text-soft-white">
+                          This video can&apos;t preview in the browser.
+                        </p>
+                        <p className="mt-1 text-xs text-soft-white/60">Download it to view.</p>
+                      </div>
+                      {enableDownload && slug ? (
+                        <form
+                          action={`/api/galleries/${encodeURIComponent(slug)}/download`}
+                          method="POST"
+                          onSubmit={() => setLoading(false)}
+                        >
+                          <input type="hidden" name="scope" value="single" />
+                          <input type="hidden" name="photo_ids" value={photo.id} />
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-2 rounded-full border border-soft-white/20 bg-ink/55 px-4 py-2 text-sm text-soft-white backdrop-blur transition hover:border-soft-white/40 hover:bg-soft-white hover:text-ink"
+                          >
+                            <Download className="size-4" aria-hidden="true" />
+                            Download video
+                          </button>
+                        </form>
+                      ) : null}
+                    </div>
+                  )
+                ) : (
+                  <Image
+                    src={photo.imageUrl}
+                    alt={photo.alt}
+                    fill
+                    sizes="100vw"
+                    className="select-none object-contain"
+                    draggable={false}
+                    priority
+                    unoptimized={unoptimizedImages}
+                    onLoad={() => setLoading(false)}
+                  />
+                )}
               </motion.div>
             </AnimatePresence>
             {loading ? (
@@ -235,7 +299,9 @@ export function GalleryLightbox({
 
           <div className="pointer-events-none flex items-end justify-between gap-4 p-4 sm:p-6">
             <div className="pointer-events-auto flex items-center gap-2">
-              {enableSelects ? <SelectToggle photoId={photo.id} variant="lightbox" /> : null}
+              {enableSelects && photo.mediaType === "image" ? (
+                <SelectToggle photoId={photo.id} variant="lightbox" />
+              ) : null}
               {enableDownload && slug ? (
                 <PhotoDownloadButton slug={slug} photoId={photo.id} />
               ) : null}

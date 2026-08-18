@@ -23,6 +23,20 @@ export type PublicGalleryPhoto = {
   width: number | null;
   height: number | null;
   orientation: "portrait" | "landscape" | "square";
+  mediaType: "image" | "video";
+  durationSeconds: number | null;
+  /**
+   * false only for a video whose codec the gallery won't attempt inline
+   * playback for (.mov / video/quicktime) — see ALLOWED_GALLERY_VIDEO_MIME_TYPES
+   * in lib/r2.ts. Always true for images.
+   */
+  previewable: boolean;
+  /**
+   * Whether thumbnailUrl is a real extracted poster frame, as opposed to a
+   * fallback to the video's own URL (which must never be used as an <img>
+   * src). Always true for images.
+   */
+  hasPoster: boolean;
 };
 
 export type PublicGallery = {
@@ -52,7 +66,7 @@ export type PublicGallery = {
 
 const fallbackCover = portfolioItems[0];
 const PHOTO_COLUMNS =
-  "id,gallery_id,section_id,original_key,web_key,thumbnail_key,filename,width,height,size_bytes,mime_type,blur_data_url,sort_order,is_hidden,created_at";
+  "id,gallery_id,section_id,original_key,web_key,thumbnail_key,filename,width,height,size_bytes,mime_type,blur_data_url,sort_order,is_hidden,created_at,media_type,duration_seconds";
 
 function orientationFromDims(
   width: number | null,
@@ -74,7 +88,22 @@ function mockToPublicPhoto(item: PortfolioItem): PublicGalleryPhoto {
     width: null,
     height: null,
     orientation: item.orientation,
+    mediaType: "image",
+    durationSeconds: null,
+    previewable: true,
+    hasPoster: true,
   };
+}
+
+/**
+ * .mov (video/quicktime) is accepted at upload but never attempted as inline
+ * playback — Chrome/Firefox commonly can't decode the HEVC codec most .mov
+ * exports use. Keep this in sync with PREVIEWABLE_VIDEO_TYPES in
+ * components/photo-manager.tsx, which makes the same call at upload time.
+ */
+function isPreviewableMedia(mediaType: "image" | "video", mimeType: string | null): boolean {
+  if (mediaType === "image") return true;
+  return mimeType === "video/mp4";
 }
 
 function realToPublicPhoto(
@@ -82,15 +111,25 @@ function realToPublicPhoto(
   galleryTitle?: string,
   index = 0,
 ): PublicGalleryPhoto {
+  const mediaType = photo.media_type ?? "image";
   return {
     id: photo.id,
     imageUrl: photo.display_url,
+    // A video with no extracted poster falls back to its own signed URL here
+    // (display_url === thumbnail_url) — never rendered as an <img>; the grid
+    // and lightbox check mediaType/thumbnail presence before using this.
     thumbnailUrl: photo.thumbnail_url || photo.display_url,
     // Human alt instead of the raw uploaded filename.
-    alt: galleryTitle ? `${galleryTitle}, photo ${index + 1}` : `Photo ${index + 1}`,
+    alt: galleryTitle
+      ? `${galleryTitle}, ${mediaType === "video" ? "video" : "photo"} ${index + 1}`
+      : `${mediaType === "video" ? "Video" : "Photo"} ${index + 1}`,
     width: photo.width,
     height: photo.height,
     orientation: orientationFromDims(photo.width, photo.height),
+    mediaType,
+    durationSeconds: photo.duration_seconds,
+    previewable: isPreviewableMedia(mediaType, photo.mime_type),
+    hasPoster: mediaType === "image" || Boolean(photo.thumbnail_key),
   };
 }
 

@@ -7,6 +7,7 @@ import { hasGalleryInviteConfig, getGalleryInviteConfig } from "@/lib/env";
 import { buildGalleryInviteEmail } from "@/lib/emails/gallery-invite";
 import { getAdminGallery, getGalleryEmailCoverUrl } from "@/lib/admin-data";
 import { brandConfig } from "@/lib/config";
+import { archiveBcc } from "@/lib/notify-email";
 import { revalidatePath } from "next/cache";
 
 export type InviteActionResult = {
@@ -122,6 +123,7 @@ export async function sendGalleryInvite(
         const result = await client.emails.send({
           from,
           to: recipient,
+          bcc: archiveBcc(recipient),
           replyTo: brandConfig.contactEmail,
           subject: email.subject,
           text: email.text,
@@ -181,7 +183,10 @@ export async function sendGalleryInvite(
     }
   }
 
-  revalidatePath(`/admin/galleries/${galleryId}/share`);
+  // The share page is deliberately not revalidated. It is the page the sender
+  // is standing on, and re-rendering it re-signs an R2 URL for every photo in
+  // the gallery, which left the Send button stuck on "Sending…" long after
+  // Resend had accepted the message. The composer updates its own sent state.
   revalidatePath(`/admin/galleries/${galleryId}`);
 
   if (failed.length) {

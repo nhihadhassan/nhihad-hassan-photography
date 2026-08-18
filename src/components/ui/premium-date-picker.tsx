@@ -133,7 +133,7 @@ export function PremiumDatePicker({
       {helperText ? <span className="text-xs text-admin-ink/65">{helperText}</span> : null}
 
       {open ? (
-        <div className="absolute left-0 top-full z-30 mt-1.5 overflow-hidden rounded-xl border border-admin-ink/12 bg-white/95 shadow-[0_18px_45px_rgba(43,35,28,0.14)]">
+        <div className="absolute left-0 top-full z-50 mt-1.5 w-max max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-admin-ink/12 bg-white shadow-[0_18px_45px_rgba(43,35,28,0.14)]">
           <div className={includeTime ? "grid sm:grid-cols-[minmax(0,1fr)_11rem]" : ""}>
             <div className="w-72 p-4">
               <div className="flex items-center justify-between">
@@ -194,31 +194,17 @@ export function PremiumDatePicker({
                   );
                 })}
               </div>
-              <div className="mt-3 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDate(todayKey);
-                    setMonth(new Date(today.getFullYear(), today.getMonth(), 1));
-                    if (!includeTime) setOpen(false);
-                  }}
-                  className="text-xs font-semibold text-admin-accent hover:text-admin-ink"
-                >
-                  Today
-                </button>
-                {date ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDate("");
-                      setTime("");
-                    }}
-                    className="text-xs font-medium text-admin-ink/45 hover:text-admin-ink"
-                  >
-                    Clear
-                  </button>
-                ) : null}
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setDate(todayKey);
+                  setMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+                  if (!includeTime) setOpen(false);
+                }}
+                className="mt-3 text-xs font-semibold text-admin-accent hover:text-admin-ink"
+              >
+                Today
+              </button>
             </div>
             {includeTime ? (
               <div className="border-t border-admin-ink/10 bg-admin-ink/[0.018] p-3 sm:border-l sm:border-t-0">
@@ -240,15 +226,28 @@ export function PremiumDatePicker({
                     </button>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="mt-2 min-h-8 w-full rounded-lg bg-admin-ink text-xs font-semibold text-admin-surface transition active:scale-[0.98]"
-                >
-                  Done
-                </button>
               </div>
             ) : null}
+          </div>
+          <div className="flex items-center justify-between gap-3 border-t border-admin-ink/10 px-4 py-3">
+            <button
+              type="button"
+              onClick={() => {
+                setDate("");
+                setTime("");
+                setOpen(false);
+              }}
+              className="text-xs font-medium text-admin-ink/70 hover:text-admin-ink"
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="min-h-9 rounded-lg bg-admin-ink px-4 text-xs font-semibold text-admin-surface transition active:scale-[0.98]"
+            >
+              Done
+            </button>
           </div>
         </div>
       ) : null}

@@ -23,6 +23,16 @@ function formatTorontoDateTime(iso: string): string {
   }).format(new Date(iso));
 }
 
+/**
+ * Blind copy of every outbound email kept for the photographer's own records.
+ * Returns undefined when the recipient is already the archive address, so
+ * admin-facing notifications don't arrive twice.
+ */
+export function archiveBcc(to: string): string | undefined {
+  const archive = adminRecipient();
+  return to.trim().toLowerCase() === archive.trim().toLowerCase() ? undefined : archive;
+}
+
 /** Core send. Best-effort: returns ok:false (never throws) when unconfigured. */
 async function sendMail(opts: {
   to: string;
@@ -49,6 +59,7 @@ async function sendMail(opts: {
       {
         from: cfg.from,
         to: opts.to,
+        bcc: archiveBcc(opts.to),
         replyTo: opts.replyTo,
         subject: opts.subject,
         text: opts.text,

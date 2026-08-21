@@ -198,7 +198,7 @@ export default async function RootLayout({
     url: siteUrl,
     image: `${siteUrl}/opengraph-image.png`,
     logo: `${siteUrl}/icon.png`,
-    email: settings.contactEmail,
+    email: settings.publicContactEmail,
     ...(settings.contactPhone ? { telephone: settings.contactPhone } : {}),
     description: settings.tagline,
     priceRange: "$$",

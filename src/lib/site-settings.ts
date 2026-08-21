@@ -8,7 +8,10 @@ export type InstagramLink = { label: string; href: string };
 export type SiteSettings = {
   brandName: string;
   tagline: string;
+  /** Transactional address: payments, invoices, agreements. */
   contactEmail: string;
+  /** Public display address: footer, structured data, client help links. */
+  publicContactEmail: string;
   contactPhone: string | null;
   instagram: InstagramLink[];
   aboutText: string | null;
@@ -67,6 +70,7 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
     brandName: str(row?.brand_name) ?? brandConfig.name,
     tagline: str(row?.tagline) ?? brandConfig.tagline,
     contactEmail: str(row?.contact_email) ?? brandConfig.contactEmail,
+    publicContactEmail: brandConfig.publicContactEmail,
     contactPhone: str(row?.contact_phone),
     instagram: instagram.length ? instagram : [...brandConfig.instagram],
     aboutText: str(row?.about_text),

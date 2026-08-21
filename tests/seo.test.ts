@@ -44,7 +44,7 @@ test("a page given no path declares no canonical at all", () => {
 test("social images default in but are never overwritten", () => {
   const withDefaults = withDefaultSocialImages({ title: "A" }, "/a");
   assert.ok(Array.isArray(withDefaults.openGraph?.images));
-  assert.equal(withDefaults.twitter?.card, "summary_large_image");
+  assert.equal((withDefaults.twitter as { card?: string } | null)?.card, "summary_large_image");
 
   const custom = withDefaultSocialImages(
     { title: "B", openGraph: { images: [{ url: "/custom.png" }] } },

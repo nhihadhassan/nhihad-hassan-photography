@@ -21,7 +21,7 @@ export async function SiteFooter() {
         </div>
         <div className="flex flex-wrap gap-3 text-sm text-soft-white/70">
           <a
-            href={`mailto:${settings.contactEmail}`}
+            href={`mailto:${settings.publicContactEmail}`}
             className="inline-flex min-h-11 items-center gap-2 rounded-full border border-soft-white/14 px-4 transition hover:border-soft-white/30 hover:text-soft-white"
           >
             <Mail className="size-4" aria-hidden="true" />

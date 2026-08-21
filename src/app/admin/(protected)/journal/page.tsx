@@ -12,6 +12,7 @@ import {
   moveJournalPost,
   togglePublished,
 } from "./actions";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +72,7 @@ export default async function AdminJournalPage() {
                       fill
                       sizes="120px"
                       className="object-cover"
-                      unoptimized={(posts[i].coverUrl as string).startsWith("http")}
+                      unoptimized={shouldSkipOptimization((posts[i].coverUrl as string))}
                     />
                   ) : null}
                 </div>

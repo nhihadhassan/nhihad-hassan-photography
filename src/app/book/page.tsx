@@ -10,6 +10,7 @@ import { findBookingSelection } from "@/lib/booking-options";
 import { getBookingVisual } from "@/lib/booking-visuals";
 import { getPricing } from "@/lib/pricing";
 import { withDefaultSocialImages } from "@/lib/seo";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +67,7 @@ export default async function BookPage({ searchParams }: Props) {
               priority
               sizes="100vw"
               quality={92}
-              unoptimized={serviceImage.imageUrl.startsWith("http")}
+              unoptimized={shouldSkipOptimization(serviceImage.imageUrl)}
               className="object-cover"
               style={{ objectPosition: serviceImage.focalPosition }}
             />

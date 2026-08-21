@@ -19,6 +19,7 @@ import { FeaturedGrid } from "@/components/featured-grid";
 import { PageBlocks } from "@/components/page-blocks";
 import { formatDisplayDate } from "@/lib/utils";
 import { canonicalUrl } from "@/lib/seo";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
 /** The homepage is the one page whose canonical is the site root. */
 export const metadata: Metadata = {
@@ -192,7 +193,7 @@ export default async function Home() {
                         fill
                         sizes="(min-width: 768px) 40vw, 100vw"
                         className="object-cover transition duration-700 group-hover:scale-[1.035]"
-                        unoptimized={gallery.imageUrl.startsWith("http")}
+                        unoptimized={shouldSkipOptimization(gallery.imageUrl)}
                       />
                     </div>
                     <div className="p-5">

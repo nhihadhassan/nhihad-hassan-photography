@@ -9,6 +9,7 @@ import { InquiryCallout } from "@/components/inquiry-callout";
 import { getPublicGalleryIndex } from "@/lib/public-gallery";
 import { formatDisplayDate } from "@/lib/utils";
 import { withDefaultSocialImages } from "@/lib/seo";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
 export const metadata: Metadata = withDefaultSocialImages({
   title: "Galleries",
@@ -66,7 +67,7 @@ export default async function GalleriesPage() {
                         sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                         className="object-cover transition duration-700 group-hover:scale-[1.03]"
                         priority={index < 3}
-                        unoptimized={gallery.imageUrl.startsWith("http")}
+                        unoptimized={shouldSkipOptimization(gallery.imageUrl)}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
                       {gallery.hasPassword ? (

@@ -6,6 +6,7 @@ import { brandConfig } from "@/lib/config";
 import { formatCoverDate } from "@/lib/utils";
 import { GalleryPasswordGate } from "@/components/gallery-password-gate";
 import { getGalleryCoverFont } from "@/lib/gallery-cover-fonts";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
 const TITLE_SHADOW =
   "[text-shadow:0_2px_18px_rgba(0,0,0,0.85),0_1px_3px_rgba(0,0,0,0.7)]";
@@ -103,7 +104,7 @@ export function GalleryCover({ gallery }: { gallery: PublicGallery }) {
             sizes="(min-width: 768px) 60vw, 100vw"
             className="object-cover"
             style={{ objectPosition: focal }}
-            unoptimized={gallery.hasRealPhotos}
+            unoptimized={shouldSkipOptimization(gallery.imageUrl)}
           />
           {privacyBadge ? (
             <div className="absolute right-4 top-4 z-10">{privacyBadge}</div>
@@ -142,7 +143,7 @@ export function GalleryCover({ gallery }: { gallery: PublicGallery }) {
         sizes="100vw"
         className="object-cover"
         style={{ objectPosition: focal }}
-        unoptimized={gallery.hasRealPhotos}
+        unoptimized={shouldSkipOptimization(gallery.imageUrl)}
       />
       {/* Soft darkening so text stays legible. Bottom layout gets a stronger base. */}
       <div

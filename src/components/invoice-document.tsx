@@ -7,6 +7,7 @@ import { brandConfig } from "@/lib/config";
 import type { InvoiceView } from "@/lib/invoice-data";
 import type { InvoiceStatusKey } from "@/lib/invoice-status";
 import { formatMoney } from "@/lib/utils";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
 const TZ = "America/Toronto";
 const fallbackHero =
@@ -171,7 +172,7 @@ export function InvoiceDocument({
           fill
           priority
           sizes="100vw"
-          unoptimized={heroUrl.startsWith("http")}
+          unoptimized={shouldSkipOptimization(heroUrl)}
           className="object-cover"
           style={{ objectPosition: `${invoice.heroFocalX}% ${invoice.heroFocalY}%` }}
         />

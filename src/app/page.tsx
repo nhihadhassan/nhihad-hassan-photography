@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, MapPin } from "lucide-react";
@@ -17,6 +18,12 @@ import { EditPencil } from "@/components/edit-mode";
 import { FeaturedGrid } from "@/components/featured-grid";
 import { PageBlocks } from "@/components/page-blocks";
 import { formatDisplayDate } from "@/lib/utils";
+import { canonicalUrl } from "@/lib/seo";
+
+/** The homepage is the one page whose canonical is the site root. */
+export const metadata: Metadata = {
+  alternates: { canonical: canonicalUrl("/") },
+};
 
 const heroImage =
   portfolioItems.find((item) => item.id === "rachel-autumn-leaves") ?? portfolioItems[0];

@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next";
 import { categoryLabels } from "@/data/photography";
 import { getPublicJournalPosts } from "@/lib/journal";
-
-const SITE_URL = "https://nhihadhassan.ca";
+import { siteUrl as SITE_URL } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date().toISOString();

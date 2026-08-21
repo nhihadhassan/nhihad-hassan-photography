@@ -11,7 +11,7 @@ import { withDefaultSocialImages } from "@/lib/seo";
 export const metadata: Metadata = withDefaultSocialImages({
   title: "Request a custom package",
   description: "Request tailored photography coverage based on your budget, timing, and desired image count.",
-});
+}, "/book/custom");
 
 export default function CustomPackagePage() {
   const image = portfolioItems.find((item) => item.id === "choyons-grad-couple");

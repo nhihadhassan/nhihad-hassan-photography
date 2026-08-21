@@ -19,7 +19,7 @@ export const metadata: Metadata = withDefaultSocialImages({
     description:
       "A selection of client galleries from weddings, couples, and events around Toronto.",
   },
-});
+}, "/galleries");
 
 // Cover URLs are signed and time-limited, so this page must render per request.
 export const dynamic = "force-dynamic";

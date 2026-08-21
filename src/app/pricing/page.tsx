@@ -23,7 +23,7 @@ export const metadata: Metadata = withDefaultSocialImages({
     description:
       "Wedding, couples, event, portrait, and nightlife photography rates for Toronto and Ontario.",
   },
-});
+}, "/pricing");
 
 export default async function PricingPage() {
   const pricingCategories = await getPricing();

@@ -13,7 +13,7 @@ import { withDefaultSocialImages } from "@/lib/seo";
 export const metadata: Metadata = withDefaultSocialImages({
   title: "Complete your inquiry",
   description: "Share your contact information to request a photography session.",
-});
+}, "/book/details");
 
 type Props = {
   searchParams: Promise<{ service?: string; package?: string; date?: string; time?: string }>;

@@ -19,7 +19,7 @@ export const metadata: Metadata = withDefaultSocialImages({
     description:
       "Browse work across weddings, couples, portraits, events, and nightlife. Based in Toronto.",
   },
-});
+}, "/portfolio");
 
 // Cover URLs are signed and time-limited; re-render comfortably within the TTL.
 export const revalidate = 1800;

@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = withDefaultSocialImages({
   title: "Choose a date and time",
   description: "Request an available photography date and time in Toronto.",
-});
+}, "/book");
 
 type Props = {
   searchParams: Promise<{ service?: string; package?: string }>;

@@ -13,10 +13,9 @@ import { ShareLinkManager } from "@/components/share-link-manager";
 import { GalleryShareEmail } from "@/components/gallery-share-email";
 import { CopyLinkField } from "@/components/copy-link-field";
 import { GalleryDetailHeader } from "@/components/gallery-detail-header";
+import { siteUrl } from "@/lib/seo";
 
 type Props = { params: Promise<{ id: string }> };
-
-const PUBLIC_BASE = "https://nhihadhassan.ca";
 
 export default async function GallerySharePage({ params }: Props) {
   const { id } = await params;
@@ -34,8 +33,8 @@ export default async function GallerySharePage({ params }: Props) {
   ]);
 
   const siteOrigin =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || PUBLIC_BASE;
-  const galleryUrl = `${PUBLIC_BASE}/galleries/${gallery.slug}`;
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
+  const galleryUrl = `${siteUrl}/galleries/${gallery.slug}`;
   const publicLink = `${siteOrigin}/galleries/${gallery.slug}`;
 
   return (

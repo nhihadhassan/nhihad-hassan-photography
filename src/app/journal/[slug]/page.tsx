@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       ...(post.coverUrl ? { images: [{ url: post.coverUrl, alt: post.coverAlt }] } : {}),
     },
-  });
+  }, `/journal/${slug}`);
 }
 
 function formatDate(iso: string) {

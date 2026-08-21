@@ -159,9 +159,11 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${settings.brandName}`,
     },
     description,
-    alternates: {
-      canonical: "/",
-    },
+    // Deliberately no `alternates.canonical` here. Metadata is inherited, so a
+    // canonical declared at the root becomes every subpage's canonical unless
+    // that page overrides it -- which is how every page on the site ended up
+    // claiming to be a duplicate of the homepage. Each page declares its own;
+    // see lib/seo.ts.
     ...(settings.googleVerification
       ? { verification: { google: settings.googleVerification } }
       : {}),

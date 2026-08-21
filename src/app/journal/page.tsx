@@ -20,7 +20,7 @@ export const metadata: Metadata = withDefaultSocialImages({
     title: `Journal | ${brandConfig.name}`,
     description: "Photography notes, location guides, and session tips.",
   },
-});
+}, "/journal");
 
 function formatDate(iso: string) {
   return new Date(`${iso}T12:00:00`).toLocaleDateString("en-CA", {

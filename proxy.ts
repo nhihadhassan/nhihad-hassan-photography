@@ -6,8 +6,11 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
-  ],
+  /**
+   * Admin surfaces only. Public pages have no session to refresh, so running
+   * the Supabase round-trip there added latency to every visitor's request for
+   * no benefit. Server Actions posted from an admin page target that page's own
+   * path, so they are covered by `/admin/:path*`.
+   */
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
 };
-

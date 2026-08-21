@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Check, Pencil, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { hasAdminHint } from "@/lib/auth-hint";
 
 type EditModeContextValue = {
   isAdmin: boolean;
@@ -23,7 +24,12 @@ export function EditModeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // Detect admin status client-side so public pages stay statically rendered.
+  // Gated on a non-secret hint cookie so ordinary visitors -- who can never be
+  // admins -- never pay for this request at all. The response is still the
+  // authority; the hint only decides whether it is worth asking.
   useEffect(() => {
+    if (!hasAdminHint(document.cookie)) return;
+
     let active = true;
     fetch("/api/admin/me")
       .then((r) => r.json())

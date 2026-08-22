@@ -14,6 +14,9 @@ import { GalleryShareEmail } from "@/components/gallery-share-email";
 import { CopyLinkField } from "@/components/copy-link-field";
 import { GalleryDetailHeader } from "@/components/gallery-detail-header";
 import { siteUrl } from "@/lib/seo";
+import { getGalleryDeliveryStats } from "@/lib/gallery-delivery-stats";
+import { galleryVisibility } from "@/lib/gallery-visibility";
+import { formatCompactDate } from "@/lib/utils";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -25,12 +28,21 @@ export default async function GallerySharePage({ params }: Props) {
   if (!gallery) notFound();
 
   const r2Configured = hasR2Config();
-  const [photos, shareLinks, lastInvite, coverImageUrl] = await Promise.all([
+  const [photos, shareLinks, lastInvite, coverImageUrl, stats] = await Promise.all([
     r2Configured ? getAdminGalleryPhotos(id) : Promise.resolve([]),
     getGalleryShareLinks(id),
     getGalleryLastInvite(id),
     getGalleryEmailCoverUrl(gallery),
+    getGalleryDeliveryStats(id),
   ]);
+
+  const visibility = galleryVisibility({
+    isPublished: gallery.is_published,
+    isPublic: gallery.is_public,
+    hasPassword: gallery.has_password,
+    isArchived: gallery.is_archived,
+    expiresAt: gallery.expires_at,
+  });
 
   const siteOrigin =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
@@ -49,6 +61,61 @@ export default async function GallerySharePage({ params }: Props) {
         kicker="Share"
         description="Email the gallery to your client or other recipients, copy the link to send yourself, or build a curated link for vendors and partners."
       />
+
+      {/* Delivery summary: did this actually land? Answering that used to mean
+          leaving the gallery for the raw log screens and filtering by gallery. */}
+      <section className="mt-7 rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-base font-semibold tracking-tight">Delivery</h2>
+          <span className="text-xs text-admin-ink/65">{visibility.detail}</span>
+        </div>
+
+        <dl className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Stat
+            label="Opened"
+            value={stats.views === 0 ? "Not yet" : `${stats.views}×`}
+            detail={stats.lastOpenedAt ? `Last ${formatCompactDate(stats.lastOpenedAt)}` : null}
+          />
+          <Stat
+            label="Downloads"
+            value={stats.downloads === 0 ? "None" : `${stats.downloads}`}
+            detail={
+              stats.lastDownloadedAt ? `Last ${formatCompactDate(stats.lastDownloadedAt)}` : null
+            }
+          />
+          <Stat
+            label="Client selects"
+            value={stats.selectSets === 0 ? "None" : `${stats.selectSets}`}
+            detail={
+              stats.submittedSelectSets > 0 ? `${stats.submittedSelectSets} sent to you` : null
+            }
+          />
+          <Stat
+            label="Sent"
+            value={lastInvite?.sent_at ? formatCompactDate(lastInvite.sent_at) : "Not sent"}
+            detail={lastInvite?.sent_to ?? null}
+          />
+        </dl>
+
+        {stats.failedAttempts > 0 ? (
+          <p className="mt-4 rounded-md bg-admin-status-waiting-tint px-3 py-2 text-xs text-admin-status-waiting">
+            {stats.failedAttempts} failed {stats.failedAttempts === 1 ? "attempt" : "attempts"} to
+            open this gallery. Usually a wrong or mistyped password.
+          </p>
+        ) : null}
+
+        <p className="mt-4 text-xs text-admin-ink/60">
+          Every open and download is listed individually under{" "}
+          <a href={`/admin/access-logs?gallery=${gallery.id}`} className="underline underline-offset-2 hover:text-admin-ink">
+            access logs
+          </a>{" "}
+          and{" "}
+          <a href={`/admin/download-logs?gallery=${gallery.id}`} className="underline underline-offset-2 hover:text-admin-ink">
+            download logs
+          </a>
+          .
+        </p>
+      </section>
 
       {/* Send to client */}
       <section
@@ -114,6 +181,24 @@ export default async function GallerySharePage({ params }: Props) {
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  detail,
+}: {
+  label: string;
+  value: string;
+  detail: string | null;
+}) {
+  return (
+    <div>
+      <dt className="text-xs uppercase tracking-wide text-admin-ink/60">{label}</dt>
+      <dd className="mt-1 text-lg font-medium tabular-nums text-admin-ink">{value}</dd>
+      {detail ? <p className="mt-0.5 truncate text-xs text-admin-ink/60">{detail}</p> : null}
     </div>
   );
 }

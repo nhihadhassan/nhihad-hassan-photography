@@ -159,7 +159,7 @@ async function extractDownloadPinChange(
 }
 
 const quickCreateSchema = z.object({
-  title: z.string().min(2, "Give the collection a title."),
+  title: z.string().min(2, "Give the gallery a title."),
   client_name: z.string().optional(),
   client_email: z.string().email("Enter a valid client email.").optional().or(z.literal("")),
   event_date: z.string().optional(),
@@ -529,7 +529,7 @@ export async function duplicateGallery(formData: FormData): Promise<{ ok: boolea
 
   revalidatePath("/admin");
   revalidatePath("/admin/galleries");
-  return { ok: true, message: "Collection duplicated.", id: data.id };
+  return { ok: true, message: "Gallery duplicated.", id: data.id };
 }
 
 export async function deleteGallery(formData: FormData) {

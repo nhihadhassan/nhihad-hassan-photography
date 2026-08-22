@@ -138,7 +138,7 @@ export function GalleryRowActions({
         router.push(`/admin/galleries/${result.id}`);
         return;
       }
-      window.alert(result.message ?? "Could not duplicate this collection.");
+      window.alert(result.message ?? "Could not duplicate this gallery.");
     });
   };
 
@@ -304,7 +304,7 @@ export function GalleryRowActions({
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-admin-ink hover:bg-admin-surface disabled:opacity-50"
               >
                 <CopyPlus className="size-4 shrink-0 text-admin-ink/65" aria-hidden="true" />
-                Duplicate collection
+                Duplicate gallery
               </button>
 
               <div className="my-1 border-t border-admin-ink/8" />
@@ -332,7 +332,7 @@ export function GalleryRowActions({
 
               <div className="my-1 border-t border-admin-ink/8" />
 
-              {/* Delete collection */}
+              {/* Delete gallery */}
               <button
                 type="button"
                 disabled={pending}
@@ -346,7 +346,7 @@ export function GalleryRowActions({
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-admin-danger hover:bg-admin-danger/8 disabled:opacity-50"
               >
                 <Trash2 className="size-4 shrink-0" aria-hidden="true" />
-                Delete collection
+                Delete gallery
               </button>
             </div>
           </>

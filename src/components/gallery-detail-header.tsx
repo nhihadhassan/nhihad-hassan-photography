@@ -47,7 +47,7 @@ export function GalleryDetailHeader({
         className="inline-flex items-center gap-1.5 text-sm text-admin-ink/65 transition hover:text-admin-ink"
       >
         <ArrowLeft className="size-3.5" aria-hidden="true" />
-        All collections
+        All galleries
       </Link>
 
       <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ImageIcon, Search } from "lucide-react";
 import { GalleryRowActions } from "@/components/gallery-row-actions";
-import { statusForGallery } from "@/components/ui/status-chip";
 import { DEPOSIT_STATUS_LABELS, type DepositStatus } from "@/lib/payment-constants";
 import { formatAge, formatCompactDate } from "@/lib/utils";
+import { galleryVisibility } from "@/lib/gallery-visibility";
 
 export type GalleryCard = {
   id: string;
@@ -18,6 +18,11 @@ export type GalleryCard = {
   coverUrl: string | null;
   isPublished: boolean;
   isArchived: boolean;
+  /** Listed on the public /galleries index. */
+  isPublic: boolean;
+  /** True when a password is set. The hash itself is never sent to the client. */
+  hasPassword: boolean;
+  expiresAt: string | null;
   photoCount: number;
   depositStatus: DepositStatus;
   updatedAt: string;
@@ -40,25 +45,38 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "oldest", label: "Oldest first" },
 ];
 
-const DOT_TONE_CLASSES: Record<"positive" | "neutral", string> = {
+const DOT_TONE_CLASSES: Record<"positive" | "neutral" | "danger", string> = {
   positive: "bg-admin-status-positive",
   neutral: "bg-admin-status-neutral",
+  danger: "bg-admin-status-danger",
 };
 
-const STATUS_LABEL: Record<"published" | "archived" | "draft", string> = {
-  published: "Published",
-  archived: "Archived",
-  draft: "Draft",
-};
-
-/** Minimal dot + label, coloured from the same status vocabulary StatusChip uses. */
+/**
+ * Who can open this gallery, stated plainly.
+ *
+ * Replaces a Published/Draft dot that answered a different question: a
+ * published gallery could be password-locked, unlisted, or expired, and the dot
+ * said "Published" for all of them. The label is derived from the same flags
+ * row-level security uses, so it cannot claim a gallery is more open than it is.
+ */
 function StatusDot({ card }: { card: GalleryCard }) {
-  const key = statusForGallery({ is_published: card.isPublished, is_archived: card.isArchived });
-  const tone = key === "published" ? "positive" : "neutral";
+  const visibility = galleryVisibility({
+    isPublished: card.isPublished,
+    isPublic: card.isPublic,
+    hasPassword: card.hasPassword,
+    isArchived: card.isArchived,
+    expiresAt: card.expiresAt,
+  });
+  const tone =
+    visibility.tone === "positive"
+      ? "positive"
+      : visibility.tone === "danger"
+        ? "danger"
+        : "neutral";
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-admin-ink/65">
+    <span className="inline-flex items-center gap-1.5 text-xs text-admin-ink/65" title={visibility.detail}>
       <span className={`size-1.5 rounded-full ${DOT_TONE_CLASSES[tone]}`} aria-hidden="true" />
-      {STATUS_LABEL[key as "published" | "archived" | "draft"]}
+      {card.isArchived ? "Archived" : visibility.label}
     </span>
   );
 }
@@ -148,15 +166,15 @@ export function GalleriesGrid({ galleries }: { galleries: GalleryCard[] }) {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search collections"
-              aria-label="Search collections"
+              placeholder="Search galleries"
+              aria-label="Search galleries"
               className="min-h-10 w-full rounded-md border border-admin-ink/15 bg-white/70 pl-9 pr-3 text-sm text-admin-ink outline-none transition placeholder:text-admin-ink/60 focus-visible:border-admin-copper focus-visible:ring-2 focus-visible:ring-admin-copper/35 sm:w-52"
             />
           </div>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
-            aria-label="Sort collections"
+            aria-label="Sort galleries"
             className="min-h-10 rounded-md border border-admin-ink/15 bg-white/70 px-3 text-sm text-admin-ink outline-none transition focus-visible:border-admin-copper focus-visible:ring-2 focus-visible:ring-admin-copper/35"
           >
             {SORT_OPTIONS.map((option) => (
@@ -233,7 +251,7 @@ export function GalleriesGrid({ galleries }: { galleries: GalleryCard[] }) {
         </div>
       ) : (
         <p className="mt-10 text-sm text-admin-ink/65">
-          {query ? <>No collections match &ldquo;{query}&rdquo;.</> : "No collections in this view."}
+          {query ? <>No galleries match &ldquo;{query}&rdquo;.</> : "No galleries in this view."}
         </p>
       )}
     </div>

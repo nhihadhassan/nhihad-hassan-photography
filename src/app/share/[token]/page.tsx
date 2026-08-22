@@ -5,7 +5,7 @@ import { brandConfig } from "@/lib/config";
 import { getShareLinkByToken } from "@/lib/share-links";
 import { hasServiceRoleKey } from "@/lib/env";
 import { SharePhotoViewer } from "@/components/share-photo-viewer";
-import { withDefaultSocialImages } from "@/lib/seo";
+import { privatePageMetadata, withDefaultSocialImages } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -13,16 +13,20 @@ type Props = { params: Promise<{ token: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { token } = await params;
-  if (!hasServiceRoleKey()) return {};
+  // Every branch is noindex, including the not-found ones. A curated share URL
+  // must never be indexable, and "the token did not resolve" is not a reason to
+  // fall back to inheriting whatever the parent declares.
+  if (!hasServiceRoleKey()) return privatePageMetadata();
 
   const link = await getShareLinkByToken(token);
-  if (!link) return { title: "Not Found" };
+  if (!link) return privatePageMetadata({ title: "Not Found" });
 
-  return withDefaultSocialImages({
-    title: link.title,
-    description: `${link.photos.length} curated photos shared by ${brandConfig.name}.`,
-    robots: { index: false, follow: false },
-  });
+  return privatePageMetadata(
+    withDefaultSocialImages({
+      title: link.title,
+      description: `${link.photos.length} curated photos shared by ${brandConfig.name}.`,
+    }),
+  );
 }
 
 export default async function SharePage({ params }: Props) {

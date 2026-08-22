@@ -33,52 +33,69 @@ export type AdminNavGroup = {
 };
 
 /**
- * The admin information architecture. The primary group is the spec's sidebar
- * order (Today, Pipeline, Clients, Invoices, Finances, Contracts, Settings).
- * Today includes the live Google Calendar and compact bookings list that used
- * to occupy separate Schedule and Bookings pages. Invoices is the
- * create/send/track surface for
- * a single invoice; Finances is the payments/expenses ledger and CSV export,
- * business-wide rather than per-invoice. Everything else that used to live in
- * the flat nav is folded into Content and Automations groups so the primary
- * rail stays about running the business. This same structure feeds the
- * command palette.
+ * The admin information architecture, grouped by what you are actually doing.
+ *
+ * WORK is the day-to-day: the leads and jobs and the people they belong to.
+ * MONEY separates the two money questions that were previously adjacent and
+ * easy to confuse -- Invoices is what clients owe, Finances is what the
+ * business took in and spent. WEBSITE is everything the public sees.
+ *
+ * Contracts, questionnaires, contract templates, reminder rules and the raw
+ * access and download logs are deliberately not in the rail. Each is now
+ * reachable from the record it belongs to -- a contract from its booking, a
+ * gallery's access history from that gallery's Share tab -- and from Settings
+ * when you want the cross-business archive. Keeping them permanently in the
+ * sidebar made five destinations compete with the four you use daily.
+ *
+ * The command palette and the mobile nav both read this array, so this is the
+ * only place the structure is declared.
  */
 export const adminNavGroups: AdminNavGroup[] = [
   {
-    label: null,
+    label: "Work",
     items: [
       { href: "/admin", label: "Today", icon: LayoutDashboard },
       { href: "/admin/pipeline", label: "Pipeline", icon: Workflow },
+      { href: "/admin/inquiries", label: "Inquiries", icon: Inbox },
       { href: "/admin/clients", label: "Clients", icon: Users },
-      { href: "/admin/invoices", label: "Invoices", icon: Receipt },
-      { href: "/admin/finances", label: "Finances", icon: PiggyBank },
-      { href: "/admin/agreements", label: "Contracts", icon: FileSignature },
-      { href: "/admin/settings", label: "Settings", icon: Settings },
+      { href: "/admin/galleries", label: "Galleries", icon: FolderOpen },
     ],
   },
   {
-    label: "Content",
+    label: "Money",
     items: [
-      { href: "/admin/galleries", label: "Galleries", icon: FolderOpen },
+      { href: "/admin/invoices", label: "Invoices", icon: Receipt },
+      { href: "/admin/finances", label: "Finances", icon: PiggyBank },
+    ],
+  },
+  {
+    label: "Website",
+    items: [
       { href: "/admin/portfolio", label: "Portfolio", icon: Images },
       { href: "/admin/journal", label: "Journal", icon: Newspaper },
       { href: "/admin/sections", label: "Sections", icon: LayoutTemplate },
       { href: "/admin/pricing", label: "Pricing", icon: Tag },
       { href: "/admin/reviews", label: "Reviews", icon: MessageSquareText },
-      { href: "/admin/inquiries", label: "Inquiries", icon: Inbox },
     ],
   },
   {
-    label: "Automations",
-    items: [
-      { href: "/admin/reminders", label: "Reminders", icon: BellRing },
-      { href: "/admin/templates", label: "Contract templates", icon: FileText },
-      { href: "/admin/questionnaires", label: "Questionnaires", icon: ClipboardList },
-      { href: "/admin/access-logs", label: "Access logs", icon: Shield },
-      { href: "/admin/download-logs", label: "Download logs", icon: Download },
-    ],
+    label: null,
+    items: [{ href: "/admin/settings", label: "Settings", icon: Settings }],
   },
+];
+
+/**
+ * Destinations that are no longer in the sidebar but must stay reachable and
+ * searchable. The command palette folds these in so Cmd+K still finds them by
+ * name, and Settings links them as its archive section.
+ */
+export const adminSecondaryNavItems: AdminNavItem[] = [
+  { href: "/admin/agreements", label: "Contracts", icon: FileSignature },
+  { href: "/admin/questionnaires", label: "Questionnaires", icon: ClipboardList },
+  { href: "/admin/templates", label: "Contract templates", icon: FileText },
+  { href: "/admin/reminders", label: "Reminder rules", icon: BellRing },
+  { href: "/admin/access-logs", label: "Access logs", icon: Shield },
+  { href: "/admin/download-logs", label: "Download logs", icon: Download },
 ];
 
 export const adminNavItems: AdminNavItem[] = adminNavGroups.flatMap((g) => g.items);

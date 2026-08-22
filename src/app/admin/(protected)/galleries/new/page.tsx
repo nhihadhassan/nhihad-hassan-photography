@@ -21,11 +21,11 @@ export default async function NewGalleryPage() {
         className="inline-flex items-center gap-1.5 text-sm text-admin-ink/65 transition hover:text-admin-ink"
       >
         <ArrowLeft className="size-3.5" aria-hidden="true" />
-        All collections
+        All galleries
       </Link>
       <div className="mt-5">
-        <p className="text-sm font-medium text-admin-accent">New collection</p>
-        <h1 className="admin-display mt-1 text-3xl">Start a collection</h1>
+        <p className="text-sm font-medium text-admin-accent">New gallery</p>
+        <h1 className="admin-display mt-1 text-3xl">Start a gallery</h1>
         <p className="mt-2 max-w-lg text-sm leading-6 text-admin-muted">
           Just the essentials to get started — a title, who it&apos;s for, and a shoot type. You&apos;ll
           land on the upload screen next; privacy, downloads, and passwords live on Settings.

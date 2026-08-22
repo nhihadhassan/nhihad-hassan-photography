@@ -23,7 +23,7 @@ export const metadata: Metadata = withDefaultSocialImages({
     description:
       "Start an inquiry for weddings, portraits, events, or nightlife coverage in Toronto.",
   },
-});
+}, "/contact");
 
 export default async function ContactPage() {
   const settings = await getSiteSettings();

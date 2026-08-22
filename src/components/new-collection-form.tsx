@@ -165,7 +165,7 @@ export function NewCollectionForm({
           the Settings tab.
         </p>
         <Button type="submit" variant="light" disabled={pending} className="shrink-0 rounded-md">
-          {pending ? "Creating…" : "Create collection"}
+          {pending ? "Creating…" : "Create gallery"}
         </Button>
       </div>
     </form>

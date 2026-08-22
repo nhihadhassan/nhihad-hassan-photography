@@ -99,3 +99,44 @@ export async function getMutedBookings(): Promise<Set<string>> {
     return new Set();
   }
 }
+
+/**
+ * Skip (or un-skip) one scheduled reminder for one booking.
+ *
+ * Muting is per booking and per kind rather than global, so silencing a nudge
+ * for one client never turns the rule off for everyone else.
+ */
+export async function setBookingReminderMute(
+  bookingId: string,
+  kind: ReminderKind,
+  muted: boolean,
+): Promise<void> {
+  const admin = getServiceRoleSupabaseClient();
+  if (muted) {
+    const { error } = await admin
+      .from("reminder_mutes")
+      .upsert({ booking_id: bookingId, kind }, { onConflict: "booking_id,kind" });
+    if (error) throw new Error(error.message);
+    return;
+  }
+  const { error } = await admin
+    .from("reminder_mutes")
+    .delete()
+    .eq("booking_id", bookingId)
+    .eq("kind", kind);
+  if (error) throw new Error(error.message);
+}
+
+/** The kinds muted for one booking. */
+export async function getMutedKindsForBooking(bookingId: string): Promise<Set<ReminderKind>> {
+  try {
+    const admin = getServiceRoleSupabaseClient();
+    const { data } = await admin
+      .from("reminder_mutes")
+      .select("kind")
+      .eq("booking_id", bookingId);
+    return new Set((data ?? []).map((r) => r.kind as ReminderKind));
+  } catch {
+    return new Set();
+  }
+}

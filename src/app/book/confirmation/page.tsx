@@ -9,12 +9,13 @@ import { findBookingSelection, startingPrice } from "@/lib/booking-options";
 import { getBookingVisual } from "@/lib/booking-visuals";
 import { getPricing } from "@/lib/pricing";
 import { getSiteSettings } from "@/lib/site-settings";
-import { withDefaultSocialImages } from "@/lib/seo";
+import { privatePageMetadata, withDefaultSocialImages } from "@/lib/seo";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
-export const metadata: Metadata = withDefaultSocialImages({
+export const metadata: Metadata = privatePageMetadata(withDefaultSocialImages({
   title: "Request received",
   description: "Review the next steps for your photography session request.",
-});
+}));
 
 type Props = {
   searchParams: Promise<{ service?: string; package?: string; date?: string; time?: string }>;
@@ -70,7 +71,7 @@ export default async function BookingConfirmationPage({ searchParams }: Props) {
                   fill
                   sizes="(min-width: 1280px) 32rem, (min-width: 1024px) 42vw, 100vw"
                   quality={92}
-                  unoptimized={image.imageUrl.startsWith("http")}
+                  unoptimized={shouldSkipOptimization(image.imageUrl)}
                   className="object-cover"
                   style={{ objectPosition: image.focalPosition }}
                 />

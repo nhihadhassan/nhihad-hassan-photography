@@ -1,5 +1,11 @@
 import { requireAdmin } from "@/lib/auth";
 import { getAdminBookings, getOperationalBookingStage } from "@/lib/bookings";
+import { getAdminInquiries } from "@/lib/inquiries";
+import {
+  INQUIRY_STATUS_LABELS,
+  isTerminalInquiryStatus,
+  needsReply,
+} from "@/lib/inquiry-lifecycle";
 import { listPayments } from "@/lib/finance";
 import { parseAmount } from "@/lib/utils";
 import { STAGE_STALE_DAYS } from "@/lib/booking-stages";
@@ -49,6 +55,8 @@ function buildCards(
 
     return {
       id: b.id,
+      kind: "booking" as const,
+      href: `/admin/bookings/${b.id}`,
       title: b.client_name ?? b.shoot_type ?? "Booking",
       packageLabel: b.shoot_type ?? "",
       shootLabel: shootDate(b.start_at),
@@ -62,16 +70,53 @@ function buildCards(
   });
 }
 
+/**
+ * Open leads as pipeline cards, so the board starts where the work starts
+ * rather than at the point a booking already exists. Terminal leads are left
+ * out -- converted ones are already on the board as their booking, and lost
+ * ones are finished with.
+ */
+function buildLeadCards(
+  inquiries: Awaited<ReturnType<typeof getAdminInquiries>>,
+): PipelineCard[] {
+  const now = Date.now();
+  return inquiries
+    .filter((inquiry) => !isTerminalInquiryStatus(inquiry.status))
+    .map((inquiry) => {
+      const ageDays = Math.floor((now - new Date(inquiry.created_at).getTime()) / DAY);
+      return {
+        id: `inquiry-${inquiry.id}`,
+        kind: "lead" as const,
+        href: "/admin/inquiries",
+        title: inquiry.name,
+        packageLabel: inquiry.event_type ?? inquiry.package_name ?? "",
+        shootLabel: inquiry.event_date ? shootDate(inquiry.event_date) : "No date",
+        stage: "inquiry" as const,
+        money: { label: INQUIRY_STATUS_LABELS[inquiry.status], tone: "neutral" as const },
+        daysInStage: ageDays,
+        // An unanswered lead going stale is the one thing on this board that
+        // is losing money by sitting still.
+        stale: needsReply(inquiry.status) && ageDays > 2,
+        totalValue: 0,
+        deliveryDueDate: null,
+      };
+    });
+}
+
 export default async function AdminPipelinePage() {
   await requireAdmin();
-  const [bookings, payments] = await Promise.all([getAdminBookings(), listPayments()]);
+  const [bookings, payments, inquiries] = await Promise.all([
+    getAdminBookings(),
+    listPayments(),
+    getAdminInquiries(),
+  ]);
 
   const paidByBooking = new Map<string, number>();
   for (const p of payments) {
     if (p.booking_id) paidByBooking.set(p.booking_id, (paidByBooking.get(p.booking_id) ?? 0) + p.amount);
   }
 
-  const cards = buildCards(bookings, paidByBooking);
+  const cards = [...buildLeadCards(inquiries), ...buildCards(bookings, paidByBooking)];
   const packages = Array.from(
     new Set(cards.map((c) => c.packageLabel).filter(Boolean)),
   ).sort();
@@ -82,8 +127,9 @@ export default async function AdminPipelinePage() {
         <p className="text-sm font-medium text-admin-accent">Pipeline</p>
         <h1 className="admin-display mt-1 text-3xl text-admin-ink">Pipeline</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-muted">
-          Every booking by stage. Cards advance themselves when a contract is signed, a deposit is
-          recorded, or a gallery is published. Drag or use the arrows to move one by hand.
+          Every lead and booking by stage. Bookings advance themselves when a contract is signed, a
+          deposit is recorded, or a gallery is published; drag or use the arrows to move one by
+          hand. Leads sit in the first column until you convert them on the Inquiries page.
         </p>
       </header>
 
@@ -92,7 +138,8 @@ export default async function AdminPipelinePage() {
           <PipelineBoard cards={cards} packages={packages} />
         ) : (
           <p className="rounded-xl border border-dashed border-admin-line-strong px-4 py-10 text-center text-sm text-admin-muted">
-            No bookings yet. Create one in Bookings and it will appear here.
+            Nothing in the pipeline yet. Inquiries land in the first column, and bookings appear
+            once you create or convert one.
           </p>
         )}
       </div>

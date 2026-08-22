@@ -25,7 +25,7 @@ export function GalleryUnavailable() {
             Back to site
           </Link>
           <a
-            href={`mailto:${brandConfig.contactEmail}`}
+            href={`mailto:${brandConfig.publicContactEmail}`}
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-copper/70 bg-copper px-5 text-sm font-medium text-ink transition hover:bg-beige"
           >
             <Mail className="size-4" aria-hidden="true" />

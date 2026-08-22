@@ -16,6 +16,7 @@ import {
 import { buildAgreementView } from "@/lib/agreement-view";
 import { missingClientFields } from "@/lib/agreement-values";
 import { sanitizeFilename } from "@/lib/utils";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
 export const dynamic = "force-dynamic";
 
@@ -170,7 +171,7 @@ export default async function AgreementSigningPage({
           fill
           priority
           quality={90}
-          unoptimized={Boolean(cover?.url?.startsWith("http"))}
+          unoptimized={shouldSkipOptimization(cover?.url)}
           sizes="100vw"
           className="object-cover"
           style={{

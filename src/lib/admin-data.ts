@@ -76,21 +76,8 @@ function withHasPassword(row: GalleryRow): GalleryRecord {
   };
 }
 
-export type InquiryRecord = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  event_type: string | null;
-  package_name: string | null;
-  event_date: string | null;
-  event_time: string | null;
-  location: string | null;
-  budget: string | null;
-  referral_source: string | null;
-  message: string;
-  created_at: string;
-};
+/** Inquiries live in lib/inquiries.ts, which also owns their lifecycle. */
+export type { InquiryRecord } from "@/lib/inquiries";
 
 const GALLERY_COLUMNS =
   "id,title,slug,client_name,client_email,event_date,description,location,cover_image_url,cover_image_alt,cover_photo_id,cover_focal_x,cover_focal_y,cover_layout,cover_font,is_public,is_published,is_archived,download_enabled,download_quality,download_pin_hash,download_limit,download_count,watermark_enabled,invite_subject,invite_message,deposit_status,payment_notes,expires_at,password_hash,password_plain,created_at,updated_at";
@@ -332,20 +319,6 @@ export async function getGalleryListCoverUrls(
   );
 
   return result;
-}
-
-export async function getAdminInquiries() {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("inquiries")
-    .select("id,name,email,phone,event_type,package_name,event_date,event_time,location,budget,referral_source,message,created_at")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return (data ?? []) as InquiryRecord[];
 }
 
 export async function getGalleryLastInvite(galleryId: string): Promise<GalleryInviteLogEntry | null> {

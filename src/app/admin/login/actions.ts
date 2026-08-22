@@ -1,8 +1,24 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ADMIN_HINT_COOKIE, ADMIN_HINT_MAX_AGE } from "@/lib/auth-hint";
+
+/** Set or clear the non-secret public-site hint cookie. See lib/auth-hint.ts. */
+async function setAdminHint(present: boolean) {
+  const store = await cookies();
+  store.set({
+    name: ADMIN_HINT_COOKIE,
+    value: present ? "1" : "",
+    httpOnly: false,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: present ? ADMIN_HINT_MAX_AGE : 0,
+  });
+}
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address."),
@@ -60,11 +76,14 @@ export async function loginAdmin(
 
   if (profile?.role !== "admin") {
     await supabase.auth.signOut();
+    await setAdminHint(false);
     return {
       status: "error",
       message: "This user is not marked as an admin in Supabase.",
     };
   }
+
+  await setAdminHint(true);
 
   redirect("/admin");
 }
@@ -72,6 +91,7 @@ export async function loginAdmin(
 export async function logoutAdmin() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
+  await setAdminHint(false);
   redirect("/admin/login");
 }
 

@@ -1,7 +1,8 @@
 import "server-only";
 import { getAdminBookings } from "@/lib/bookings";
 import { getAdminAgreementRequests } from "@/lib/agreements";
-import { getAdminInquiries } from "@/lib/admin-data";
+import { getAdminInquiries } from "@/lib/inquiries";
+import { isTerminalInquiryStatus, needsReply } from "@/lib/inquiry-lifecycle";
 import { listPayments } from "@/lib/finance";
 import { parseAmount } from "@/lib/utils";
 
@@ -138,28 +139,43 @@ export async function getAttentionItems(): Promise<AttentionItem[]> {
     }
   }
 
-  // Inquiries with no booking or contract yet (the closest signal to "no reply").
-  const bookingEmails = new Set(
-    bookings.map((b) => b.client_email?.toLowerCase()).filter(Boolean) as string[],
-  );
-  const agreementEmails = new Set(
-    agreements.map((a) => a.client_email?.toLowerCase()).filter(Boolean) as string[],
-  );
+  // Unanswered inquiries. This used to be inferred by checking whether the
+  // inquiry's email appeared on any booking or contract, which was only ever a
+  // proxy -- it went quiet the moment a lead was booked under a different
+  // address, and never noticed a lead that had been replied to but not booked.
+  // The lead now carries its own status, so this asks the real question.
   for (const inq of inquiries) {
-    const email = inq.email?.toLowerCase();
+    if (isTerminalInquiryStatus(inq.status)) continue;
     const createdMs = new Date(inq.created_at).getTime();
-    // Only nag about recent, unconverted inquiries.
+    // Only nag about recent leads.
     if (now - createdMs > 30 * DAY) continue;
-    if (email && (bookingEmails.has(email) || agreementEmails.has(email))) continue;
-    items.push({
-      id: `inquiry-${inq.id}`,
-      severity: now - createdMs > 2 * DAY ? "warning" : "info",
-      client: inq.name,
-      problem: inq.event_type ? `New ${inq.event_type} inquiry, no reply yet` : "New inquiry, no reply yet",
-      since: inq.created_at,
-      action: { label: "Reply", href: `mailto:${inq.email}`, external: true },
-      weight: now - createdMs > 2 * DAY ? 80 : 40,
-    });
+
+    const stale = now - createdMs > 2 * DAY;
+    if (needsReply(inq.status)) {
+      items.push({
+        id: `inquiry-${inq.id}`,
+        severity: stale ? "warning" : "info",
+        client: inq.name,
+        problem: inq.event_type ? `New ${inq.event_type} inquiry, no reply yet` : "New inquiry, no reply yet",
+        since: inq.created_at,
+        action: { label: "Open", href: "/admin/inquiries" },
+        weight: stale ? 80 : 40,
+      });
+      continue;
+    }
+
+    // Talked to, but going cold: a week of silence on an open lead.
+    if (now - createdMs > 7 * DAY) {
+      items.push({
+        id: `inquiry-followup-${inq.id}`,
+        severity: "info",
+        client: inq.name,
+        problem: "Lead has gone quiet since you last spoke",
+        since: inq.created_at,
+        action: { label: "Open", href: "/admin/inquiries" },
+        weight: 30,
+      });
+    }
   }
 
   return items.sort((a, b) => {

@@ -9,11 +9,12 @@ import { findBookingSelection } from "@/lib/booking-options";
 import { getBookingVisual } from "@/lib/booking-visuals";
 import { getPricing } from "@/lib/pricing";
 import { withDefaultSocialImages } from "@/lib/seo";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
 export const metadata: Metadata = withDefaultSocialImages({
   title: "Complete your inquiry",
   description: "Share your contact information to request a photography session.",
-});
+}, "/book/details");
 
 type Props = {
   searchParams: Promise<{ service?: string; package?: string; date?: string; time?: string }>;
@@ -77,7 +78,7 @@ export default async function BookingDetailsPage({ searchParams }: Props) {
                   fill
                   sizes="(min-width: 1280px) 32rem, (min-width: 1024px) 42vw, 100vw"
                   quality={92}
-                  unoptimized={image.imageUrl.startsWith("http")}
+                  unoptimized={shouldSkipOptimization(image.imageUrl)}
                   className="object-cover"
                   style={{ objectPosition: image.focalPosition }}
                 />

@@ -9,6 +9,7 @@ import { getAdminGallery, getGalleryEmailCoverUrl } from "@/lib/admin-data";
 import { brandConfig } from "@/lib/config";
 import { archiveBcc } from "@/lib/notify-email";
 import { revalidatePath } from "next/cache";
+import { siteUrl } from "@/lib/seo";
 
 export type InviteActionResult = {
   ok: boolean;
@@ -99,7 +100,7 @@ export async function sendGalleryInvite(
   const message = input.message?.trim() || null;
   const includePassword = input.includePassword ?? true;
 
-  const galleryUrl = `https://nhihadhassan.ca/galleries/${gallery.slug}`;
+  const galleryUrl = `${siteUrl}/galleries/${gallery.slug}`;
   const coverImageUrl = await getGalleryEmailCoverUrl(gallery);
 
   const email = buildGalleryInviteEmail({

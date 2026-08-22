@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Fragment } from "react";
 import type { ResolvedBlock } from "@/lib/journal-types";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
 /** Inline **bold** and [text](url) link support inside paragraphs / headings. */
 function inline(text: string) {
@@ -37,7 +38,7 @@ function JournalImage({ src, alt }: { src: string; alt?: string }) {
       fill
       sizes="(min-width: 768px) 768px, 100vw"
       className="object-cover"
-      unoptimized={src.startsWith("http")}
+      unoptimized={shouldSkipOptimization(src)}
     />
   );
 }

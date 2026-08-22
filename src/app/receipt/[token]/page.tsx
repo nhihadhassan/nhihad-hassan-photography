@@ -1,10 +1,14 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
 import { brandConfig } from "@/lib/config";
 import { getReceiptByToken, getReceiptView, markReceiptViewed } from "@/lib/receipts";
 import { formatMoney } from "@/lib/utils";
+import { privatePageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = privatePageMetadata({ title: "Receipt" });
 
 export default async function ReceiptPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;

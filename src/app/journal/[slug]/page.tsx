@@ -12,6 +12,7 @@ import { EditPencil } from "@/components/edit-mode";
 import { getPublicJournalPost, getPublishedJournalSlugs } from "@/lib/journal";
 import { brandConfig } from "@/lib/config";
 import { siteUrl, withDefaultSocialImages } from "@/lib/seo";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -35,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       ...(post.coverUrl ? { images: [{ url: post.coverUrl, alt: post.coverAlt }] } : {}),
     },
-  });
+  }, `/journal/${slug}`);
 }
 
 function formatDate(iso: string) {
@@ -84,7 +85,7 @@ export default async function JournalPostPage({ params }: Props) {
               className="object-cover"
               sizes="100vw"
               priority
-              unoptimized={post.coverUrl.startsWith("http")}
+              unoptimized={shouldSkipOptimization(post.coverUrl)}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/40" />
           </div>

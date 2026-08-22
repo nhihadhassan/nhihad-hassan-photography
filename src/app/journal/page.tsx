@@ -9,6 +9,7 @@ import { EditPencil } from "@/components/edit-mode";
 import { getPublicJournalPosts } from "@/lib/journal";
 import { brandConfig } from "@/lib/config";
 import { withDefaultSocialImages } from "@/lib/seo";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
 // Covers can be signed R2 URLs; re-render within the TTL.
 export const revalidate = 1800;
@@ -20,7 +21,7 @@ export const metadata: Metadata = withDefaultSocialImages({
     title: `Journal | ${brandConfig.name}`,
     description: "Photography notes, location guides, and session tips.",
   },
-});
+}, "/journal");
 
 function formatDate(iso: string) {
   return new Date(`${iso}T12:00:00`).toLocaleDateString("en-CA", {
@@ -73,7 +74,7 @@ export default async function JournalPage() {
                                 fill
                                 className="object-cover transition duration-500 group-hover:scale-[1.04]"
                                 sizes="144px"
-                                unoptimized={post.coverUrl.startsWith("http")}
+                                unoptimized={shouldSkipOptimization(post.coverUrl)}
                               />
                             </div>
                           ) : null}

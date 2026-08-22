@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createShareLink, revokeShareLink } from "@/lib/share-links";
+import { siteUrl } from "@/lib/seo";
 
 export type ShareLinkActionState = {
   status: "idle" | "success" | "error";
@@ -62,8 +63,7 @@ export async function createShareLinkAction(
     });
 
     const siteOrigin =
-      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-      "https://nhihadhassan.ca";
+      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || siteUrl;
     const shareUrl = `${siteOrigin}/share/${token}`;
 
     revalidatePath(`/admin/galleries/${galleryId}/share`);

@@ -115,8 +115,8 @@ export default async function QuestionnairePage({
 
           <p className="mt-12 text-center text-sm text-ink/55">
             Questions? Email{" "}
-            <a href={`mailto:${brandConfig.contactEmail}`} className="font-medium text-ink underline underline-offset-4 decoration-ink/25 transition hover:decoration-ink">
-              {brandConfig.contactEmail}
+            <a href={`mailto:${brandConfig.publicContactEmail}`} className="font-medium text-ink underline underline-offset-4 decoration-ink/25 transition hover:decoration-ink">
+              {brandConfig.publicContactEmail}
             </a>
             .
           </p>

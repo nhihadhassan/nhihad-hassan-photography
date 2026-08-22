@@ -3,12 +3,12 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { withDefaultSocialImages } from "@/lib/seo";
+import { privatePageMetadata, withDefaultSocialImages } from "@/lib/seo";
 
-export const metadata: Metadata = withDefaultSocialImages({
+export const metadata: Metadata = privatePageMetadata(withDefaultSocialImages({
   title: "Custom package request received",
   description: "Your custom photography package request has been received.",
-});
+}));
 
 export default function CustomPackageConfirmationPage() {
   return (

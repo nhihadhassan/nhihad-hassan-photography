@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { siteUrl } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -9,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin/", "/api/", "/share/", "/galleries/"],
       },
     ],
-    sitemap: "https://nhihadhassan.ca/sitemap.xml",
+    sitemap: `${siteUrl}/sitemap.xml`,
   };
 }

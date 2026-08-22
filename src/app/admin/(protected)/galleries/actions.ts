@@ -159,7 +159,7 @@ async function extractDownloadPinChange(
 }
 
 const quickCreateSchema = z.object({
-  title: z.string().min(2, "Give the collection a title."),
+  title: z.string().min(2, "Give the gallery a title."),
   client_name: z.string().optional(),
   client_email: z.string().email("Enter a valid client email.").optional().or(z.literal("")),
   event_date: z.string().optional(),
@@ -173,25 +173,42 @@ const quickCreateSchema = z.object({
  * chosen preset's defaults, inserts a draft, and drops the admin straight into
  * the Photos tab to upload — the rest of the settings live on the Settings tab.
  */
-export async function createGalleryQuick(
-  _previousState: GalleryFormState,
-  formData: FormData,
-): Promise<GalleryFormState> {
-  await requireAdmin();
+export type QuickGalleryInput = {
+  title: string;
+  clientName?: string | null;
+  clientEmail?: string | null;
+  eventDate?: string | null;
+  location?: string | null;
+  presetId?: string | null;
+  coverFont?: string | null;
+};
 
+/**
+ * Insert a draft gallery from the minimal "new gallery" field set and return
+ * its id.
+ *
+ * Split out from createGalleryQuick so callers that need the id can have it.
+ * createGalleryQuick itself ends in a redirect and so can never return one,
+ * and the booking workspace needs the id to link the gallery to the job.
+ * Keeping the preset defaults, slug generation and cover default in one place
+ * means the two entry points cannot drift apart.
+ */
+export async function createGalleryRecord(
+  input: QuickGalleryInput,
+): Promise<{ ok: true; id: string } | { ok: false; message: string; fieldErrors?: Partial<Record<string, string[]>> }> {
   const parsed = quickCreateSchema.safeParse({
-    title: formData.get("title"),
-    client_name: formData.get("client_name") || undefined,
-    client_email: formData.get("client_email") || undefined,
-    event_date: formData.get("event_date") || undefined,
-    location: formData.get("location") || undefined,
-    preset_id: formData.get("preset_id") || undefined,
-    cover_font: formData.get("cover_font") || undefined,
+    title: input.title,
+    client_name: input.clientName || undefined,
+    client_email: input.clientEmail || undefined,
+    event_date: input.eventDate || undefined,
+    location: input.location || undefined,
+    preset_id: input.presetId || undefined,
+    cover_font: input.coverFont || undefined,
   });
 
   if (!parsed.success) {
     return {
-      status: "error",
+      ok: false,
       message: "Please check the highlighted fields.",
       fieldErrors: parsed.error.flatten().fieldErrors,
     };
@@ -229,14 +246,49 @@ export async function createGalleryQuick(
 
   if (error) {
     return {
-      status: "error",
-      message: error.code === "23505" ? "That title makes a link already in use. Try another." : error.message,
+      ok: false,
+      message:
+        error.code === "23505"
+          ? "That title makes a link already in use. Try another."
+          : error.message,
     };
   }
 
   revalidatePath("/admin");
   revalidatePath("/admin/galleries");
-  redirect(`/admin/galleries/${data.id}/photos`);
+  return { ok: true, id: data.id as string };
+}
+
+/**
+ * Minimal "New gallery" create. Captures only the essentials, applies the
+ * chosen preset's defaults, inserts a draft, and drops the admin straight into
+ * the Photos tab to upload -- the rest of the settings live on the Settings tab.
+ */
+export async function createGalleryQuick(
+  _previousState: GalleryFormState,
+  formData: FormData,
+): Promise<GalleryFormState> {
+  await requireAdmin();
+
+  const result = await createGalleryRecord({
+    title: String(formData.get("title") ?? ""),
+    clientName: formData.get("client_name") as string | null,
+    clientEmail: formData.get("client_email") as string | null,
+    eventDate: formData.get("event_date") as string | null,
+    location: formData.get("location") as string | null,
+    presetId: formData.get("preset_id") as string | null,
+    coverFont: formData.get("cover_font") as string | null,
+  });
+
+  if (!result.ok) {
+    return {
+      status: "error",
+      message: result.message,
+      fieldErrors: result.fieldErrors as GalleryFormState["fieldErrors"],
+    };
+  }
+
+  redirect(`/admin/galleries/${result.id}/photos`);
 }
 
 export async function createGallery(
@@ -477,7 +529,7 @@ export async function duplicateGallery(formData: FormData): Promise<{ ok: boolea
 
   revalidatePath("/admin");
   revalidatePath("/admin/galleries");
-  return { ok: true, message: "Collection duplicated.", id: data.id };
+  return { ok: true, message: "Gallery duplicated.", id: data.id };
 }
 
 export async function deleteGallery(formData: FormData) {

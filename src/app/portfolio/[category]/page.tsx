@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   return withDefaultSocialImages({
     title: `${label} Photography Toronto | Nhihad Hassan`,
     description: categoryMeta[category as PortfolioCategory]?.description ?? `${label} photography by Nhihad Hassan, Toronto-based photographer.`,
-  });
+  }, `/portfolio/${category}`);
 }
 
 /** Per-category hero description shown under the H1. */

@@ -8,6 +8,7 @@ import type { PortfolioCard } from "@/lib/portfolio";
 import { categoryLabels } from "@/data/photography";
 import { Reveal } from "@/components/reveal";
 import { cn, formatDisplayDate } from "@/lib/utils";
+import { shouldSkipOptimization } from "@/lib/image-urls";
 
 const TEXT_SHADOW = "[text-shadow:0_1px_10px_rgba(0,0,0,0.7)]";
 
@@ -35,7 +36,7 @@ function FeaturedCard({ item }: { item: PortfolioCard }) {
         fill
         sizes="(min-width: 768px) 40vw, 100vw"
         className="object-cover transition duration-700 ease-out group-hover:scale-[1.035]"
-        unoptimized={item.imageUrl.startsWith("http")}
+        unoptimized={shouldSkipOptimization(item.imageUrl)}
       />
       <div
         className={cn(

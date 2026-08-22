@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { brandConfig } from "@/lib/config";
 import { CONTENT_FIELDS, getAllContent } from "@/lib/site-content";
+import { getIntegrationStatuses, integrationStateLabel } from "@/lib/integrations";
 import { updateSiteContent, updateSiteSettings, updateTheme } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -42,26 +43,70 @@ export default async function AdminSettingsPage() {
         within a minute.
       </p>
 
-      {/* Settings sections hub: the scattered admin areas gathered in one place. */}
-      <nav aria-label="Settings sections" className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {[
+      {/* Grouped by what you are changing, rather than one flat list of
+          everything that did not fit in the sidebar. */}
+      <SettingsGroup
+        title="Your business"
+        blurb="How you charge and what clients agree to."
+        links={[
           { href: "/admin/pricing", title: "Packages and pricing", detail: "Your rates and package tiers." },
-          { href: "/admin/reminders", title: "Reminder rules", detail: "Automated client nudges." },
-          { href: "/admin/booking-agreement", title: "Contract template", detail: "The wording clients sign." },
-          { href: "/admin/questionnaires", title: "Questionnaires", detail: "Pre-shoot questions." },
-          { href: "/admin/access-logs", title: "Access logs", detail: "Who opened which gallery." },
-          { href: "/admin/download-logs", title: "Download logs", detail: "Full-gallery downloads." },
-        ].map((s) => (
-          <a
-            key={s.href}
-            href={s.href}
-            className="rounded-xl border border-admin-ink/10 bg-admin-surface p-4 transition hover:border-admin-ink/25"
-          >
-            <p className="text-sm font-medium text-admin-ink">{s.title}</p>
-            <p className="mt-1 text-xs text-admin-ink/65">{s.detail}</p>
-          </a>
-        ))}
-      </nav>
+          { href: "/admin/booking-agreement", title: "Contract wording", detail: "The terms clients sign." },
+          { href: "/admin/templates", title: "Contract templates", detail: "Reusable contract set-ups." },
+          { href: "/admin/questionnaires", title: "Questionnaires", detail: "Pre-shoot questions and answers." },
+        ]}
+      />
+
+      <SettingsGroup
+        title="Archives"
+        blurb="Cross-business views of records you normally reach from the job they belong to."
+        links={[
+          { href: "/admin/agreements", title: "All contracts", detail: "Every contract, signed and outstanding." },
+          { href: "/admin/access-logs", title: "Access logs", detail: "Who opened which gallery, in detail." },
+          { href: "/admin/download-logs", title: "Download logs", detail: "Full-gallery downloads, in detail." },
+        ]}
+      />
+
+      <SettingsGroup
+        title="Automations"
+        blurb="What the system sends on its own. Individual bookings can skip any of these from their own page."
+        links={[
+          { href: "/admin/reminders", title: "Reminder rules", detail: "Timing and limits for automated nudges." },
+        ]}
+      />
+
+      {/* Integrations */}
+      <section className="mt-8 rounded-md border border-admin-ink/10 bg-admin-surface p-5 sm:p-6">
+        <h2 className="text-base font-semibold tracking-tight text-admin-ink">Connections</h2>
+        <p className="mt-1 text-sm text-admin-ink/65">
+          The outside services this admin depends on, and what stops working if one is not
+          connected. No keys or passwords are shown here.
+        </p>
+        <ul className="mt-5 space-y-4">
+          {getIntegrationStatuses().map((integration) => (
+            <li
+              key={integration.id}
+              className="flex flex-col gap-1.5 border-b border-admin-ink/8 pb-4 last:border-0 last:pb-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-admin-ink">{integration.name}</p>
+                <p className="text-xs text-admin-ink/65">{integration.purpose}</p>
+                <p className="mt-1 text-xs text-admin-ink/72">{integration.detail}</p>
+              </div>
+              <span
+                className={`inline-flex shrink-0 items-center gap-1.5 self-start rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  integration.state === "connected"
+                    ? "bg-admin-status-positive-tint text-admin-status-positive"
+                    : integration.state === "partial"
+                      ? "bg-admin-status-waiting-tint text-admin-status-waiting"
+                      : "bg-admin-status-danger-tint text-admin-status-danger"
+                }`}
+              >
+                {integrationStateLabel(integration.state)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {/* Brand & contact */}
       <form
@@ -203,5 +248,34 @@ export default async function AdminSettingsPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+function SettingsGroup({
+  title,
+  blurb,
+  links,
+}: {
+  title: string;
+  blurb: string;
+  links: { href: string; title: string; detail: string }[];
+}) {
+  return (
+    <section className="mt-8">
+      <h2 className="text-base font-semibold tracking-tight text-admin-ink">{title}</h2>
+      <p className="mt-1 text-sm text-admin-ink/65">{blurb}</p>
+      <nav aria-label={title} className="mt-4 grid gap-3 sm:grid-cols-2">
+        {links.map((link) => (
+          <a
+            key={link.href}
+            href={link.href}
+            className="rounded-xl border border-admin-ink/10 bg-admin-surface p-4 transition hover:border-admin-ink/25"
+          >
+            <p className="text-sm font-medium text-admin-ink">{link.title}</p>
+            <p className="mt-1 text-xs text-admin-ink/65">{link.detail}</p>
+          </a>
+        ))}
+      </nav>
+    </section>
   );
 }

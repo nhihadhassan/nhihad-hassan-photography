@@ -3,7 +3,7 @@
 import { CommandPalette, type CommandItem } from "@/components/ui/command-palette";
 import { ToastProvider } from "@/components/ui/toast";
 import { AdminKeyboardLayer } from "@/components/admin-keyboard-layer";
-import { adminNavItems } from "@/lib/admin-nav";
+import { adminNavItems, adminSecondaryNavItems } from "@/lib/admin-nav";
 
 export type CommandRecord = { id: string; label: string; hint: string; href: string };
 
@@ -48,7 +48,22 @@ export function AdminCommandProvider({
       keywords: "add client contact",
       href: "/admin/clients",
     },
-    ...adminNavItems.map<CommandItem>((item) => ({
+    {
+      id: "create-contract",
+      label: "New contract",
+      group: "Create",
+      keywords: "add contract agreement sign",
+      href: "/admin/agreements",
+    },
+    {
+      id: "create-expense",
+      label: "Record a payment or expense",
+      group: "Create",
+      keywords: "money payment expense finance ledger",
+      href: "/admin/finances",
+    },
+    // Secondary destinations left the sidebar but must stay findable by name.
+    ...[...adminNavItems, ...adminSecondaryNavItems].map<CommandItem>((item) => ({
       id: `nav-${item.href}`,
       label: item.label,
       group: "Go to",

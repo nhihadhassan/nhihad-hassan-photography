@@ -89,6 +89,23 @@ export async function getAdminQuestionnaires(): Promise<Questionnaire[]> {
   return ((data ?? []) as Record<string, unknown>[]).map(map);
 }
 
+/** The live questionnaire for a booking, newest first, ignoring revoked ones. */
+export async function getQuestionnaireForBooking(
+  bookingId: string,
+): Promise<Questionnaire | null> {
+  const admin = getServiceRoleSupabaseClient();
+  const { data, error } = await admin
+    .from("questionnaires")
+    .select("*")
+    .eq("booking_id", bookingId)
+    .is("revoked_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) return null;
+  return map(data as Record<string, unknown>);
+}
+
 export async function getQuestionnaireByToken(token: string): Promise<Questionnaire | null> {
   const admin = getServiceRoleSupabaseClient();
   const { data } = await admin

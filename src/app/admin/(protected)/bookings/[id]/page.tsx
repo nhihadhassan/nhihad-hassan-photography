@@ -21,6 +21,13 @@ import {
   listInvoiceDeliveriesForBooking,
   successfulInvoiceDelivery,
 } from "@/lib/invoice-deliveries";
+import { getQuestionnaireForBooking } from "@/lib/questionnaires";
+import { getAdminReviewRequests } from "@/lib/reviews";
+import { getMutedKindsForBooking, getReminderRules } from "@/lib/reminder-rules";
+import { bookingLifecycle, upcomingAutomations } from "@/lib/booking-lifecycle";
+import { BookingLifecycleStrip } from "@/components/booking-lifecycle-strip";
+import { BookingContextActions } from "@/components/booking-context-actions";
+import { BookingAutomations } from "@/components/booking-automations";
 
 export const dynamic = "force-dynamic";
 
@@ -45,13 +52,28 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
   const booking = await getBookingById(id);
   if (!booking) notFound();
 
-  const [timeline, agreements, galleries, invoiceDeliveries, invoice, receipts] = await Promise.all([
+  const [
+    timeline,
+    agreements,
+    galleries,
+    invoiceDeliveries,
+    invoice,
+    receipts,
+    questionnaire,
+    reviewRequests,
+    reminderRules,
+    mutedKinds,
+  ] = await Promise.all([
     getBookingTimeline(booking),
     getAdminAgreementRequests(),
     getAdminGalleries(),
     listInvoiceDeliveriesForBooking(booking.id),
     getInvoiceView(booking),
     listReceiptsForBooking(booking.id),
+    getQuestionnaireForBooking(booking.id),
+    getAdminReviewRequests(),
+    getReminderRules(),
+    getMutedKindsForBooking(booking.id),
   ]);
 
   const agreement = agreements.find((a) => a.id === booking.agreement_request_id) ?? null;
@@ -74,6 +96,44 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
   });
 
   const clientName = booking.client_name ?? booking.shoot_type ?? "Booking";
+
+  // Reviews are gallery-scoped, so a booking's review is the request against
+  // the gallery it delivered through.
+  const reviewRequest = booking.gallery_id
+    ? reviewRequests.find((r) => r.gallery_id === booking.gallery_id && !r.revoked_at) ?? null
+    : null;
+
+  const lifecycle = bookingLifecycle({
+    contractSentAt: agreement?.sent_at ?? null,
+    contractSignedAt: agreement?.signed_at ?? null,
+    contractRevokedAt: agreement?.revoked_at ?? null,
+    total,
+    paid,
+    questionnaireSentAt: questionnaire?.sent_at ?? null,
+    questionnaireSubmittedAt: questionnaire?.submitted_at ?? null,
+    shootStartAt: booking.start_at,
+    shootEndAt: booking.end_at,
+    galleryExists: Boolean(gallery),
+    galleryPublished: Boolean(gallery?.is_published),
+    reviewReceivedAt: reviewRequest?.google_clicked_at ?? null,
+    now: new Date(),
+  });
+
+  // Only offer to create the things this job does not have yet.
+  const contextActions: { kind: "contract" | "questionnaire" | "gallery"; label: string }[] = [];
+  if (!agreement) contextActions.push({ kind: "contract", label: "Draft a contract" });
+  if (!questionnaire) contextActions.push({ kind: "questionnaire", label: "Send a questionnaire" });
+  if (!gallery) contextActions.push({ kind: "gallery", label: "Create the gallery" });
+
+  const automations = upcomingAutomations({
+    rules: reminderRules,
+    muted: mutedKinds,
+    startAt: booking.start_at,
+    balance,
+    paid,
+    galleryPublished: Boolean(gallery?.is_published),
+    hasClientEmail: Boolean(booking.client_email),
+  });
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -119,6 +179,8 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
         </div>
       </header>
 
+      <BookingLifecycleStrip steps={lifecycle} />
+
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_20rem]">
         {/* Left: activity timeline */}
         <section aria-label="Activity">
@@ -135,6 +197,10 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
             <p className="text-sm font-medium text-admin-ink">{booking.client_name ?? "No name"}</p>
             {booking.client_email ? <CopyText value={booking.client_email} /> : null}
           </RailBlock>
+
+          <BookingContextActions bookingId={booking.id} available={contextActions} />
+
+          <BookingAutomations bookingId={booking.id} automations={automations} />
 
           {balance > 0.005 ? <ConfirmPaymentInline bookingId={booking.id} balance={balance} /> : null}
 
@@ -180,6 +246,28 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
               <p className="text-sm text-admin-muted">No contract linked.</p>
             )}
           </RailBlock>
+
+          {questionnaire ? (
+            <RailBlock title="Questionnaire">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm text-admin-ink">
+                  {questionnaire.submitted_at
+                    ? "Completed"
+                    : questionnaire.sent_at
+                      ? "Sent, not answered"
+                      : "Created, not sent"}
+                </span>
+                <a
+                  href={`/questionnaire/${questionnaire.token}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-admin-accent hover:text-admin-ink"
+                >
+                  View <ExternalLink className="size-3.5" aria-hidden="true" />
+                </a>
+              </div>
+            </RailBlock>
+          ) : null}
 
           <RailBlock title="Invoice">
             {total > 0 ? (
@@ -283,7 +371,7 @@ export default async function BookingWorkspacePage({ params }: { params: Promise
 
 type NextActionInput = {
   booking: Awaited<ReturnType<typeof getBookingById>>;
-  agreement: { sent_at: string | null; signed_at: string | null; revoked_at: string | null } | null;
+  agreement: { id: string; sent_at: string | null; signed_at: string | null; revoked_at: string | null } | null;
   gallery: { is_published: boolean } | null;
   paid: number;
   balance: number;
@@ -305,17 +393,18 @@ function suggestNextAction({
   if (!booking) return null;
   const startMs = booking.start_at ? new Date(booking.start_at).getTime() : null;
   const now = Date.now();
-  if (!agreement || !agreement.sent_at) return { label: "Send contract", href: "/admin/agreements" };
-  if (!signed && !agreement.revoked_at) return { label: "Nudge the contract", href: "/admin/agreements" };
+  // A booking with no contract at all is handled by the "Start from this job"
+  // actions in the rail, which draft one prefilled from this booking rather
+  // than sending the admin to the global module to re-pick the same client.
+  if (!agreement) return null;
+  if (!agreement.sent_at) return { label: "Send the contract", href: `/admin/agreements/${agreement.id}/edit` };
+  if (!signed && !agreement.revoked_at) return { label: "Nudge the contract", href: `/admin/agreements/${agreement.id}/edit` };
   if (signed && balance > 0.5 && !invoiceSent) return { label: "Send invoice", href: `/admin/invoices/${booking.id}/edit` };
   if (signed && paid <= 0) return { label: "Record deposit", href: `/admin/invoices/${booking.id}/preview` };
   if (balance > 0.5 && startMs && startMs <= now + 7 * 24 * 60 * 60 * 1000)
     return { label: "Send balance reminder", href: `/admin/invoices/${booking.id}/preview` };
-  if (!gallery?.is_published && booking.stage !== "inquiry")
-    return {
-      label: "Deliver gallery",
-      href: booking.gallery_id ? `/admin/galleries/${booking.gallery_id}` : "/admin/galleries",
-    };
+  if (booking.gallery_id && !gallery?.is_published && booking.stage !== "inquiry")
+    return { label: "Deliver gallery", href: `/admin/galleries/${booking.gallery_id}` };
   return null;
 }
 

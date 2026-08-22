@@ -1,5 +1,6 @@
 import "server-only";
-import { getAdminGalleries, getAdminInquiries, type GalleryRecord, type InquiryRecord } from "@/lib/admin-data";
+import { getAdminGalleries, type GalleryRecord } from "@/lib/admin-data";
+import { getAdminInquiries, type InquiryRecord } from "@/lib/inquiries";
 import { getAdminBookings, type BookingWithLinks } from "@/lib/bookings";
 import { getAdminAgreementRequests, type AgreementRequest } from "@/lib/agreements";
 import { getAdminClientReviews, type ClientReview } from "@/lib/reviews";

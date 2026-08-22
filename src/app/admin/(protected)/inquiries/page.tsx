@@ -1,99 +1,116 @@
 import { EmptyState } from "@/components/empty-state";
+import { InquiryCard, type InquiryCardData } from "@/components/inquiry-card";
 import { requireAdmin } from "@/lib/auth";
-import { getAdminInquiries } from "@/lib/admin-data";
+import { getAdminInquiries } from "@/lib/inquiries";
+import { isTerminalInquiryStatus, needsReply } from "@/lib/inquiry-lifecycle";
 import { formatCompactDate } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminInquiriesPage() {
   await requireAdmin();
 
   const inquiries = await getAdminInquiries();
 
+  const cards: InquiryCardData[] = inquiries.map((inquiry) => ({
+    id: inquiry.id,
+    name: inquiry.name,
+    email: inquiry.email,
+    phone: inquiry.phone,
+    eventType: inquiry.event_type,
+    packageName: inquiry.package_name,
+    eventDate: inquiry.event_date ? formatCompactDate(inquiry.event_date) : null,
+    eventTime: inquiry.event_time,
+    location: inquiry.location,
+    budget: inquiry.budget,
+    referralSource: inquiry.referral_source,
+    message: inquiry.message,
+    createdLabel: formatCompactDate(inquiry.created_at),
+    status: inquiry.status,
+    bookingId: inquiry.booking_id,
+  }));
+
+  // Open leads first -- these are the ones with work left on them. Converted
+  // and lost leads stay on the page, below, because the record of what did not
+  // book is worth keeping and is never deleted.
+  const open = cards.filter((c) => !isTerminalInquiryStatus(c.status));
+  const closed = cards.filter((c) => isTerminalInquiryStatus(c.status));
+  const unanswered = open.filter((c) => needsReply(c.status)).length;
+
   return (
-    <div className="mx-auto max-w-6xl">
-      <div>
-        <p className="text-sm font-medium text-admin-accent">Client requests</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">Inquiries</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-ink/60">
-          Submissions from the public contact form. Reply to confirm the booking, then send deposit
-          instructions separately via email.
+    <div className="mx-auto max-w-5xl">
+      <header>
+        <p className="text-sm font-medium text-admin-accent">Leads</p>
+        <h1 className="admin-display mt-1 text-3xl text-admin-ink">Inquiries</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-admin-muted">
+          Everyone who has asked about a shoot. Move a lead along as you talk to them, and convert
+          it when it becomes a job -- the booking is created with their name, contact details,
+          requested date, service, location and message already filled in.
         </p>
+      </header>
+
+      <div className="mt-6 flex flex-wrap gap-2 text-sm">
+        <Stat label="Open" value={open.length} />
+        <Stat label="Awaiting a reply" value={unanswered} highlight={unanswered > 0} />
+        <Stat label="Booked" value={cards.filter((c) => c.status === "converted").length} />
+        <Stat label="Not booked" value={cards.filter((c) => c.status === "lost").length} />
       </div>
 
-      <div className="mt-6 rounded-md border border-admin-accent/30 bg-admin-copper/8 px-5 py-4 text-sm leading-6 text-admin-ink/75">
-        <p className="font-medium text-admin-ink">Payment workflow: Interac e-Transfer</p>
-        <ol className="mt-2 list-decimal pl-5 space-y-1">
-          <li>Review inquiry and reply to confirm the booking date.</li>
-          <li>
-            Email deposit instructions: send an Interac e-Transfer request to the client&apos;s email for the
-            deposit amount. Include your e-Transfer email address and any security question/answer.
-          </li>
-          <li>Once the deposit is received, update the gallery&apos;s <strong>Deposit status</strong> field.</li>
-          <li>After the event, request the remaining balance via e-Transfer and mark it <strong>Paid in full</strong> when received.</li>
-        </ol>
-        <p className="mt-3 text-admin-ink/65 text-xs">
-          No payment is collected through this website. Deposit status is tracked per gallery under{" "}
-          <strong>Admin → Galleries → [gallery] → Payment</strong>.
-        </p>
-      </div>
-      {inquiries.length ? (
-        <div className="mt-8 grid gap-4">
-          {inquiries.map((inquiry) => (
-            <article key={inquiry.id} className="rounded-md border border-admin-ink/10 bg-admin-surface p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold tracking-tight">{inquiry.name}</h2>
-                  <p className="mt-1 text-sm text-admin-ink/65">
-                    <a href={`mailto:${inquiry.email}`} className="hover:text-admin-accent">
-                      {inquiry.email}
-                    </a>
-                    {inquiry.phone ? ` · ${inquiry.phone}` : ""}
-                  </p>
-                </div>
-                <p className="text-sm text-admin-ink/65">{formatCompactDate(inquiry.created_at)}</p>
-              </div>
-              <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <dt className="text-admin-ink/65">Event type</dt>
-                  <dd className="mt-1">{inquiry.event_type ?? "Not provided"}</dd>
-                </div>
-                <div>
-                  <dt className="text-admin-ink/65">Package</dt>
-                  <dd className="mt-1">{inquiry.package_name ?? "Not provided"}</dd>
-                </div>
-                <div>
-                  <dt className="text-admin-ink/65">Requested date and time</dt>
-                  <dd className="mt-1">
-                    {formatCompactDate(inquiry.event_date)}
-                    {inquiry.event_time ? ` at ${inquiry.event_time}` : ""}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-admin-ink/65">Location</dt>
-                  <dd className="mt-1">{inquiry.location ?? "Not provided"}</dd>
-                </div>
-                <div>
-                  <dt className="text-admin-ink/65">Budget</dt>
-                  <dd className="mt-1">{inquiry.budget ?? "Not provided"}</dd>
-                </div>
-                <div>
-                  <dt className="text-admin-ink/65">Referral</dt>
-                  <dd className="mt-1">{inquiry.referral_source ?? "Not provided"}</dd>
-                </div>
-              </dl>
-              <p className="mt-5 whitespace-pre-wrap rounded-md bg-admin-bg p-4 text-sm leading-6 text-admin-ink/72">
-                {inquiry.message}
-              </p>
-            </article>
+      {open.length ? (
+        <div className="mt-7 grid gap-4">
+          {open.map((inquiry) => (
+            <InquiryCard key={inquiry.id} inquiry={inquiry} />
           ))}
         </div>
       ) : (
         <div className="mt-8">
           <EmptyState
-            title="No inquiries yet."
-            description="When someone submits the public contact form, their request will appear here with event details and message context."
+            title={cards.length ? "No open leads." : "No inquiries yet."}
+            description={
+              cards.length
+                ? "Everything that has come in has been booked or closed out."
+                : "When someone submits the public contact form, their request appears here with their event details and message."
+            }
           />
         </div>
       )}
+
+      {closed.length ? (
+        <section className="mt-12">
+          <h2 className="admin-display text-xl text-admin-ink">Closed</h2>
+          <p className="mt-1 text-sm text-admin-muted">
+            Kept so you can see what booked and what did not.
+          </p>
+          <div className="mt-4 grid gap-4">
+            {closed.map((inquiry) => (
+              <InquiryCard key={inquiry.id} inquiry={inquiry} />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: number;
+  highlight?: boolean;
+}) {
+  return (
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 ${
+        highlight
+          ? "border-admin-status-danger/30 bg-admin-status-danger-tint text-admin-status-danger"
+          : "border-admin-line bg-admin-surface text-admin-muted"
+      }`}
+    >
+      <span className="font-semibold tabular-nums">{value}</span>
+      {label}
+    </span>
   );
 }

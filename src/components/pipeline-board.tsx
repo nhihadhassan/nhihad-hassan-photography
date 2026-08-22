@@ -14,6 +14,16 @@ type MoneyTone = "positive" | "warning" | "neutral";
 
 export type PipelineCard = {
   id: string;
+  /**
+   * Leads and bookings share the board so the pipeline starts where the work
+   * actually starts, but they are different records with different rules: a
+   * lead has no money, no shoot date, and cannot be dragged between booking
+   * stages. Advancing a lead happens on the Inquiries page, where converting
+   * is a deliberate action rather than a drag that could fire by accident.
+   */
+  kind: "booking" | "lead";
+  /** Where clicking the card goes. */
+  href: string;
   title: string;
   packageLabel: string;
   shootLabel: string;
@@ -51,6 +61,8 @@ export function PipelineBoard({ cards, packages }: { cards: PipelineCard[]; pack
   function commitMove(id: string, toStage: BookingStage) {
     const card = local.find((c) => c.id === id);
     if (!card || card.stage === toStage) return;
+    // moveBookingStageAction writes to bookings; a lead is not one.
+    if (card.kind === "lead") return;
     const fromStage = card.stage;
 
     const apply = (stage: BookingStage) =>
@@ -232,6 +244,30 @@ function PipelineCardView({
   const idx = BOOKING_STAGES.indexOf(card.stage);
   const prev = idx > 0 ? BOOKING_STAGES[idx - 1] : null;
   const next = idx < BOOKING_STAGES.length - 1 ? BOOKING_STAGES[idx + 1] : null;
+  const isLead = card.kind === "lead";
+
+  if (isLead) {
+    return (
+      <div className="rounded-lg border border-dashed border-admin-line-strong bg-admin-bg p-3">
+        <Link href={card.href} className="block">
+          <p className="text-sm font-medium leading-snug text-admin-ink hover:text-admin-accent">
+            {card.title}
+          </p>
+          <p className="mt-0.5 text-xs text-admin-muted">
+            {[card.packageLabel, card.shootLabel].filter(Boolean).join(" · ") || "No details yet"}
+          </p>
+        </Link>
+        <div className="mt-2 flex items-center gap-1.5">
+          <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium", MONEY_TONE[card.money.tone])}>
+            {card.money.label}
+          </span>
+          <span className={cn("text-[11px] tabular-nums", card.stale ? "text-admin-status-danger" : "text-admin-muted")}>
+            {card.daysInStage}d old
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -242,7 +278,7 @@ function PipelineCardView({
         card.stale ? "border-admin-status-danger/40" : "border-admin-line",
       )}
     >
-      <Link href={`/admin/bookings/${card.id}`} className="block">
+      <Link href={card.href} className="block">
         <p className="text-sm font-medium leading-snug text-admin-ink hover:text-admin-accent">{card.title}</p>
         <p className="mt-0.5 text-xs text-admin-muted">
           {[card.packageLabel, card.shootLabel].filter(Boolean).join(" · ")}
@@ -303,10 +339,10 @@ function PipelineList({ cards }: { cards: PipelineCard[] }) {
       rows={cards}
       columns={columns}
       getRowId={(c) => c.id}
-      getRowHref={(c) => `/admin/bookings/${c.id}`}
+      getRowHref={(c) => c.href}
       searchText={(c) => `${c.title} ${c.packageLabel}`}
-      searchPlaceholder="Search bookings"
-      emptyState="No bookings match."
+      searchPlaceholder="Search the pipeline"
+      emptyState="Nothing matches."
     />
   );
 }
